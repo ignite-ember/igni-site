@@ -109,7 +109,7 @@ Measured with the real igni image doing real work through the gateway, on one ba
 | Suspended snapshot | 155 ms | 194 ms | 146 ms | 203 ms |
 | Cold | 137 ms | 188 ms | 139 ms | 206 ms |
 
-The 300-agent column had the gateway keep each producer's VM profile for a day (`igni_server.profile_stale_max_s`). With the default 5 minutes, a burst of wakes waits on igni server's `vm-profile` and paused wakes took 92–116 ms p50 at 100–300 agents. 398 paused agents used 79 GiB of the server's 503 GiB.
+The 300-agent column had the gateway keep each producer's VM profile for a day; when it still fetched the profile from igni server on a wake, paused wakes took 92–116 ms p50 at 100–300 agents. The gateway now keeps each producer's profile from igni server's feed of producers and asks igni server nothing on a wake: with 100 agents woken at once after a long idle, its own part of the wake went from 3.9–4.9 s to 0.2–0.5 s p50 (`RESULTS.md`, "The profile from the feed"). 398 paused agents used 79 GiB of the server's 503 GiB.
 
 The raw results, and earlier measurements with a smaller test guest and on bare metal, are in `RESULTS.md` in the Fleet repository. Measure on your own hardware before you size a cluster.
 
