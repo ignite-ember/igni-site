@@ -1,4 +1,4 @@
-The igni server is the backend half of a self-hosted install: a FastAPI service that holds accounts, organisations and the model-key pool, plus an admin portal. You run it yourself — there is no hosted deployment to point at. This page covers what needs it, what you have to bring, and the two shapes it ships in: a Helm chart for Kubernetes and a Docker Compose stack for a single host.
+The igni server is the backend half of a self-hosted install: a FastAPI service that holds accounts, organisations and the model-key pool, plus an admin portal. You run it yourself — there is no hosted deployment to point at. This page covers what needs it, what you have to bring, and the two shapes it ships in: a Helm chart for Kubernetes and a Docker Compose stack for a single host. It is open source under Apache-2.0, at [github.com/ignite-ember/igni-server](https://github.com/ignite-ember/igni-server).
 
 ## What needs a server
 
@@ -19,11 +19,11 @@ The portal is the other consumer: team, groups, access review, audit and usage a
 |---|---|---|
 | PostgreSQL | yes | Not deployed by the chart. `postgres.host` has no default and rendering fails without it |
 | Redis | yes | Not deployed by the chart. `redis.host` likewise; `redis.db` defaults to `10` |
-| SMTP or SES | no | `email.enabled: false`. Without a relay, sign-in codes are written to the application log |
+| SMTP or SES | no | `email.enabled: false`. Without a relay, sign-in codes reach nobody unless you turn on `email.logSignInCodes` |
 
 The chart bundles no database subchart deliberately: a bundled store is a second thing to patch and back up, and a chart dependency has to be fetched over a network an air-gapped install does not have.
 
-The no-relay default is worth saying plainly. With `EMAIL_ENABLED=false`, `record_undeliverable_code` puts sign-in and password-reset codes into the log for an operator to relay. Anyone who can read your logs can sign in as anybody. The startup check warns about this on every boot outside `dev`.
+Without a relay, sign-in and password-reset codes are sent nowhere: the log records that a code was issued and not delivered, but not the code. For a first setup before email works, set `LOG_SIGN_IN_CODES=true` (`email.logSignInCodes` in the chart) and the codes go to the application log for an operator to pass on. While it is on, anyone who can read your logs can sign in as anybody, so the server says so at every start, in the same log line as every code, and in a banner super admins see in the portal. Turn it off once email works.
 
 ## Getting the images
 

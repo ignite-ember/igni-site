@@ -94,7 +94,7 @@ Your own vLLM nodes, described as a JSON array, from `INFERENCE_BACKENDS_PATH` (
 
 ## Email
 
-Off by default and pointing nowhere: `EMAIL_ENABLED=false`, `SMTP_HOST=''`. That is a supported configuration — with no relay, sign-in and password-reset codes are written to the application log for an operator to pass on. Know what that means before you leave it: anyone who can read those logs can sign in as any user.
+Off by default and pointing nowhere: `EMAIL_ENABLED=false`, `SMTP_HOST=''`. That is a supported configuration, but with no relay sign-in and password-reset codes reach nobody. For a first setup before email works, `LOG_SIGN_IN_CODES=true` writes them to the application log for an operator to pass on; while it is on, anyone who can read those logs can sign in as any user, and the server warns at every start and shows super admins a banner in the portal. It is off by default. Amazon SES (`EMAIL_BACKEND=ses`) counts as a relay.
 
 | Setting | Default |
 |---|---|
@@ -183,7 +183,7 @@ The chart omits empty optional secret values rather than writing `""`. It refuse
 python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())'
 ```
 
-To rotate it, put the old key in `SECRET_ENCRYPTION_KEYS_PREVIOUS` (comma-separated, decrypt-only), deploy, run `python tools/rotate_secret_key.py --apply`, then clear it. The server warns on every boot while it is set, because the old key is still a working key until you finish. The rotation re-encrypts the stored signing key with everything else.
+To rotate it, put the old key in `SECRET_ENCRYPTION_KEYS_PREVIOUS` (comma-separated, decrypt-only), deploy, run `python tools/rotate_secret_key.py --apply`, then clear it. The server warns on every boot while it is set, because the old key is still a working key until you finish. The rotation re-encrypts every encrypted value, in the shared database and in every organisation's own database, including the stored signing key and inference nodes' API keys; it is safe to run again if it is interrupted, and it exits non-zero if any value cannot be read, in which case keep the old key. Values in Redis (pending sign-in codes, self-registered nodes' keys) are not re-encrypted but expire within minutes, so wait at least 10 minutes after deploying before you clear the old key.
 
 The signing key rotates separately, with no configuration change: `python tools/rotate_signing_key.py --stage`, run from a checkout of the server repository with the deployment's Postgres settings and `SECRET_ENCRYPTION_KEY` in its environment. The new key is published at once and signs ten minutes later, so every replica and every service has it first; the old one keeps verifying what it signed for 31 days. Without `--stage` it lists the keys and which one is signing.
 
