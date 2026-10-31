@@ -1,0 +1,82 @@
+{
+  "units": "percent of the image (x, y = top-left corner); the same for the light and dark PNG of each shot",
+  "measured_with": "locator.boundingBox() in e2e/landing-shot-extensions.spec.ts",
+  "app": {
+    "image": "igni-claims-app-{light,dark}.png",
+    "zones": {
+      "sidebar_app_entry": {
+        "x": 1.25,
+        "y": 27.68,
+        "width": 17.73,
+        "height": 4.64
+      },
+      "extension_page_frame": {
+        "x": 20.31,
+        "y": 11.25,
+        "width": 79.69,
+        "height": 88.75
+      },
+      "indicator_chip": null,
+      "menu_entry": null,
+      "composer": null
+    },
+    "notes": [
+      "indicator_chip: null when the open page covers the status line it sits in (it does in this client).",
+      "menu_entry: not captured. The tools menu opens from the composer, which is hidden while an extension page is open.",
+      "composer: hidden while a page is open, so not in this image."
+    ]
+  },
+  "app_mobile": {
+    "image": "igni-claims-app-mobile-{light,dark}.png",
+    "zones": {
+      "sidebar_app_entry": null,
+      "extension_page_frame": {
+        "x": 0,
+        "y": 12.27,
+        "width": 100,
+        "height": 87.73
+      },
+      "indicator_chip": null
+    },
+    "notes": [
+      "sidebar_app_entry: the sidebar is folded away at phone width, so it is not in the image. The page was opened from the indicator chip.",
+      "indicator_chip: null when the open page covers the status line it sits in (it does in this client)."
+    ]
+  },
+  "chat": {
+    "image": "igni-claims-chat-{light,dark}.png",
+    "zones": {
+      "sidebar_app_entry": {
+        "x": 1.25,
+        "y": 27.68,
+        "width": 17.73,
+        "height": 4.64
+      },
+      "indicator_chip": {
+        "x": 75.16,
+        "y": 95.31,
+        "width": 9.32,
+        "height": 3.58
+      },
+      "extension_message": {
+        "x": 40.25,
+        "y": 11.09,
+        "width": 48.34,
+        "height": 12.22
+      },
+      "json_render_card": {
+        "x": 31.72,
+        "y": 33.78,
+        "width": 56.88,
+        "height": 35.45
+      },
+      "composer": {
+        "x": 30.16,
+        "y": 80.72,
+        "width": 60,
+        "height": 12.08
+      }
+    },
+    "notes": []
+  }
+}

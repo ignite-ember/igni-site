@@ -1,0 +1,191 @@
+/**
+ * Styling for the two documentation diagrams.
+ *
+ * Everything is a Primer token so the figures follow the reader's
+ * theme with no second palette: the portal already redefines these
+ * under light and dark, and a diagram with its own hex values would be
+ * the one thing on the page that did not change.
+ *
+ * Colour is used for exactly three states — confirmed, candidate,
+ * dismissed — and never as the only signal: a dismissed edge is also
+ * dashed and dimmed, a stale pin is also labelled "stale". The same
+ * figure has to work for a reader who cannot tell the greens from the
+ * reds.
+ */
+
+.dd-figure {
+  margin: var(--stack-gap-normal, 16px) 0 var(--stack-gap-spacious, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap-condensed, 8px);
+}
+
+/* Wide figures scroll inside their own box; the article body must
+   never scroll sideways. */
+.dd-scroll {
+  overflow-x: auto;
+  border: var(--borderWidth-thin, 1px) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium, 6px);
+  background: var(--bgColor-muted, #f6f8fa);
+  padding: var(--base-size-12, 12px);
+}
+
+.dd-svg {
+  display: block;
+  width: 100%;
+  min-width: 620px;
+  height: auto;
+  font-family: var(--fontStack-system, -apple-system, system-ui, sans-serif);
+}
+
+.dd-figure figcaption {
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small, 12px);
+  line-height: 1.6;
+}
+
+/* ── Nodes ─────────────────────────────────────────────────────── */
+
+.dd-node rect {
+  fill: var(--bgColor-default, #fff);
+  stroke: var(--borderColor-default, #d0d7de);
+  stroke-width: 1.5;
+}
+
+.dd-node text {
+  fill: var(--fgColor-default, #1f2328);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dd-node text.dd-sub {
+  fill: var(--fgColor-muted, #656d76);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.dd-node-focus rect {
+  stroke: var(--fgColor-accent, #1f6feb);
+  stroke-width: 2;
+  fill: var(--bgColor-accent-muted, rgba(31, 111, 235, 0.08));
+}
+
+.dd-node-draft rect {
+  fill: transparent;
+  stroke-dasharray: 5 4;
+}
+
+.dd-node-dim rect,
+.dd-node-hidden rect {
+  fill: transparent;
+  stroke-dasharray: 4 4;
+  opacity: 0.65;
+}
+
+.dd-node-hidden text {
+  fill: var(--fgColor-muted, #656d76);
+  font-weight: 400;
+  font-style: italic;
+}
+
+.dd-node-reject rect {
+  fill: var(--bgColor-danger-muted, rgba(207, 34, 46, 0.08));
+  stroke: var(--fgColor-danger, #cf222e);
+}
+
+.dd-node-reject text {
+  fill: var(--fgColor-danger, #cf222e);
+  font-size: 12px;
+}
+
+/* ── Edges ─────────────────────────────────────────────────────── */
+
+.dd-edge {
+  fill: none;
+  stroke-width: 1.75;
+}
+
+.dd-edge-confirmed {
+  stroke: var(--fgColor-accent, #1f6feb);
+}
+
+.dd-edge-candidate {
+  stroke: var(--fgColor-muted, #656d76);
+  stroke-dasharray: 6 4;
+}
+
+.dd-edge-dismissed {
+  stroke: var(--borderColor-default, #d0d7de);
+  stroke-dasharray: 3 5;
+}
+
+.dd-edge-reject {
+  stroke: var(--fgColor-danger, #cf222e);
+  stroke-dasharray: 6 4;
+}
+
+.dd-edge-note {
+  stroke: var(--borderColor-default, #d0d7de);
+  stroke-dasharray: 2 4;
+  stroke-width: 1.25;
+}
+
+.dd-arrowhead {
+  fill: var(--fgColor-accent, #1f6feb);
+}
+
+.dd-arrowhead.dd-muted {
+  fill: var(--fgColor-muted, #656d76);
+}
+
+.dd-arrowhead.dd-reject-fill {
+  fill: var(--fgColor-danger, #cf222e);
+}
+
+/* ── Labels ────────────────────────────────────────────────────── */
+
+.dd-edge-label,
+.dd-axis,
+.dd-note {
+  fill: var(--fgColor-muted, #656d76);
+  font-size: 11px;
+}
+
+.dd-axis {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.dd-note {
+  font-size: 11px;
+  font-style: italic;
+}
+
+.dd-edge-label.dd-confirmed {
+  fill: var(--fgColor-accent, #1f6feb);
+  font-weight: 600;
+}
+
+.dd-edge-label.dd-reject {
+  fill: var(--fgColor-danger, #cf222e);
+  font-weight: 600;
+}
+
+.dd-edge-label.dd-muted {
+  opacity: 0.8;
+}
+
+/* ── The version pin ───────────────────────────────────────────── */
+
+.dd-pin circle {
+  fill: var(--bgColor-default, #fff);
+  stroke: var(--fgColor-accent, #1f6feb);
+  stroke-width: 1.75;
+}
+
+.dd-pin text {
+  fill: var(--fgColor-accent, #1f6feb);
+  font-size: 11px;
+  font-weight: 700;
+}

@@ -1,0 +1,272 @@
+/**
+ * The download page.
+ *
+ * Shares the landing page's shell — `.landing`, `.landing-nav`,
+ * `.landing-footer` — so the two read as one site, and owns
+ * everything inside it. Primer tokens throughout rather than the
+ * landing page's brand palette: this page is a utility, and the job
+ * is "find your file and go", not atmosphere.
+ *
+ * One deliberate exception to the quietness: the primary button is
+ * the only accent-filled element on the page. Everything else is a
+ * border and a label, so the thing most visitors came for is the
+ * thing their eye lands on.
+ */
+
+.dl {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap-spacious, 24px);
+}
+
+.dl h2 {
+  font-size: var(--text-title-size-medium, 20px);
+  font-weight: var(--base-text-weight-semibold, 600);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--stack-gap-condensed, 8px);
+}
+
+.dl h3 {
+  font-size: var(--text-body-size-medium, 14px);
+  font-weight: var(--base-text-weight-semibold, 600);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--stack-gap-condensed, 8px);
+}
+
+.dl-lede {
+  color: var(--fgColor-muted);
+  line-height: 1.65;
+  max-width: 62ch;
+  margin: 0;
+}
+
+.dl section {
+  width: min(100%, 980px);
+  margin-inline: auto;
+  padding-inline: var(--base-size-24, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap-normal, 16px);
+}
+
+/* ── Hero ──────────────────────────────────────────────────────── */
+
+.dl-hero {
+  width: min(100%, 980px);
+  margin-inline: auto;
+  padding: var(--base-size-40, 40px) var(--base-size-24, 24px) var(--base-size-16, 16px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--stack-gap-normal, 16px);
+}
+
+.dl-hero h1 {
+  font-size: var(--text-display-size, 40px);
+  font-weight: var(--base-text-weight-semibold, 600);
+  letter-spacing: -0.02em;
+  margin: 0;
+  text-wrap: balance;
+}
+
+.dl-hero-meta {
+  display: flex;
+  gap: var(--stack-gap-normal, 16px);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small, 12px);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────── */
+
+.dl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--stack-gap-condensed, 8px);
+  border-radius: var(--borderRadius-medium, 6px);
+  font-weight: var(--base-text-weight-semibold, 600);
+  text-decoration: none;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.dl-btn-primary {
+  background: var(--bgColor-accent-emphasis, #0969da);
+  color: var(--fgColor-onEmphasis, #fff);
+  padding: var(--base-size-12, 12px) var(--base-size-24, 24px);
+  font-size: var(--text-body-size-large, 16px);
+}
+
+.dl-btn-primary:hover {
+  background: var(--button-primary-bgColor-hover, #0860ca);
+}
+
+.dl-btn-secondary {
+  border: var(--borderWidth-thin, 1px) solid var(--borderColor-default);
+  color: var(--fgColor-default);
+  padding: var(--base-size-8, 8px) var(--base-size-16, 16px);
+  font-size: var(--text-body-size-medium, 14px);
+  align-self: flex-start;
+}
+
+.dl-btn-secondary:hover {
+  background: var(--bgColor-muted);
+  border-color: var(--borderColor-emphasis);
+}
+
+.dl-btn:focus-visible {
+  outline: var(--borderWidth-thick, 2px) solid var(--fgColor-accent);
+  outline-offset: var(--borderWidth-thick, 2px);
+}
+
+.dl-warn {
+  display: flex;
+  align-items: center;
+  gap: var(--stack-gap-condensed, 8px);
+  color: var(--fgColor-attention);
+  font-size: var(--text-body-size-small, 12px);
+  margin: 0;
+}
+
+/* ── Platform cards ────────────────────────────────────────────── */
+
+.dl-grid {
+  display: grid;
+  /* Each card is as tall as its contents. Stretching made the single
+     macOS rows sit in a box half of which was empty. */
+  align-items: start;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--stack-gap-normal, 16px);
+}
+
+.dl-card {
+  border: var(--borderWidth-thin, 1px) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium, 6px);
+  padding: var(--base-size-16, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap-condensed, 8px);
+}
+
+.dl-card-primary {
+  border-color: var(--fgColor-accent);
+}
+
+.dl-badge {
+  font-size: var(--text-body-size-small, 12px);
+  font-weight: var(--base-text-weight-normal, 400);
+  color: var(--fgColor-accent);
+  border: var(--borderWidth-thin, 1px) solid var(--fgColor-accent);
+  border-radius: var(--borderRadius-full, 999px);
+  padding: 0 var(--base-size-8, 8px);
+}
+
+.dl-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.dl-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--stack-gap-normal, 16px);
+  padding: var(--base-size-8, 8px) 0;
+  text-decoration: none;
+  color: var(--fgColor-default);
+  border-bottom: var(--borderWidth-thin, 1px) solid var(--borderColor-muted);
+}
+
+.dl-row:last-child {
+  border-bottom: none;
+}
+
+.dl-row:hover .dl-row-label {
+  color: var(--fgColor-accent);
+  text-decoration: underline;
+}
+
+.dl-row-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--stack-gap-condensed, 8px);
+  color: var(--fgColor-muted);
+  font-size: var(--text-body-size-small, 12px);
+}
+
+.dl-row-size {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Editors, first run, CLI ───────────────────────────────────── */
+
+.dl-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--stack-gap-normal, 16px);
+}
+
+.dl-editor {
+  border: var(--borderWidth-thin, 1px) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium, 6px);
+  padding: var(--base-size-16, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap-condensed, 8px);
+}
+
+.dl-editor p {
+  color: var(--fgColor-muted);
+  margin: 0;
+  line-height: 1.6;
+  font-size: var(--text-body-size-medium, 14px);
+}
+
+.dl-code {
+  display: block;
+  overflow-x: auto;
+  background: var(--bgColor-muted);
+  border: var(--borderWidth-thin, 1px) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium, 6px);
+  padding: var(--base-size-8, 8px) var(--base-size-12, 12px);
+  font-family: var(--fontStack-monospace, ui-monospace, monospace);
+  font-size: var(--text-body-size-small, 12px);
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+.dl-facts {
+  margin: 0;
+  padding-left: var(--base-size-20, 20px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap-condensed, 8px);
+  color: var(--fgColor-muted);
+  line-height: 1.65;
+  max-width: 62ch;
+}
+
+.dl-facts strong {
+  color: var(--fgColor-default);
+}
+
+.dl-first-run,
+.dl-cli {
+  border-top: var(--borderWidth-thin, 1px) solid var(--borderColor-muted);
+  padding-top: var(--base-size-24, 24px);
+}
+
+.dl .landing-footer {
+  margin-top: var(--base-size-24, 24px);
+}
+
+@media (max-width: 600px) {
+  .dl-hero h1 {
+    font-size: var(--text-title-size-large, 32px);
+  }
+}

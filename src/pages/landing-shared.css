@@ -1,0 +1,1955 @@
+/*
+ * The brand orange, twice.
+ *
+ * F137. `#F97316` reads at 2.4–2.8:1 against every light background on
+ * this page, and WCAG AA wants 4.5:1 for body text and 3:1 for large
+ * text — so 39 of the page's 54 contrast failures were this one colour
+ * used as small text. `#B03A09` is the same hue at 5.27:1 against the
+ * worst of those backgrounds, computed rather than eyeballed.
+ *
+ * The bright value stays for everything that is not text a person has
+ * to read: borders, dots, fills, and the orange inside the terminal
+ * mock, which sits on a dark background and passes as it is.
+ */
+:root {
+  --igni-orange: #F97316;
+  --igni-orange-text: #B03A09;
+}
+
+/* ── Landing page ─────────────────────────────────────────────────── */
+
+.landing {
+  min-height: 100vh;
+  background-color: var(--bgColor-default);
+  color: var(--fgColor-default);
+  /* clip, not hidden: hidden makes this a scroll container, and then
+     nothing inside can stick to the window (the nav, the pricing quote). */
+  overflow-x: clip;
+}
+
+/* ── Nav ─────────────────────────────────────────────────────────── */
+
+.landing-nav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-color: color-mix(in srgb, var(--bgColor-default) 80%, transparent);
+  border-bottom: 1px solid var(--borderColor-muted, var(--borderColor-default));
+}
+
+.landing-nav-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.landing-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--fgColor-default);
+}
+
+.landing-nav-brand h1 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.landing-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.landing-nav-links a {
+  color: var(--fgColor-muted);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.landing-nav-links a:hover {
+  color: var(--fgColor-default);
+}
+
+/* ── Hero ────────────────────────────────────────────────────────── */
+
+.landing-hero {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 100px 24px 80px;
+  text-align: center;
+}
+
+.landing-hero-badges {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.landing-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  border: 1px solid var(--borderColor-default);
+  background-color: var(--bgColor-muted);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fgColor-muted);
+}
+
+.landing-hero-badge-accent {
+  border-color: #F97316;
+  color: var(--igni-orange-text);
+}
+
+.landing-hero-badge-accent .landing-hero-badge-dot {
+  background: #F97316;
+}
+
+.landing-hero-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #F97316;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.landing-hero h2 {
+  font-size: clamp(40px, 6vw, 72px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  margin: 0 0 24px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.landing-hero-gradient {
+  /* Gradient *text*, so the contrast is against the page behind it.
+        * As large text it needs 3:1 and #F97316 gives 2.80 — computed, not
+        * measured, because axe cannot read text whose fill is transparent.
+        * #EA580C is 3.56 and #DC4A02 is 4.18. F137. */
+  background: linear-gradient(135deg, #EA580C, #DC2626, #EA580C);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 4s ease-in-out infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.landing-hero-sub {
+  font-size: clamp(16px, 2vw, 20px);
+  line-height: 1.6;
+  color: var(--fgColor-muted);
+  max-width: 640px;
+  margin: 0 auto 40px;
+}
+
+.landing-hero-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.landing-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  border: none;
+  border-radius: var(--borderRadius-medium, 6px);
+  /* Darkened for the white label on top. axe could not measure these
+        * — it reports "background gradient" as incomplete rather than as a
+        * failure — so the ratio was computed by hand: white on #F97316 is
+        * 2.80:1 and AA wants 4.5:1 for a label this size. #C2410C is 5.18
+        * and #DC2626 is 4.83, so the gradient passes at both ends and stays
+        * the same two hues. F137. */
+  background: linear-gradient(135deg, #C2410C, #DC2626);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  text-decoration: none;
+}
+
+.landing-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(249, 115, 22, 0.3);
+  text-decoration: none;
+}
+
+.landing-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  border: 1px solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium, 6px);
+  background: var(--bgColor-muted);
+  color: var(--fgColor-default);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  text-decoration: none;
+}
+
+.landing-btn-secondary:hover {
+  border-color: var(--fgColor-muted);
+  text-decoration: none;
+}
+
+/* Install-button row lives directly under the hero CTAs — three
+      * compact pills, each with a brand icon and a short label. */
+.landing-hero-installs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.landing-install-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--borderColor-default);
+  border-radius: 9999px;
+  background: var(--bgColor-muted);
+  color: var(--fgColor-default);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.landing-install-btn:hover {
+  border-color: var(--fgColor-muted);
+  text-decoration: none;
+}
+
+.landing-install-btn > svg {
+  flex-shrink: 0;
+}
+
+/* Split-button: pill with a direct-download <a> on the left and a
+      * dropdown-toggle <button> on the right. The two zones share the
+      * pill's border so they read as one control. */
+.landing-install-split {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--borderColor-default);
+  border-radius: 9999px;
+  background: var(--bgColor-muted);
+  transition: border-color 0.15s;
+  /* No ``overflow: hidden`` — it clips the absolutely-positioned
+        * dropdown menu. Instead, each internal zone is rounded on its
+        * outer side so hover backgrounds stay inside the pill. */
+}
+
+.landing-install-split:hover {
+  border-color: var(--fgColor-muted);
+}
+
+.landing-install-split-main,
+.landing-install-split-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fgColor-default);
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.landing-install-split-main {
+  padding: 6px 12px 6px 12px;
+  border-top-left-radius: 9999px;
+  border-bottom-left-radius: 9999px;
+}
+
+.landing-install-split-main:hover {
+  text-decoration: none;
+  background-color: color-mix(in srgb, var(--fgColor-default) 6%, transparent);
+}
+
+.landing-install-split-toggle {
+  padding: 6px 10px;
+  border-left: 1px solid var(--borderColor-default);
+  color: var(--fgColor-muted);
+  border-top-right-radius: 9999px;
+  border-bottom-right-radius: 9999px;
+}
+
+.landing-install-split-toggle:hover {
+  background-color: color-mix(in srgb, var(--fgColor-default) 6%, transparent);
+  color: var(--fgColor-default);
+}
+
+.landing-install-split-toggle[aria-expanded="true"] {
+  background-color: color-mix(in srgb, var(--fgColor-default) 8%, transparent);
+}
+
+.landing-install-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  min-width: 280px;
+  padding: 4px;
+  background: var(--bgColor-default);
+  border: 1px solid var(--borderColor-default);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px -6px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+
+.landing-install-menu-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--fgColor-default);
+  background-color: transparent;
+  text-decoration: none;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 0.1s;
+  width: 100%;
+}
+
+.landing-install-menu-item:hover {
+  background-color: var(--bgColor-muted);
+  text-decoration: none;
+}
+
+/* Default-guess row: subtle accent dot on the left, no explicit
+      * selection state (any variant is one click away either way). */
+.landing-install-menu-item--default {
+  background-color: color-mix(in srgb, #F97316 8%, transparent);
+}
+
+.landing-install-menu-item--default:hover {
+  background-color: color-mix(in srgb, #F97316 14%, transparent);
+}
+
+.landing-install-menu-label {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.landing-install-menu-hint {
+  font-size: 11px;
+  color: var(--fgColor-muted);
+}
+
+/* ── Terminal preview ────────────────────────────────────────────── */
+
+.landing-terminal {
+  max-width: 720px;
+  margin: 64px auto 0;
+  border: 1px solid var(--borderColor-default);
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: var(--bgColor-muted);
+  text-align: left;
+  box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.15);
+}
+
+.landing-terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background-color: var(--bgColor-inset, var(--bgColor-muted));
+  border-bottom: 1px solid var(--borderColor-default);
+}
+
+.landing-terminal-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--borderColor-default);
+}
+
+.landing-terminal-body {
+  padding: 20px 24px;
+  font-family: var(--fontStack-monospace, ui-monospace, monospace);
+  font-size: 13px;
+  line-height: 1.7;
+  overflow-x: auto;
+}
+
+/* ── TUI chrome (matches real Ember Code terminal) ───────────── */
+
+.landing-tui-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  font-family: var(--fontStack-monospace, ui-monospace, monospace);
+  font-size: 12px;
+  color: var(--fgColor-muted);
+  background-color: var(--bgColor-inset, var(--bgColor-muted));
+  border-bottom: 1px solid var(--borderColor-default);
+}
+
+.landing-tui-header strong {
+  color: var(--fgColor-default);
+  font-weight: 600;
+}
+
+.landing-tui-footer {
+  border-top: 1px solid var(--borderColor-default);
+  font-family: var(--fontStack-monospace, ui-monospace, monospace);
+  font-size: 12px;
+}
+
+.landing-tui-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  color: var(--fgColor-muted);
+}
+
+.landing-tui-input .t-blue {
+  color: var(--fgColor-accent, #0969da);
+}
+
+.landing-tui-status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 6px 16px;
+  color: var(--fgColor-muted);
+  background-color: var(--bgColor-inset, var(--bgColor-muted));
+}
+
+.landing-tui-status strong {
+  color: var(--fgColor-default);
+  font-weight: 600;
+}
+
+.t-yellow {
+  color: #d29922;
+  font-weight: 600;
+}
+
+.landing-terminal-body .t-muted {
+  color: var(--fgColor-muted);
+}
+
+.landing-terminal-body .t-orange {
+  color: #F97316;
+}
+
+.landing-terminal-body .t-green {
+  color: var(--fgColor-success, #1a7f37);
+}
+
+.landing-terminal-body .t-blue {
+  color: var(--fgColor-accent, #0969da);
+}
+
+.landing-terminal-body .t-red {
+  color: var(--fgColor-danger, #cf222e);
+  font-weight: 600;
+}
+
+/* ── Section shared ──────────────────────────────────────────────── */
+
+.landing-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 100px 24px;
+}
+
+.landing-section-label {
+  display: inline-block;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--igni-orange-text);
+  margin-bottom: 12px;
+}
+
+.landing-section h3 {
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px;
+}
+
+.landing-section-desc {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--fgColor-muted);
+  max-width: 600px;
+  margin-bottom: 48px;
+}
+
+/* "Read the X guide →" deep link under each section's description.
+      * Sits between the section copy and the content grid so a curious
+      * reader can jump straight to the relevant doc instead of hunting
+      * through the sidebar. */
+.landing-section-doc-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--igni-orange-text);
+  text-decoration: none;
+  margin: -32px 0 48px;
+  transition: color 0.15s ease;
+}
+
+.landing-section-doc-link:hover {
+  color: #FB923C;
+  text-decoration: underline;
+}
+
+.landing-section-doc-link::after {
+  content: '→';
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.landing-section-doc-link:hover::after {
+  transform: translateX(2px);
+}
+
+
+/* ── Feature grid ────────────────────────────────────────────────── */
+
+.landing-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.landing-feature-card {
+  padding: 32px;
+  border: 1px solid var(--borderColor-default);
+  border-radius: 12px;
+  background-color: var(--bgColor-muted);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.landing-feature-card:hover {
+  border-color: var(--fgColor-muted);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.landing-feature-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  font-size: 24px;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.12), rgba(220, 38, 38, 0.08));
+  color: var(--igni-orange-text);
+}
+
+.landing-feature-card h4 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.landing-feature-card p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--fgColor-muted);
+  margin: 0;
+}
+
+/* ── How it works ────────────────────────────────────────────────── */
+
+.landing-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 32px;
+  counter-reset: step;
+}
+
+.landing-step {
+  counter-increment: step;
+  position: relative;
+  padding: 32px;
+  border: 1px solid var(--borderColor-default);
+  border-radius: 12px;
+  background-color: var(--bgColor-muted);
+}
+
+.landing-step::before {
+  content: counter(step);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #F97316, #DC2626);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.landing-step h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.landing-step p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--fgColor-muted);
+  margin: 0;
+}
+
+/* ── Connect CodeIndex steps ────────────────────────────────────── */
+
+.landing-codeindex-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.landing-codeindex-step {
+  display: flex;
+  gap: 20px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--borderColor-default);
+}
+
+.landing-codeindex-step:last-child {
+  border-bottom: none;
+}
+
+.landing-codeindex-step-num {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #F97316, #DC2626);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.landing-codeindex-step-content h4 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.landing-codeindex-step-content p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--fgColor-muted);
+  margin: 0;
+}
+
+.landing-codeindex-step-link {
+  color: var(--igni-orange-text);
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(249, 115, 22, 0.4);
+  transition: border-color 0.15s ease;
+}
+
+.landing-codeindex-step-link:hover {
+  border-bottom-color: #F97316;
+}
+
+.landing-codeindex-levels {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.landing-codeindex-level {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.landing-codeindex-level-label {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fgColor-muted);
+  min-width: 120px;
+}
+
+.landing-codeindex-dimensions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.landing-codeindex-dimensions span {
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: var(--bgColor-default);
+  border: 1px solid var(--borderColor-default);
+  color: var(--fgColor-muted);
+}
+
+/* ── CodeIndex capability grid + "how it works" subhead ── */
+
+.landing-codeindex-capabilities {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  max-width: 960px;
+  margin: 0 auto 48px;
+  text-align: left;
+}
+
+@media (max-width: 720px) {
+  .landing-codeindex-capabilities {
+    grid-template-columns: 1fr;
+  }
+}
+
+.landing-codeindex-capability {
+  padding: 20px;
+  border: 1px solid var(--borderColor-default);
+  border-radius: 10px;
+  background: var(--bgColor-default);
+}
+
+.landing-codeindex-capability-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.12), rgba(220, 38, 38, 0.08));
+  color: var(--igni-orange-text);
+  margin-bottom: 12px;
+}
+
+.landing-codeindex-capability h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 6px;
+  color: var(--fgColor-default);
+}
+
+.landing-codeindex-capability p {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--fgColor-muted);
+  margin: 0;
+}
+
+.landing-codeindex-howit-heading {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fgColor-muted);
+  margin: 0 0 16px;
+}
+
+/* ── CodeIndex vs naive RAG comparison ── */
+
+.landing-codeindex-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  max-width: 720px;
+  margin: 48px auto 0;
+  text-align: left;
+}
+
+@media (max-width: 720px) {
+  .landing-codeindex-compare {
+    grid-template-columns: 1fr;
+  }
+}
+
+.landing-codeindex-compare-col {
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid var(--borderColor-default);
+}
+
+.landing-codeindex-compare-col h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.landing-codeindex-compare-col ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--fgColor-muted);
+}
+
+.landing-codeindex-compare-bad {
+  background: var(--bgColor-default);
+}
+
+.landing-codeindex-compare-bad h4 {
+  color: var(--fgColor-muted);
+}
+
+.landing-codeindex-compare-good {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.05), rgba(220, 38, 38, 0.04));
+  border-color: rgba(249, 115, 22, 0.35);
+}
+
+.landing-codeindex-compare-good h4 {
+  background: linear-gradient(135deg, #F97316, #DC2626);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Get-started numbered steps (mirrors landing-codeindex-step) ── */
+.landing-getstarted-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.landing-getstarted-step {
+  display: flex;
+  gap: 20px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--borderColor-default);
+}
+
+.landing-getstarted-step:last-child {
+  border-bottom: none;
+}
+
+.landing-getstarted-step-num {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #F97316, #DC2626);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.landing-getstarted-step-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.landing-getstarted-step-content h4 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.landing-getstarted-step-content p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--fgColor-muted);
+  margin: 0 0 12px;
+}
+
+.landing-getstarted-step-content p code {
+  background: var(--bgColor-muted);
+  border: 1px solid var(--borderColor-default);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 12px;
+}
+
+/* Slim terminal variant — sits inside a step, doesn't need its own
+      * header bar since the step heading already labels it. */
+.landing-getstarted-terminal {
+  max-width: 100%;
+  margin-top: 8px;
+}
+
+.landing-getstarted-terminal .landing-terminal-body {
+  padding: 12px 16px;
+}
+
+.landing-getstarted-step-alt {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--fgColor-muted);
+  text-align: center;
+}
+
+.landing-getstarted-step-alt code {
+  background: var(--bgColor-muted);
+  border: 1px solid var(--borderColor-default);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 11px;
+}
+
+/* Step-1 install options — the four surfaces (desktop / JetBrains /
+      * VSCode / CLI) stacked as a compact bulleted list. */
+.landing-getstarted-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--fgColor-muted);
+}
+
+.landing-getstarted-list li {
+  padding-left: 16px;
+  position: relative;
+}
+
+.landing-getstarted-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #F97316;
+}
+
+.landing-getstarted-list strong {
+  color: var(--fgColor-default);
+  font-weight: 600;
+}
+
+.landing-getstarted-list a {
+  color: var(--fgColor-accent, #F97316);
+  text-decoration: none;
+}
+
+.landing-getstarted-list a:hover {
+  text-decoration: underline;
+}
+
+.t-blink {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* ── Language badges ─────────────────────────────────────────────── */
+
+.landing-langs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 32px;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.landing-lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid var(--borderColor-default);
+  border-radius: 9999px;
+  background-color: var(--bgColor-muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.landing-lang-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+/* ── Stats bar ───────────────────────────────────────────────────── */
+
+.landing-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 48px;
+  justify-content: center;
+  padding: 64px 24px;
+  border-top: 1px solid var(--borderColor-default);
+  border-bottom: 1px solid var(--borderColor-default);
+}
+
+.landing-stat {
+  text-align: center;
+}
+
+.landing-stat-value {
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  background: linear-gradient(90deg, #F97316, #DC2626, #FBBF24, #F97316);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: stats-gradient 4s ease-in-out infinite;
+}
+
+@keyframes stats-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.landing-stat-label {
+  font-size: 14px;
+  color: var(--fgColor-muted);
+  margin-top: 4px;
+}
+
+/* ── Pricing cards (landing) ─────────────────────────────────────── */
+
+.landing-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.landing-pricing-card {
+  padding: 40px 32px;
+  border: 1px solid var(--borderColor-default);
+  border-radius: 12px;
+  background-color: var(--bgColor-muted);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.landing-pricing-card:hover {
+  transform: translateY(-2px);
+}
+
+.landing-pricing-featured {
+  border-color: #F97316;
+  box-shadow: 0 0 0 1px #F97316;
+  position: relative;
+}
+
+.landing-pricing-badge {
+  position: absolute;
+  top: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 16px;
+  background: linear-gradient(135deg, #F97316, #DC2626);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.landing-pricing-name {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.landing-pricing-desc {
+  font-size: 13px;
+  color: var(--fgColor-muted);
+  margin: 0 0 24px;
+}
+
+.landing-pricing-amount {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.landing-pricing-period {
+  font-size: 14px;
+  color: var(--fgColor-muted);
+  margin-bottom: 24px;
+}
+
+.landing-pricing-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 32px;
+  text-align: left;
+  flex: 1;
+}
+
+.landing-pricing-features li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.landing-pricing-features li::before {
+  content: "\2713";
+  color: var(--fgColor-success, #1a7f37);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ── CodeIndex standalone (pricing) ──────────────────────────────── */
+
+.landing-pricing-separator {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: 680px;
+  margin: 48px auto 0;
+}
+
+.landing-pricing-separator-line {
+  flex: 1;
+  height: 1px;
+  background-color: var(--borderColor-default);
+}
+
+.landing-pricing-separator-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fgColor-muted);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.landing-codeindex-standalone {
+  max-width: 680px;
+  margin: 24px auto 0;
+}
+
+.landing-codeindex-card {
+  padding: 40px 32px;
+  border: 2px solid var(--fgColor-accent, #0969da);
+  border-radius: 12px;
+  background: linear-gradient(
+    135deg,
+    var(--bgColor-muted) 0%,
+    color-mix(in srgb, var(--fgColor-accent, #0969da) 5%, var(--bgColor-muted)) 100%
+  );
+  text-align: left;
+}
+
+.landing-codeindex-content {
+  display: flex;
+  gap: 40px;
+  align-items: center;
+}
+
+.landing-codeindex-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 9999px;
+  background: var(--fgColor-accent, #0969da);
+  color: #fff;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.landing-codeindex-tagline {
+  font-size: 15px;
+  font-weight: 500;
+  margin: 12px 0 4px;
+}
+
+.landing-codeindex-price-block {
+  text-align: center;
+  flex-shrink: 0;
+  min-width: 160px;
+}
+
+.landing-btn-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  cursor: default;
+}
+
+.landing-codeindex-note {
+  font-size: 12px;
+  color: var(--fgColor-muted);
+  margin-top: 8px;
+}
+
+@media (max-width: 600px) {
+  .landing-codeindex-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  .landing-codeindex-price-block {
+    min-width: auto;
+  }
+}
+
+/* ── CodeIndex grid ──────────────────────────────────────────────── */
+
+.landing-codeindex-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.landing-codeindex-grid .landing-terminal {
+  margin: 0;
+  max-width: none;
+}
+
+/* ── Comparison table ────────────────────────────────────────────── */
+
+.landing-compare-table {
+  max-width: 860px;
+  margin: 0 auto;
+  overflow-x: auto;
+}
+
+.landing-compare-table table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.landing-compare-table th {
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fgColor-muted);
+  border-bottom: 2px solid var(--borderColor-default);
+}
+
+.landing-compare-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--borderColor-muted, var(--borderColor-default));
+  vertical-align: top;
+}
+
+.landing-compare-feature {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.landing-compare-igni {
+  color: var(--igni-orange-text);
+  font-weight: 500;
+}
+
+th.landing-compare-igni {
+  color: var(--igni-orange-text);
+}
+
+.landing-compare-other {
+  color: var(--fgColor-muted);
+}
+
+/* ── Install hint ────────────────────────────────────────────────── */
+
+.landing-hero-tokens {
+  font-size: 15px;
+  color: var(--fgColor-muted);
+  margin-bottom: 32px;
+  line-height: 1.6;
+}
+
+.landing-nav-github {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border: 1px solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium, 6px);
+  font-weight: 600 !important;
+  color: var(--fgColor-default) !important;
+  transition: border-color 0.15s;
+}
+
+.landing-nav-github:hover {
+  border-color: var(--fgColor-muted);
+}
+
+.landing-nav-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 2px;
+  padding-left: 8px;
+  border-left: 1px solid var(--borderColor-default);
+  color: var(--fgColor-muted);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.landing-install-hint {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium, 6px);
+  background-color: var(--bgColor-muted);
+  overflow: hidden;
+}
+
+.landing-install-hint code {
+  display: inline-block;
+  padding: 10px 16px 10px 24px;
+  font-family: var(--fontStack-monospace, ui-monospace, monospace);
+  font-size: 15px;
+  color: var(--fgColor-muted);
+  letter-spacing: -0.01em;
+  user-select: all;
+}
+
+.landing-copy-btn {
+  padding: 10px 16px;
+  border: none;
+  border-left: 1px solid var(--borderColor-default);
+  background: transparent;
+  color: var(--fgColor-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+.landing-copy-btn:hover {
+  color: var(--fgColor-default);
+  background-color: var(--bgColor-inset, var(--bgColor-default));
+}
+
+.landing-hero-or {
+  margin: 20px 0;
+  font-size: 14px;
+  color: var(--fgColor-muted);
+}
+
+/* ── Waitlist dialog ─────────────────────────────────────────────── */
+
+.landing-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: fade-in 0.15s ease-out;
+  padding: 24px;
+}
+
+.landing-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  border: 1px solid var(--borderColor-default);
+  border-radius: 16px;
+  background-color: var(--bgColor-default);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.25);
+  animation: slide-down 0.2s ease-out;
+}
+
+.landing-dialog-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fgColor-muted);
+  font-size: 24px;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.landing-dialog-close:hover {
+  background-color: var(--bgColor-muted);
+  color: var(--fgColor-default);
+}
+
+.landing-dialog-body {
+  padding: 40px 32px 32px;
+}
+
+.landing-dialog-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.landing-dialog-desc {
+  font-size: 14px;
+  color: var(--fgColor-muted);
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+.landing-btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Nav / footer join buttons — styled like links */
+.landing-nav-join-btn,
+.landing-nav-signin-btn,
+.landing-footer-join-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.landing-nav-signin-btn {
+  color: var(--igni-orange-text);
+  font-size: 14px;
+  font-weight: 600;
+  transition: color 0.15s;
+}
+
+.landing-nav-signin-btn:hover {
+  color: #DC2626;
+}
+
+.landing-nav-join-btn {
+  color: var(--igni-orange-text);
+  font-size: 14px;
+  font-weight: 600;
+  transition: color 0.15s;
+}
+
+.landing-nav-join-btn:hover {
+  color: #DC2626;
+}
+
+.landing-footer-join-btn {
+  color: var(--fgColor-muted);
+  font-size: 13px;
+  transition: color 0.15s;
+}
+
+.landing-footer-join-btn:hover {
+  color: var(--fgColor-default);
+}
+
+/* ── CTA ─────────────────────────────────────────────────────────── */
+
+.landing-cta {
+  text-align: center;
+  padding: 100px 24px;
+}
+
+.landing-cta h3 {
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px;
+}
+
+.landing-cta p {
+  font-size: 18px;
+  color: var(--fgColor-muted);
+  margin: 0 0 40px;
+}
+
+/* ── Footer ──────────────────────────────────────────────────────── */
+
+.landing-footer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px;
+  border-top: 1px solid var(--borderColor-default);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.landing-footer-text {
+  font-size: 13px;
+  color: var(--fgColor-muted);
+}
+
+.landing-footer-links {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.landing-footer-links a {
+  font-size: 13px;
+  color: var(--fgColor-muted);
+  text-decoration: none;
+}
+
+.landing-footer-links a:hover {
+  color: var(--fgColor-default);
+}
+
+/* ── Hamburger button (hidden on desktop) ────────────────────────── */
+
+.landing-nav-hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.landing-nav-hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background-color: var(--fgColor-default);
+  border-radius: 2px;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+/* ── Mobile nav overlay & drawer (hidden on desktop) ─────────────── */
+
+.landing-mobile-nav-overlay {
+  display: none;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-down {
+  from { transform: translateY(-8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ── Responsive: nav breakpoint ───────────────────────────────────── */
+
+/* Below this the links no longer fit in one row beside the logo. */
+@media (max-width: 1059px) {
+  .landing-nav-links {
+    display: none;
+  }
+
+  .landing-nav-hamburger {
+    display: flex;
+  }
+
+  .landing-mobile-nav-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    top: 57px;
+    z-index: 9;
+    background-color: rgba(0, 0, 0, 0.4);
+    animation: fade-in 0.15s ease-out;
+  }
+
+  .landing-mobile-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 24px;
+    background-color: var(--bgColor-default);
+    border-bottom: 1px solid var(--borderColor-default);
+    animation: slide-down 0.15s ease-out;
+  }
+
+  .landing-mobile-nav a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--borderColor-muted, var(--borderColor-default));
+    color: var(--fgColor-default);
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .landing-mobile-nav a:last-child {
+    border-bottom: none;
+  }
+
+}
+
+/* ── Responsive: tablet ──────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .landing-codeindex-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-stats {
+    gap: 32px;
+  }
+
+  .landing-stat-value {
+    font-size: 32px;
+  }
+
+  .landing-pricing-amount {
+    font-size: 40px;
+  }
+}
+
+/* ── Responsive: mobile ──────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .landing-hero {
+    padding: 60px 16px 48px;
+  }
+
+  .landing-section {
+    padding: 64px 16px;
+  }
+
+  .landing-cta {
+    padding: 64px 16px;
+  }
+
+  /* Stats */
+  .landing-stats {
+    gap: 24px;
+    padding: 48px 16px;
+  }
+
+  .landing-stat-value {
+    font-size: 28px;
+  }
+
+  /* Pricing */
+  .landing-pricing-amount {
+    font-size: 36px;
+  }
+
+  .landing-pricing-card {
+    padding: 32px 24px;
+  }
+
+  /* Footer */
+  .landing-footer {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  /* Terminal overflow */
+  .landing-terminal-body {
+    font-size: 12px;
+  }
+
+  /* Comparison table feature column */
+  .landing-compare-feature {
+    white-space: normal;
+  }
+
+  /* Install hint */
+  .landing-install-hint code {
+    font-size: 13px;
+    padding: 10px 12px 10px 16px;
+  }
+
+  /* Buttons */
+  .landing-btn-primary,
+  .landing-btn-secondary {
+    padding: 12px 24px;
+    font-size: 15px;
+  }
+
+}
+
+/* ── Benchmarks ──────────────────────────────────────────────────── */
+
+.landing-bench-tablewrap {
+  max-width: 960px;
+  margin: 0 auto 28px;
+  overflow-x: auto;
+  border: 1px solid var(--borderColor-default);
+  border-radius: 14px;
+  background: var(--bgColor-default);
+}
+
+.landing-bench-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+
+.landing-bench-table thead th {
+  padding: 18px 20px;
+  vertical-align: bottom;
+  background: var(--bgColor-muted);
+  border-bottom: 2px solid var(--borderColor-default);
+  font-weight: 600;
+}
+
+.landing-bench-table thead th:first-child {
+  background: transparent;
+  border-bottom-color: var(--borderColor-default);
+}
+
+.landing-bench-th-system {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--fgColor-default);
+}
+
+.landing-bench-th-ours .landing-bench-th-system {
+  background: linear-gradient(90deg, #F97316, #DC2626, #FBBF24, #F97316);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: stats-gradient 4s ease-in-out infinite;
+}
+
+.landing-bench-th-model {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fgColor-muted);
+  font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+.landing-bench-table tbody td {
+  padding: 14px 20px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--borderColor-muted, var(--borderColor-default));
+}
+
+.landing-bench-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.landing-bench-cell-ours {
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.04), rgba(249, 115, 22, 0.0));
+}
+
+.landing-bench-table thead .landing-bench-th-ours {
+  background:
+    linear-gradient(180deg, rgba(249, 115, 22, 0.10), rgba(249, 115, 22, 0.04)),
+    var(--bgColor-muted);
+}
+
+.landing-bench-winner {
+  background: rgba(34, 197, 94, 0.10);
+}
+
+.landing-bench-cell-ours.landing-bench-winner {
+  background:
+    linear-gradient(180deg, rgba(249, 115, 22, 0.04), rgba(249, 115, 22, 0.0)),
+    rgba(34, 197, 94, 0.10);
+}
+
+.landing-bench-metric {
+  width: 30%;
+  min-width: 200px;
+}
+
+.landing-bench-metric-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fgColor-default);
+}
+
+.landing-bench-hint {
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--fgColor-muted);
+  line-height: 1.4;
+}
+
+.landing-bench-cell-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.landing-bench-cell-row-nobar {
+  gap: 10px;
+}
+
+.landing-bench-bar-h {
+  flex: 1;
+  min-width: 60px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--bgColor-neutral-muted, rgba(175, 184, 193, 0.2));
+  overflow: hidden;
+}
+
+.landing-bench-bar-h-fill {
+  display: block;
+  height: 100%;
+}
+
+.landing-bench-bar-h-fill-good    { background: linear-gradient(90deg, #16A34A, #22C55E); }
+.landing-bench-bar-h-fill-warn    { background: linear-gradient(90deg, #EAB308, #F59E0B); }
+.landing-bench-bar-h-fill-bad     { background: linear-gradient(90deg, #DC2626, #B91C1C); }
+.landing-bench-bar-h-fill-weaker  { background: linear-gradient(90deg, #94a3b8, #64748b); }
+.landing-bench-bar-h-fill-stronger{ background: linear-gradient(90deg, #475569, #1e293b); }
+
+.landing-bench-value {
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--fgColor-default);
+}
+
+.landing-bench-value-lg {
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+
+.landing-bench-delta {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  background: var(--bgColor-success-muted, rgba(46, 160, 67, 0.15));
+  color: var(--fgColor-success, #1a7f37);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.landing-bench-leadin {
+  max-width: 720px;
+  margin: 0 auto;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--fgColor-muted);
+}
+
+@media (max-width: 720px) {
+  .landing-bench-table thead th,
+  .landing-bench-table tbody td {
+    padding: 12px 14px;
+  }
+  .landing-bench-th-system { font-size: 15px; }
+  .landing-bench-th-model  { font-size: 11px; }
+  .landing-bench-value     { font-size: 14px; }
+  .landing-bench-value-lg  { font-size: 18px; }
+  .landing-bench-metric    { min-width: 160px; }
+  .landing-bench-hint      { font-size: 10px; }
+}

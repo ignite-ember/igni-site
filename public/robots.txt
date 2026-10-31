@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /team
+Disallow: /billing
+Disallow: /cli-auth
+Disallow: /download
+
+Sitemap: https://ignite-ember.sh/sitemap.xml
