@@ -79,6 +79,7 @@ The defaults for the **Standard** profile, and the platform's caps, are igni ser
 | `CLOUD_VM__CAP_MAX_VCPUS` | `4` |
 | `CLOUD_VM__CAP_MAX_IDLE_BEFORE_PAUSE_S` | `3600` |
 | `CLOUD_VM__CAP_MAX_VOLUME_GIB` | `200` |
+| `CLOUD_VM__CAP_MAX_ERASE_AFTER_IDLE_DAYS` | none — the longest an app's VM may go unwoken before it is erased |
 
 A VM is provisioned for each active producer from igni server's producer feed, so nobody waits for a first boot. It is woken by:
 
@@ -88,6 +89,18 @@ A VM is provisioned for each active producer from igni server's producer feed, s
 - a task the agent scheduled for itself.
 
 Removing a person from the organisation closes their connection, suspends their VM, and keeps it for the organisation's retention period before erasing it.
+
+## Discarding and erasing
+
+Erasing a VM means its memory state, snapshots, volume and keys: the node agent deletes them and destroys the VM's key in your key service, so no copy anywhere can be read again.
+
+- **Discarding an app.** On the app's page in the portal, **Discard app** removes the app at once: its VM can never be woken again, its credential stops working, and its place under your licence is free straight away. The erasure runs in the background. You can ask for a fresh app with the same name, key and settings in the same step, and its new VM starts at once. A space goes the same way when its app deletes it.
+- **Discarding a former member's VM.** A removed person's VM waits for your retention period. On the portal's **Erasures** page, **Discard now** erases it at once instead. A current member's VM is never discarded.
+- **Erasing an app's VM after inactivity.** A VM profile can erase an app's or a space's VM that has not been woken for a number of days. The app stays, and its next wake starts from a clean VM, signs in again by itself and gets a new database login. A super admin can set the longest allowed. People's VMs are never erased this way.
+- **Legal holds.** A hold on a former member, or on an app, stops these erasures. A held app can still be discarded: the app is gone and its place is free, but its data is kept until the hold is released.
+- **Visible and audited.** The **Erasures** page shows each one as scheduled, held, erasing or erased. The discard and the finished erasure are both in your organisation's audit trail, with what was erased.
+
+Fleet's licence covers as many app and space VMs at a time as it does people. At that number, the gateway refuses to start a new one with a reason the app can show; VMs that already exist keep working. Discarding an app frees its place before its erasure finishes.
 
 ## When the licence lapses
 
@@ -119,6 +132,8 @@ The raw results, and earlier measurements with a smaller test guest and on bare 
 - **No client connects to Fleet yet.** The desktop app and CLI run igni on your own machine. Fleet's VMs are reached through the gateway's API, and by services and commands.
 - **The node agent does not register itself** with igni server yet; an operator does it.
 - **The organisation's quota of awake VM time is recorded, not enforced.**
+- **A former member's export holds only their database rows**, not the files on their VM's volume.
+- **Discarding and erasing have been tested against simulated nodes**, not yet on a real Fleet host.
 - **Building the guest kernel and image fetches packages** from the internet, so it is not yet an offline build.
 - **No release key** is built in yet, so Fleet starts no VM outside development until one is. See [Licensing and evaluations](/docs/licensing-and-evaluations).
 
