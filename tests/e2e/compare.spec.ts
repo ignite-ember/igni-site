@@ -20,7 +20,7 @@ test.describe('the comparison renders', () => {
     await page.goto(URL)
 
     await expect(page.getByRole('heading', { level: 2, name: 'igni + Fleet vs AWS Bedrock AgentCore' })).toBeVisible()
-    await expect(page.locator('.cmp-meta')).toContainText('1–2 November 2026')
+    await expect(page.locator('.lp-hero-note')).toContainText('1–2 November 2026')
     await expect(page).toHaveTitle(/AgentCore/)
   })
 

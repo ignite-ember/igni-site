@@ -72,9 +72,11 @@ const CEILINGS: Record<string, number> = {
   // property at all. Every colour in this file is a token.
   'pages/DownloadPage.css': 5,
   // Two breakpoints, which a `@media` condition cannot take from a
-  // custom property. Everything else in the file is a token, or rem
-  // for a column width Primer has no token for.
-  'pages/AgentCorePage.css': 2,
+  // custom property, and the 1px box of the standard visually-hidden
+  // pattern (a status word kept for screen readers on a phone).
+  // Everything else in the file is a token, or rem for a column width
+  // Primer has no token for.
+  'pages/AgentCorePage.css': 4,
 }
 
 function stylesheets(dir: string, found: string[] = []): string[] {

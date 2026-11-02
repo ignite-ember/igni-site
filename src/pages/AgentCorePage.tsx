@@ -12,6 +12,7 @@ import {
   mailto,
 } from './site/siteData'
 import { SiteFooter, SiteNav } from './site/SiteChrome'
+import { Section as SiteSection, StatRow } from './site/Sections'
 import { AWS_CHECKED, BAND_200, WRITTEN, countFull, COVERAGE, USAGE } from './compare/agentcoreData'
 import {
   Architecture,
@@ -25,7 +26,6 @@ import {
   RTable,
   Shot,
   UsageChart,
-  Vs,
   VsCard,
   WakeChart,
   WeekTimeline,
@@ -79,14 +79,12 @@ const TOC: { id: string; label: string }[] = [
   { id: 'sources', label: 'Assumptions & sources' },
 ]
 
-function Section({ id, label, title, sub, children }: { id: string; label: string; title: string; sub?: ReactNode; children: ReactNode }) {
+/** A landing-page section whose content reads left-aligned in one column. */
+function Section({ id, label, title, sub, band, children }: { id: string; label: string; title: string; sub?: ReactNode; band?: boolean; children: ReactNode }) {
   return (
-    <section id={id} className="cmp-section">
-      <span className="landing-section-label">{label}</span>
-      <h3>{title}</h3>
-      {sub && <p className="cmp-sub">{sub}</p>}
-      {children}
-    </section>
+    <SiteSection id={id} label={label} title={title} desc={sub} band={band} className="cmp-section">
+      <div className="cmp-wrap">{children}</div>
+    </SiteSection>
   )
 }
 
@@ -118,17 +116,15 @@ export function AgentCorePage() {
         <span className="lp-prod-kicker">
           <GitCompareIcon size={20} /> Comparison
         </span>
-        <h2>igni + Fleet vs AWS Bedrock AgentCore</h2>
+        <h2>
+          igni + Fleet{' '}
+          <span className="landing-hero-gradient">vs AWS Bedrock AgentCore</span>
+        </h2>
         <p className="landing-hero-sub">
           For organisations deciding whether their AI agent platform lives in AWS or
           in-house. AgentCore is AWS&rsquo;s managed agent runtime, billed by use. igni is
           the whole stack — models, harness, server, and Fleet as the runtime — on your own
           servers, for a fixed licence.
-        </p>
-        <p className="cmp-meta">
-          {WRITTEN} · AWS facts and list prices checked against AWS documentation on{' '}
-          <span className="cmp-nowrap">{AWS_CHECKED}</span> · Usage figures are assumptions,
-          listed at the end · €1 = $1.10 assumed throughout
         </p>
         <div className="lp-hero-cta">
           <a href={CALENDLY_URL} className="landing-btn-primary" target="_blank" rel="noopener noreferrer">
@@ -141,10 +137,10 @@ export function AgentCorePage() {
             About Fleet
           </a>
         </div>
-      </section>
-
-      <div className="cmp-body">
-        <p className="cmp-verdict">
+        <p className="lp-hero-note">
+          Checked against AWS documentation, <span className="cmp-nowrap">{AWS_CHECKED}</span>.
+        </p>
+        <p className="lp-prod-callout">
           <strong>Short version.</strong> igni + Fleet runs agents, models, keys and audit
           inside your network, for a fixed licence that does not move with usage, and gives
           each person a 10–50 GiB encrypted workspace that survives redeploys until you erase
@@ -153,31 +149,22 @@ export function AgentCorePage() {
           is about an eighth. AgentCore is ahead on certifications, managed high
           availability, 24/7 support and breadth of services.
         </p>
+      </section>
 
-        <div className="cmp-kpis">
-          <div className="cmp-kpi">
-            <span className="cmp-kpi-v">10–50 GiB <small>vs 1 GB</small></span>
-            <span className="cmp-kpi-k">Workspace kept per person: Fleet vs AgentCore session storage (preview)</span>
-          </div>
-          <div className="cmp-kpi">
-            <span className="cmp-kpi-v">Until erased <small>vs 14 days</small></span>
-            <span className="cmp-kpi-k">How long files last; AgentCore also wipes them on every agent update</span>
-          </div>
-          <div className="cmp-kpi">
-            <span className="cmp-kpi-v">≈50%</span>
-            <span className="cmp-kpi-k">Usage above which igni is cheaper than AgentCore with an open-weight model (Qwen3 32B on Bedrock)</span>
-          </div>
-          <div className="cmp-kpi">
-            <span className="cmp-kpi-v">~29 ms <small>vs ~2 s</small></span>
-            <span className="cmp-kpi-k">Agent back after idling: Fleet from a pause (p50) vs AgentCore&rsquo;s cold start once its idle timeout has ended the session (P75, AWS)</span>
-          </div>
-        </div>
+      <StatRow
+        stats={[
+          { value: '10–50 GiB', label: 'Workspace kept per person on Fleet, against 1 GB of AgentCore session storage (preview).' },
+          { value: 'Until erased', label: 'How long Fleet keeps files, against 14 days on AgentCore, which also wipes them on every agent update.' },
+          { value: '≈50%', label: 'Usage above which igni is cheaper than AgentCore with an open-weight model (Qwen3 32B on Bedrock).' },
+          { value: '~29 ms', label: 'Fleet back from a pause (p50), against ~2 s for AgentCore’s cold start once its idle timeout has ended the session (P75, AWS).' },
+        ]}
+      />
 
-        <nav className="cmp-toc" aria-label="On this page">
-          {TOC.map((t) => (
-            <a key={t.id} href={`#${t.id}`}>{t.label}</a>
-          ))}
-        </nav>
+      <nav className="lp-scn-tabs cmp-toc" aria-label="On this page">
+        {TOC.map((t) => (
+          <a key={t.id} href={`#${t.id}`} className="lp-scn-tab">{t.label}</a>
+        ))}
+      </nav>
 
         {/* ── How the two differ ─────────────────────────── */}
         <Section
@@ -234,6 +221,7 @@ export function AgentCorePage() {
         {/* ── Feature by feature ─────────────────────────── */}
         <Section
           id="features"
+          band
           label="Features"
           title="Feature by feature"
           sub="AgentCore’s services, and what igni has in their place. On the igni side this is the free harness and server plus paid modules (Fleet, CodeIndex, Artifacts, the Factory)."
@@ -270,8 +258,8 @@ export function AgentCorePage() {
             ]}
           />
 
-          <h4 className="cmp-h4" id="vm-profiles">The agent&rsquo;s VM is extensible</h4>
-          <p className="cmp-sub">What the agent&rsquo;s environment contains, who decides, and what happens when it changes.</p>
+          <h4 className="lp-subhead" id="vm-profiles">The agent&rsquo;s VM is extensible</h4>
+          <p className="landing-section-desc lp-desc cmp-desc">What the agent&rsquo;s environment contains, who decides, and what happens when it changes.</p>
           <div className="cmp-grid cmp-grid--3">
             <VsCard
               label="What the agent’s environment contains"
@@ -289,9 +277,9 @@ export function AgentCorePage() {
               igni="Nothing is rebooted at once. Timeouts and normal memory apply immediately; new packages, CPUs or memory ceiling roll out in the background — sleeping VMs are prepared beside their old snapshot, awake ones switch at their next sleep. Programs restart on the new layer; workspace files stay."
             />
           </div>
-          <div className="cmp-card cmp-gap">
-            <h4 className="cmp-card-label">Example: a browser</h4>
-            <Vs
+          <div className="cmp-grid cmp-grid--1 cmp-gap">
+            <VsCard
+              label="Example: a browser"
               aws="AgentCore Browser: a managed headless browser in AWS, billed per vCPU-hour and GB-hour, with recording, live view and Web Bot Auth."
               igni="Headless Chromium with Playwright in the VM, measured at ~1 GB of memory at peak and 4.8 s to load four real pages warm, driven through an open-source MCP server such as Microsoft’s Playwright MCP. Air-gapped, Chromium comes from your own package mirror."
             />
@@ -364,7 +352,7 @@ export function AgentCorePage() {
             </div>
           </Figure>
           <div className="cmp-grid cmp-grid--2">
-            <div className="cmp-card">
+            <div className="lp-sec-card cmp-card">
               <h4>What an extension is</h4>
               <p>
                 A capability with a service behind it — your claims system, a document store, a
@@ -378,7 +366,7 @@ export function AgentCorePage() {
                 whole loop: a service, its extension and a page.
               </p>
             </div>
-            <div className="cmp-card">
+            <div className="lp-sec-card cmp-card">
               <h4>What it can add, beyond tools</h4>
               <ul>
                 <li><b>Pages:</b> its own screen inside the igni app, in a sandboxed frame.</li>
@@ -389,7 +377,7 @@ export function AgentCorePage() {
                 <li><b>Access to igni itself</b> — sessions, chat, models — granted object by object.</li>
               </ul>
             </div>
-            <div className="cmp-card">
+            <div className="lp-sec-card cmp-card">
               <h4>How your systems talk to the agent</h4>
               <p>
                 With igni&rsquo;s service SDK, your service knows which person is calling, can
@@ -399,7 +387,7 @@ export function AgentCorePage() {
                 requests, so your data follows the same retention as igni&rsquo;s.
               </p>
             </div>
-            <div className="cmp-card">
+            <div className="lp-sec-card cmp-card">
               <h4>How it is kept safe</h4>
               <ul>
                 <li>Bundles are signed by the approved service and verified before they load.</li>
@@ -419,7 +407,7 @@ export function AgentCorePage() {
             ]}
           />
           <div className="cmp-grid cmp-grid--2 cmp-gap">
-            <div className="cmp-card cmp-card--aws">
+            <div className="lp-sec-card cmp-card cmp-card--aws">
               <h4>AgentCore&rsquo;s UI</h4>
               <p>
                 The AWS console has a playground to chat with an agent while you build it, a
@@ -428,7 +416,7 @@ export function AgentCorePage() {
                 one: you build the front end, typically from AWS samples.
               </p>
             </div>
-            <div className="cmp-card cmp-card--igni">
+            <div className="lp-sec-card cmp-card cmp-card--igni">
               <h4>igni&rsquo;s UI</h4>
               <p>
                 The desktop app and web client are what people use every day: chat, plans,
@@ -443,12 +431,13 @@ export function AgentCorePage() {
         {/* ── Models and GPU capacity ────────────────────── */}
         <Section
           id="models"
+          band
           label="Models"
           title="Models and GPU capacity"
           sub="igni is not tied to one model. Run igni’s own models on your GPUs, any open-weight model you serve, or — where your policy allows — the hosted APIs you already approve."
         >
           <div className="cmp-grid cmp-grid--3">
-            <div className="cmp-card">
+            <div className="lp-sec-card cmp-card">
               <span className="cmp-card-label">igni&rsquo;s own models</span>
               <h4>igni 1.0 · 4B and 27B</h4>
               <p>
@@ -457,7 +446,7 @@ export function AgentCorePage() {
                 self-host in our tests. The Factory tunes either to your domain.
               </p>
             </div>
-            <div className="cmp-card">
+            <div className="lp-sec-card cmp-card">
               <span className="cmp-card-label">Any open-weight model</span>
               <h4>Served by you</h4>
               <p>
@@ -466,7 +455,7 @@ export function AgentCorePage() {
                 igni&rsquo;s own.
               </p>
             </div>
-            <div className="cmp-card">
+            <div className="lp-sec-card cmp-card">
               <span className="cmp-card-label">Hosted APIs, where allowed</span>
               <h4>OpenAI-like, Anthropic-like, Gemini</h4>
               <p>
@@ -483,7 +472,7 @@ export function AgentCorePage() {
             <GpuCapacity />
           </Figure>
           <div className="cmp-grid cmp-grid--2">
-            <div className="cmp-card">
+            <div className="lp-sec-card cmp-card">
               <h4>Why subagents scale well</h4>
               <p>
                 When the agent fans out into many subagents, each one works on a short, separate
@@ -492,7 +481,7 @@ export function AgentCorePage() {
                 the GPU is used better, not filled up.
               </p>
             </div>
-            <div className="cmp-card">
+            <div className="lp-sec-card cmp-card">
               <h4>Against AgentCore</h4>
               <p>
                 On AgentCore every token of every subagent is billed. On igni the GPU is already
@@ -578,8 +567,8 @@ export function AgentCorePage() {
             </div>
           </div>
 
-          <h4 className="cmp-h4">igni&rsquo;s hardware: pick one option</h4>
-          <p className="cmp-sub">igni needs two CPU servers and one GPU; choose one way to get them.</p>
+          <h4 className="lp-subhead">igni&rsquo;s hardware: pick one option</h4>
+          <p className="landing-section-desc lp-desc cmp-desc">igni needs two CPU servers and one GPU; choose one way to get them.</p>
           <RTable
             head={['Option', 'CPU servers (2)', 'GPU (1)', 'Total with the Fleet licence']}
             num={[3]}
@@ -604,8 +593,8 @@ export function AgentCorePage() {
             <Breakdown />
           </Figure>
 
-          <h4 className="cmp-h4">If usage is different</h4>
-          <p className="cmp-sub">
+          <h4 className="lp-subhead">If usage is different</h4>
+          <p className="landing-section-desc lp-desc cmp-desc">
             The same 200 people, each using their agent more or less than the heavy case: 300%
             means three times the tokens and three times the busy CPU per person.
             AgentCore&rsquo;s bill grows with every token and every busy vCPU. igni&rsquo;s
@@ -634,8 +623,8 @@ export function AgentCorePage() {
             runtime charges.
           </p>
 
-          <h4 className="cmp-h4" id="own-gpu">&ldquo;What if we run the model on our own GPU and keep AgentCore?&rdquo;</h4>
-          <p className="cmp-sub">
+          <h4 className="lp-subhead" id="own-gpu">&ldquo;What if we run the model on our own GPU and keep AgentCore?&rdquo;</h4>
+          <p className="landing-section-desc lp-desc cmp-desc">
             Two ways to do it. In both, AgentCore&rsquo;s runtime and services stay on the bill,
             and they alone cost about as much as igni with its GPU.
           </p>
@@ -650,7 +639,7 @@ export function AgentCorePage() {
             ]}
           />
           <div className="cmp-grid cmp-grid--2 cmp-gap">
-            <div className="cmp-card">
+            <div className="lp-sec-card cmp-card">
               <h4>The arguments</h4>
               <ul>
                 <li><b>AgentCore without any model already costs €52–67k</b> a year for 200 people — as much as igni with the GPU included.</li>
@@ -658,7 +647,7 @@ export function AgentCorePage() {
                 <li><b>No GH200 in AWS.</b> The nearest is a single H100 with 80 GB and no large CPU memory beside it, so the cache cannot spill into RAM the way it does on a GH200.</li>
               </ul>
             </div>
-            <div className="cmp-card">
+            <div className="lp-sec-card cmp-card">
               <h4>What you get only with igni</h4>
               <ul>
                 <li><b>Tuned models, not stock ones.</b> igni 1.0 4B passed {FACTORY_EVAL.tuned} of {FACTORY_EVAL.total} of our agent scenarios against {FACTORY_EVAL.base} for the Qwen model it was tuned from; the Factory tunes to your own domain.</li>
@@ -672,6 +661,7 @@ export function AgentCorePage() {
         {/* ── Speed ──────────────────────────────────────── */}
         <Section
           id="speed"
+          band
           label="Speed"
           title="Speed"
           sub={<>Fleet figures are measured through the real gateway with the real igni image, p50, on a nested-virtualisation GCP VM. On a bare-metal server a cold start is faster and a resume from a snapshot a little slower; those figures are on the <a href="/fleet">Fleet page</a>.</>}
@@ -697,7 +687,7 @@ export function AgentCorePage() {
         {/* ── Security ───────────────────────────────────── */}
         <Section id="security" label="Security" title="Security and where data lives">
           <div className="cmp-grid cmp-grid--2">
-            <div className="cmp-card cmp-card--aws">
+            <div className="lp-sec-card cmp-card cmp-card--aws">
               <h4>AgentCore</h4>
               <ul>
                 <li>Using it is outsourcing to AWS: in regulated sectors that means a supplier register entry, a risk assessment and an exit plan.</li>
@@ -706,7 +696,7 @@ export function AgentCorePage() {
                 <li>Covered by AWS&rsquo;s audited certifications (SOC 2, ISO 27001 family) — a real advantage with auditors.</li>
               </ul>
             </div>
-            <div className="cmp-card cmp-card--igni">
+            <div className="lp-sec-card cmp-card cmp-card--igni">
               <h4>igni + Fleet</h4>
               <ul>
                 <li>Self-hosted: runs on your own servers, in your own country, so data never leaves its jurisdiction. With <code>air_gapped = true</code> (one setting) nothing calls out; the licence is checked offline.</li>
@@ -719,7 +709,7 @@ export function AgentCorePage() {
         </Section>
 
         {/* ── Erasure ────────────────────────────────────── */}
-        <Section id="erasure" label="Erasure" title="What erasure covers">
+        <Section id="erasure" band label="Erasure" title="What erasure covers">
           <Figure
             title="What happens on a discard in Fleet"
             after="AgentCore discards the VM; Memory, S3, CloudWatch and session storage are deleted service by service, by you."
@@ -754,9 +744,9 @@ export function AgentCorePage() {
         </Section>
 
         {/* ── Which to choose ────────────────────────────── */}
-        <Section id="choose" label="Choosing" title="Which to choose">
+        <Section id="choose" band label="Choosing" title="Which to choose">
           <div className="cmp-grid cmp-grid--2">
-            <div className="cmp-card cmp-card--aws">
+            <div className="lp-sec-card cmp-card cmp-card--aws">
               <h4>Choose AgentCore when…</h4>
               <ul>
                 <li>The organisation is already on AWS and the data is approved for it.</li>
@@ -766,7 +756,7 @@ export function AgentCorePage() {
                 <li>You need certifications today and have engineers to build the agent.</li>
               </ul>
             </div>
-            <div className="cmp-card cmp-card--igni">
+            <div className="lp-sec-card cmp-card cmp-card--igni">
               <h4>Choose igni + Fleet when…</h4>
               <ul>
                 <li>Data, models and keys must stay on-premises or in an air-gapped network.</li>
@@ -789,6 +779,7 @@ export function AgentCorePage() {
         {/* ── Assumptions and sources ────────────────────── */}
         <Section id="sources" label="Sources" title="Assumptions and sources">
           <ul className="cmp-sources">
+            <li>Written {WRITTEN}. AWS facts and list prices checked against AWS documentation on {AWS_CHECKED}. Usage figures are the assumptions below. €1 = $1.10 assumed throughout.</li>
             <li>AgentCore prices: aws.amazon.com/bedrock/agentcore/pricing, us-east-1 list, 1 Nov 2026. Runtime V2 $0.1276 / vCPU-hour and $0.0169 / GB-hour; committed $0.0997 and $0.0132. Committed figures also assume a 10% enterprise discount.</li>
             <li>AgentCore UI: the AgentCore console harness playground and observability (AWS blog, harness GA, 2026). igni extensions: igni&rsquo;s extension documentation (<a href="/docs/building-extensions">Building extensions</a>) and its example extensions, checked 2 Nov 2026.</li>
             <li>Own-GPU options: AWS p5.4xlarge (1 × H100 80 GB) at $6.88 an hour on-demand, run all year; GH200 not offered on EC2 as of Nov 2026. The AgentCore part is the bill above without model tokens (committed + 10% discount to list).</li>
@@ -806,8 +797,9 @@ export function AgentCorePage() {
           </ul>
         </Section>
 
-        <div className="cmp-end">
-          <p>
+      <div className="lp-band">
+        <section className="landing-section lp-center cmp-close">
+          <p className="lp-note">
             <strong>Estimates, not a quote.</strong> List prices in EUR per year, excluding
             VAT; your integrator quotes the final price. No licence fee is due until a pilot
             meets the criteria you agree. <a href="/#pricing">See the price list</a> or read{' '}
@@ -824,7 +816,7 @@ export function AgentCorePage() {
               Read the Fleet docs
             </a>
           </div>
-        </div>
+        </section>
       </div>
 
       <SiteFooter />

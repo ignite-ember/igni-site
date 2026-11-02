@@ -95,7 +95,11 @@ describe('the page renders', () => {
 describe('it stays honest', () => {
   test('it says when the AWS facts were checked', () => {
     renderPage()
-    expect(document.querySelector('.cmp-meta')?.textContent).toMatch(/checked against AWS documentation on 1–2 November 2026/)
+    expect(document.querySelector('.lp-hero-note')?.textContent).toMatch(/Checked against AWS documentation, 1–2 November 2026/)
+    // The full detail — when it was written, the exchange rate — is with the sources.
+    expect(document.querySelector('#sources')?.textContent).toMatch(
+      /Written 2 November 2026\. AWS facts and list prices checked against AWS documentation on 1–2 November 2026\..*€1 = \$1\.10/,
+    )
   })
 
   test('it keeps what counts against igni', () => {
@@ -189,6 +193,28 @@ describe('every figure is drawn to its number', () => {
     const rows = Array.from(document.querySelectorAll('.cmp-usage tbody tr'))
     expect(rows).toHaveLength(USAGE.length)
     expect(document.querySelector('.cmp-chart')?.getAttribute('aria-label')).toMatch(/€315k at 300%/)
+  })
+})
+
+describe('it is built from the landing page’s pieces', () => {
+  test('the four key figures sit in the landing’s stat row', () => {
+    renderPage()
+    const values = Array.from(document.querySelectorAll('.landing-stats .landing-stat-value')).map((e) => e.textContent)
+    expect(values).toEqual(['10–50 GiB', 'Until erased', '≈50%', '~29 ms'])
+  })
+
+  test('the hero’s second line is the landing’s gradient', () => {
+    renderPage()
+    expect(document.querySelector('.landing-hero h2 .landing-hero-gradient')?.textContent).toBe('vs AWS Bedrock AgentCore')
+  })
+
+  test('sections alternate with the tinted band', () => {
+    renderPage()
+    const sections = Array.from(document.querySelectorAll('section.cmp-section'))
+    expect(sections).toHaveLength(11)
+    sections.forEach((sec, i) => {
+      expect(sec.parentElement?.classList.contains('lp-band'), sec.id).toBe(i % 2 === 1)
+    })
   })
 })
 

@@ -31,27 +31,22 @@ import {
 
 /* ── Shared pieces ─────────────────────────────────────────────── */
 
-/** The two sides of one point, AgentCore first, as the source has it. */
-export function Vs({ aws, igni, igniName = 'Fleet' }: { aws: ReactNode; igni: ReactNode; igniName?: string }) {
+/**
+ * One point, both sides: a single landing-page card with AgentCore first,
+ * as the source has it, and Fleet under a rule. No panels inside it.
+ */
+export function VsCard({ label, aws, igni, igniName = 'Fleet' }: { label: string; aws: ReactNode; igni: ReactNode; igniName?: string }) {
   return (
-    <div className="cmp-vs">
-      <div className="cmp-side cmp-side--aws">
-        <b>AgentCore</b>
-        {aws}
+    <div className="lp-sec-card cmp-vs">
+      <h4>{label}</h4>
+      <div className="cmp-vs-side">
+        <span className="cmp-who cmp-who--aws">AgentCore</span>
+        <p>{aws}</p>
       </div>
-      <div className="cmp-side cmp-side--igni">
-        <b>{igniName}</b>
-        {igni}
+      <div className="cmp-vs-side">
+        <span className="cmp-who cmp-who--igni">{igniName}</span>
+        <p>{igni}</p>
       </div>
-    </div>
-  )
-}
-
-export function VsCard({ label, aws, igni }: { label: string; aws: ReactNode; igni: ReactNode }) {
-  return (
-    <div className="cmp-card">
-      <h4 className="cmp-card-label">{label}</h4>
-      <Vs aws={aws} igni={igni} />
     </div>
   )
 }
@@ -102,7 +97,7 @@ export function RTable({
 
 export function Figure({ title, caption, children, after }: { title: string; caption?: ReactNode; children: ReactNode; after?: ReactNode }) {
   return (
-    <figure className="cmp-fig">
+    <figure className="cmp-panel">
       <h4>{title}</h4>
       {caption && <p className="cmp-cap">{caption}</p>}
       {children}
@@ -299,7 +294,9 @@ function Dot({ has, note }: { has: Has; note?: string }) {
   return (
     <span className="cmp-has">
       <span className={`cmp-dot cmp-dot--${has}`} aria-hidden="true" />
-      {note ?? HAS_LABEL[has]}
+      {/* On a phone the dot carries a plain status and the word is for
+          screen readers only; a note ("Via open source") stays visible. */}
+      <span className={note ? 'cmp-has-note' : 'cmp-has-label'}>{note ?? HAS_LABEL[has]}</span>
     </span>
   )
 }

@@ -23,6 +23,7 @@ import {
 import { IgniLogo } from '../components/IgniLogo'
 import { CALENDLY_URL, CONTACT_EMAIL, mailto, BANDS, CODEINDEX_PRICES, ARTIFACTS_PRICES, FLEET_PRICES, FACTORY_PER_YEAR, AUTOPILOT_PRICES, MODULE_FROM, eur, eurK, bandSpoken, fleetApps } from './site/siteData'
 import { SiteFooter, SiteNav } from './site/SiteChrome'
+import { SectionHead, StatRow } from './site/Sections'
 import { BandName, BandShort } from './site/BandName'
 import { Scenarios } from './site/Scenarios'
 import './landing-shared.css'
@@ -879,48 +880,34 @@ export function LandingPage() {
        * leaves, who owns the result, and who it is for. Prices and the
        * CodeIndex evaluation have their own sections.
        */}
-      <div className="landing-stats lp-stats">
-        <div className="landing-stat">
-          <div className="landing-stat-value">Your network</div>
-          <div className="landing-stat-label">Air-gapped, or on dedicated GPUs you rent.</div>
-        </div>
-        <div className="landing-stat">
-          <div className="landing-stat-value">0</div>
-          <div className="landing-stat-label">Outbound connections of its own in air-gap mode.</div>
-        </div>
-        <div className="landing-stat">
-          <div className="landing-stat-value">Yours</div>
-          <div className="landing-stat-label">Models built from your data have no licence key and no expiry.</div>
-        </div>
-        <div className="landing-stat">
-          <div className="landing-stat-value">Every team</div>
-          <div className="landing-stat-label">One installation serves every person and every app.</div>
-        </div>
-      </div>
+      <StatRow
+        stats={[
+          { value: 'Your network', label: 'Air-gapped, or on dedicated GPUs you rent.' },
+          { value: '0', label: 'Outbound connections of its own in air-gap mode.' },
+          { value: 'Yours', label: 'Models built from your data have no licence key and no expiry.' },
+          { value: 'Every team', label: 'One installation serves every person and every app.' },
+        ]}
+      />
 
       {/* ── In practice ─────────────────────────────────── */}
       <section id="in-practice" className="landing-section lp-center">
-        <span className="landing-section-label">In practice</span>
-        <h3>One installation, four departments</h3>
-        <p className="landing-section-desc lp-desc">
+        <SectionHead label="In practice" title="One installation, four departments">
           Start with one engineering team. Add risk, operations and legal to the same
           installation later. The data, the agents and the results stay on your
           servers.
-        </p>
+        </SectionHead>
         <Scenarios />
       </section>
 
       {/* ── Security & continuity ───────────────────────── */}
       <div className="lp-band">
       <section id="security" className="landing-section lp-center">
-        <span className="landing-section-label">Security &amp; continuity</span>
-        <h3>Built for isolated networks, and for your exit plan</h3>
-        <p className="landing-section-desc lp-desc">
+        <SectionHead label="Security & continuity" title="Built for isolated networks, and for your exit plan">
           Before the first workshop, your security team receives a pack to check all of
           this: the egress test, the SBOM, a network diagram, an exit-test runbook and
           our compliance self-assessment. No DPA is needed, because Ignite Ember never
           processes your data.
-        </p>
+        </SectionHead>
         <div className="lp-sec-grid">
           {SECURITY.map((s) => (
             <div key={s.title} className="lp-sec-card">
@@ -966,14 +953,12 @@ export function LandingPage() {
           again; the claims screens below show the same app, first on its
           own and then with an app built into it. */}
       <section id="extensions" className="landing-section lp-center">
-        <span className="landing-section-label">The app</span>
-        <h3>Where your people work, with your own apps inside it</h3>
-        <p className="landing-section-desc lp-desc">
+        <SectionHead label="The app" title="Where your people work, with your own apps inside it">
           Everyone works in the igni desktop app, and developers can also use a CLI.
           Your developers or your integrator can build apps into it, such as a claims
           desk. Each app runs on your servers, and an administrator approves it before
           anyone receives it.
-        </p>
+        </SectionHead>
 
         <AppZones />
 
@@ -1184,14 +1169,12 @@ export function LandingPage() {
 
       {/* ── Pricing ─────────────────────────────────────── */}
       <section id="pricing" className="landing-section lp-center">
-        <span className="landing-section-label">Pricing</span>
-        <h3>A flat annual fee per module. Nothing is metered.</h3>
-        <p className="landing-section-desc lp-desc">
+        <SectionHead label="Pricing" title="A flat annual fee per module. Nothing is metered.">
           The igni base is free. Each paid module has a fixed yearly fee, set by how many
           people use it, up to an unlimited tier above 1,000. People who only read its
           output are not counted, and neither are agents or tokens. Fleet includes as
           many apps as people.
-        </p>
+        </SectionHead>
 
         {/* What each module is, before the calculator asks which ones. */}
         <div id="modules" className="lp-modules-in-pricing">
@@ -1263,13 +1246,11 @@ export function LandingPage() {
           where it followed SDK code with a promise about a fee not yet
           shown. The who-does-what cards moved to For integrators. */}
       <section id="start" className="landing-section lp-center">
-        <span className="landing-section-label">How you buy</span>
-        <h3>From first install to annual licence</h3>
-        <p className="landing-section-desc lp-desc">
+        <SectionHead label="How you buy" title="From first install to annual licence">
           Try it free, pilot it in production with no licence fee, and pay only once
           the pilot meets criteria you agreed in writing. Every clock starts when the
           software runs, not when the paperwork is done.
-        </p>
+        </SectionHead>
 
         <ol className="lp-path">
           <li className="lp-path-step">
@@ -1345,11 +1326,9 @@ export function LandingPage() {
 
       {/* ── Objections ──────────────────────────────────── */}
       <section className="landing-section lp-center">
-        <span className="landing-section-label">The obvious questions</span>
-        <h3>What your committee will ask</h3>
-        <p className="landing-section-desc lp-desc">
+        <SectionHead label="The obvious questions" title="What your committee will ask">
           Where something is still on its way, this page says so.
-        </p>
+        </SectionHead>
         <div className="alt-faq">
           {OBJECTIONS.map((o, i) => (
             <details key={o.q} className="alt-faq-item" open={i === 0}>

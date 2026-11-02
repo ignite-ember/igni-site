@@ -1,16 +1,17 @@
 /* ── The AgentCore comparison page ────────────────────────────────
  *
- * On top of landing-shared.css and LandingPage.css (nav, hero, buttons,
- * pills, step numbers, footer). Every colour is a Primer token or the
- * page's two side colours below, so both themes follow the OS. Orange is
- * igni, as everywhere on the site; AgentCore is neutral grey, the colour
- * the landing page gives the thing igni is measured against.
+ * Built from the landing page's own pieces — the hero with its gradient
+ * line, the stat row, centred section heads, tinted bands alternating
+ * with white, `lp-sec-card` cards, `lp-subhead`, `lp-note` — so it reads
+ * as the same site. What is here is only what a comparison adds: its
+ * figures, its tables and the two side colours.
  *
- * The page is long and mostly text, tables and figures, so it reads
- * left-aligned in one column rather than in the product pages' centred
- * sections. Every figure reflows to a phone; the one line chart scrolls
- * inside its own box below its natural width, and the wide tables turn
- * into labelled blocks.
+ * Every colour is a Primer token or one of those two: orange is igni, as
+ * everywhere on the site; AgentCore is neutral grey, the colour the
+ * landing page gives the thing igni is measured against.
+ *
+ * Every figure reflows to a phone; the wide text tables turn into
+ * labelled blocks.
  */
 
 .lp-cmp {
@@ -19,25 +20,8 @@
   --cmp-igni: var(--lp-orange);
   --cmp-igni-soft: var(--lp-orange-soft);
   --cmp-igni-mid: color-mix(in srgb, var(--lp-orange) 45%, transparent);
-  --cmp-radius: var(--borderRadius-large);
-}
-
-.cmp-hero {
-  padding-bottom: var(--base-size-48);
-}
-
-.cmp-meta {
-  max-width: 46rem;
-  margin: var(--base-size-16) auto 0;
-  font-size: var(--text-body-size-small);
-  color: var(--fgColor-muted);
-  text-wrap: balance;
-}
-
-.cmp-body {
-  max-width: 68rem;
-  margin: 0 auto;
-  padding: 0 var(--base-size-24) var(--base-size-64);
+  /* The landing's big panels (the scenario and evaluation panels). */
+  --cmp-panel-radius: 1.25rem;
 }
 
 .lp-cmp code {
@@ -65,135 +49,79 @@
   font-weight: var(--base-text-weight-semibold);
 }
 
-/* ── Short version, key figures, contents ─────────────────────── */
-
-.cmp-verdict {
-  margin: 0;
-  padding: var(--base-size-20) var(--base-size-24);
-  border: var(--borderWidth-thin) solid var(--borderColor-default);
-  border-left: var(--borderWidth-thicker) solid var(--cmp-igni);
-  border-radius: var(--cmp-radius);
-  background-color: var(--bgColor-muted);
-  font-size: var(--text-body-size-large);
-  line-height: 1.6;
-}
-
-.cmp-verdict strong {
-  color: var(--igni-orange-text);
-}
-
-.cmp-kpis {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--base-size-12);
-  margin-top: var(--base-size-16);
-}
-
-.cmp-kpi {
-  display: flex;
-  flex-direction: column;
-  gap: var(--base-size-4);
-  padding: var(--base-size-16);
-  border: var(--borderWidth-thin) solid var(--borderColor-default);
-  border-radius: var(--cmp-radius);
-}
-
-.cmp-kpi-v {
-  font-size: var(--text-title-size-medium);
-  font-weight: var(--base-text-weight-semibold);
-  line-height: 1.25;
-  letter-spacing: -0.01em;
-  color: var(--igni-orange-text);
-}
-
-.cmp-kpi-v small {
-  font-size: var(--text-body-size-medium);
-  color: var(--fgColor-muted);
-  white-space: nowrap;
-}
-
-.cmp-kpi-k {
-  font-size: var(--text-body-size-small);
-  line-height: 1.5;
-  color: var(--fgColor-muted);
-}
+/* ── Contents: the landing's pill tabs, as links ──────────────── */
 
 .cmp-toc {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--base-size-8);
-  margin: var(--base-size-24) 0 0;
+  max-width: 67.5rem;
+  margin: var(--base-size-48) auto 0;
+  padding: 0 var(--base-size-24);
 }
 
-.cmp-toc a {
-  padding: var(--base-size-4) var(--base-size-12);
-  border: var(--borderWidth-thin) solid var(--borderColor-default);
-  border-radius: var(--borderRadius-full);
-  font-size: var(--text-body-size-small);
-  color: var(--fgColor-default);
+.cmp-toc .lp-scn-tab {
   text-decoration: none;
 }
 
-.cmp-toc a:hover {
-  border-color: var(--cmp-igni);
+.cmp-toc .lp-scn-tab:hover {
+  border-color: var(--lp-orange);
 }
 
 /* ── Sections ─────────────────────────────────────────────────── */
 
-.cmp-section {
-  padding-top: var(--base-size-64);
+.lp-cmp .cmp-section {
   /* Clear the sticky nav when a contents link scrolls here. */
-  scroll-margin-top: var(--base-size-48);
+  scroll-margin-top: var(--base-size-16);
 }
 
-.cmp-section h3 {
-  margin: 0 0 var(--base-size-8);
-  font-size: var(--text-title-size-large);
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+/* The heading is centred like the landing's; what follows reads
+   left-aligned in one column of the landing's width. */
+.cmp-wrap {
+  max-width: 67.5rem;
+  margin: 0 auto;
+  text-align: left;
 }
 
-.cmp-h4 {
-  margin: var(--base-size-40) 0 var(--base-size-8);
-  font-size: var(--text-title-size-medium);
+.cmp-wrap > .lp-subhead,
+.cmp-wrap > .cmp-desc {
+  text-align: center;
+}
+
+.cmp-wrap > .lp-subhead {
   scroll-margin-top: var(--base-size-80);
 }
 
-.cmp-h5 {
-  margin: 0 0 var(--base-size-8);
-  font-size: var(--text-body-size-large);
-}
-
-.cmp-sub {
-  max-width: 48rem;
-  margin: 0 0 var(--base-size-20);
-  font-size: var(--text-body-size-large);
-  line-height: 1.6;
-  color: var(--fgColor-muted);
+.landing--main .cmp-wrap > .cmp-desc {
+  margin-bottom: var(--base-size-32);
 }
 
 .cmp-note {
-  margin: var(--base-size-12) 0 0;
-  font-size: var(--text-body-size-small);
-  line-height: 1.6;
+  margin: var(--base-size-16) 0 0;
+  font-size: var(--text-body-size-medium);
+  line-height: 1.65;
   color: var(--fgColor-muted);
 }
 
 .cmp-note--top {
-  margin: 0 0 var(--base-size-12);
+  margin: 0 0 var(--base-size-16);
 }
 
 .cmp-gap {
-  margin-top: var(--base-size-16);
+  margin-top: var(--base-size-24);
 }
 
 .cmp-inshort {
-  max-width: 52rem;
-  margin: var(--base-size-20) 0 0;
+  max-width: 47.5rem;
+  margin: var(--base-size-40) auto 0;
+  font-size: var(--text-body-size-large);
   line-height: 1.65;
+  text-align: center;
+  color: var(--fgColor-muted);
 }
 
-/* ── Cards, the two sides ─────────────────────────────────────── */
+.cmp-inshort b {
+  color: var(--fgColor-default);
+}
+
+/* ── Cards: the landing's lp-sec-card, one level deep ─────────── */
 
 .cmp-grid {
   display: grid;
@@ -208,40 +136,40 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.cmp-card {
+/* No icon beside the title here, so the landing's phone grid for these
+   cards does not apply. */
+.lp-cmp .lp-sec-card {
+  display: block;
   min-width: 0;
-  padding: var(--base-size-16) var(--base-size-20);
-  border: var(--borderWidth-thin) solid var(--borderColor-default);
-  border-radius: var(--cmp-radius);
-  font-size: var(--text-body-size-medium);
-  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
-.cmp-card h4 {
-  margin: 0 0 var(--base-size-8);
+.lp-cmp .lp-sec-card h4 {
+  margin: 0 0 var(--base-size-12);
   font-size: var(--text-body-size-large);
 }
 
-.cmp-card p {
-  margin: 0 0 var(--base-size-8);
-  color: var(--fgColor-muted);
-}
-
-.cmp-card ul {
+.lp-cmp .lp-sec-card p,
+.lp-cmp .lp-sec-card ul {
   margin: 0;
-  padding-left: var(--base-size-20);
+  font-size: 0.9375rem;
+  line-height: 1.65;
   color: var(--fgColor-muted);
 }
 
-.cmp-card li + li {
-  margin-top: var(--base-size-6);
+.lp-cmp .lp-sec-card p + p {
+  margin-top: var(--base-size-12);
 }
 
-.cmp-card li b {
-  color: var(--fgColor-default);
+.lp-cmp .lp-sec-card ul {
+  padding-left: var(--base-size-20);
 }
 
-.cmp-card--aws h4 {
+.lp-cmp .lp-sec-card li + li {
+  margin-top: var(--base-size-8);
+}
+
+.lp-cmp .lp-sec-card li b {
   color: var(--fgColor-default);
 }
 
@@ -259,63 +187,60 @@
 
 .cmp-card-label {
   display: block;
-  margin: 0 0 var(--base-size-8) !important;
-  font-size: var(--text-body-size-small) !important;
+  margin: 0 0 var(--base-size-8);
+  font-size: var(--text-body-size-small);
   font-weight: var(--base-text-weight-semibold);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--fgColor-muted);
 }
 
-.cmp-vs {
-  display: grid;
-  gap: var(--base-size-8);
+/* Both sides of one point, in one card, under a rule. */
+.cmp-vs-side + .cmp-vs-side {
+  margin-top: var(--base-size-16);
+  padding-top: var(--base-size-16);
+  border-top: var(--borderWidth-thin) solid var(--borderColor-default);
 }
 
-.cmp-side {
-  padding: var(--base-size-8) var(--base-size-12);
-  border-radius: var(--borderRadius-medium);
-  font-size: var(--text-body-size-small);
-  line-height: 1.55;
-}
-
-.cmp-side b {
+.cmp-who {
   display: block;
-  margin-bottom: var(--base-size-2);
-  font-size: var(--text-caption-size, var(--text-body-size-small));
-  letter-spacing: 0.05em;
+  margin-bottom: var(--base-size-4);
+  font-size: var(--text-body-size-small);
+  font-weight: var(--base-text-weight-semibold);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-.cmp-side--aws {
-  background-color: var(--cmp-aws-soft);
+.cmp-who--aws {
+  color: var(--fgColor-default);
 }
 
-.cmp-side--igni {
-  background-color: var(--cmp-igni-soft);
-}
-
-.cmp-side--igni b {
+.cmp-who--igni {
   color: var(--igni-orange-text);
 }
 
-/* ── Figures ──────────────────────────────────────────────────── */
+/* ── Figures: the landing's big rounded panel ─────────────────── */
 
-.cmp-fig {
-  margin: var(--base-size-16) 0;
-  padding: var(--base-size-16) var(--base-size-20);
+.cmp-panel {
+  margin: var(--base-size-24) 0;
+  padding: var(--base-size-32);
   border: var(--borderWidth-thin) solid var(--borderColor-default);
-  border-radius: var(--cmp-radius);
+  border-radius: var(--cmp-panel-radius);
+  background-color: var(--bgColor-muted);
 }
 
-.cmp-fig > h4 {
-  margin: 0 0 var(--base-size-4);
-  font-size: var(--text-body-size-large);
+.lp-band .cmp-panel {
+  background-color: var(--bgColor-default);
+}
+
+.cmp-panel > h4 {
+  margin: 0 0 var(--base-size-8);
+  font-size: var(--text-title-size-medium);
 }
 
 .cmp-cap {
-  margin: 0 0 var(--base-size-16);
-  font-size: var(--text-body-size-small);
+  margin: 0 0 var(--base-size-24);
+  font-size: var(--text-body-size-medium);
   line-height: 1.55;
   color: var(--fgColor-muted);
 }
@@ -383,8 +308,8 @@
   align-items: stretch;
   min-width: 0;
   padding: var(--base-size-16);
-  border-radius: var(--cmp-radius);
-  font-size: var(--text-body-size-small);
+  border-radius: var(--lp-radius);
+  font-size: var(--text-body-size-medium);
 }
 
 .cmp-arch-panel--aws {
@@ -634,7 +559,7 @@
   grid-template-columns: minmax(0, 17rem) minmax(0, 1fr) 6rem;
   gap: var(--base-size-12);
   align-items: center;
-  font-size: var(--text-body-size-small);
+  font-size: var(--text-body-size-medium);
 }
 
 .cmp-bar--wrap {
@@ -818,7 +743,7 @@
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1.4fr);
   gap: var(--base-size-12);
   align-items: center;
-  font-size: var(--text-body-size-small);
+  font-size: var(--text-body-size-medium);
 }
 
 .cmp-flow-box,
@@ -828,7 +753,7 @@
   gap: var(--base-size-4);
   padding: var(--base-size-16);
   border: var(--borderWidth-thin) solid var(--borderColor-default);
-  border-radius: var(--cmp-radius);
+  border-radius: var(--lp-radius);
   text-align: center;
 }
 
@@ -915,7 +840,7 @@
 
 .cmp-shot figcaption {
   margin-top: var(--base-size-8);
-  font-size: var(--text-body-size-small);
+  font-size: var(--text-body-size-medium);
   line-height: 1.55;
   color: var(--fgColor-muted);
 }
@@ -971,7 +896,7 @@
   gap: var(--base-size-2);
   padding: var(--base-size-12) var(--base-size-16);
   border-radius: var(--borderRadius-medium);
-  font-size: var(--text-body-size-small);
+  font-size: var(--text-body-size-medium);
 }
 
 .cmp-tier--1 {
@@ -992,7 +917,7 @@
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  font-size: var(--text-body-size-small);
+  font-size: var(--text-body-size-medium);
   text-align: center;
 }
 
@@ -1095,7 +1020,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--base-size-2);
-  font-size: var(--text-body-size-small);
+  font-size: var(--text-body-size-medium);
 }
 
 .cmp-steps .lp-step-n {
@@ -1107,20 +1032,21 @@
 
 .cmp-table-wrap {
   border: var(--borderWidth-thin) solid var(--borderColor-default);
-  border-radius: var(--cmp-radius);
+  border-radius: var(--lp-radius);
+  background-color: var(--bgColor-default);
   overflow-x: auto;
 }
 
 .cmp-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--text-body-size-small);
+  font-size: var(--text-body-size-medium);
   line-height: 1.55;
 }
 
 .cmp-table th,
 .cmp-table td {
-  padding: var(--base-size-8) var(--base-size-12);
+  padding: var(--base-size-12) var(--base-size-16);
   border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
   text-align: left;
   vertical-align: top;
@@ -1179,48 +1105,19 @@
   gap: var(--base-size-8);
   margin: 0;
   padding-left: var(--base-size-20);
-  font-size: var(--text-body-size-small);
+  font-size: var(--text-body-size-medium);
   line-height: 1.6;
   color: var(--fgColor-muted);
 }
 
 .cmp-sources,
-.cmp-table td,
-.cmp-card {
+.cmp-table td {
   overflow-wrap: anywhere;
-}
-
-.cmp-end {
-  margin-top: var(--base-size-64);
-  padding: var(--base-size-24);
-  border: var(--borderWidth-thin) solid var(--borderColor-default);
-  border-radius: var(--cmp-radius);
-  background-color: var(--bgColor-muted);
-  text-align: center;
-}
-
-.cmp-end p {
-  max-width: 46rem;
-  margin: 0 auto;
-  line-height: 1.6;
-  color: var(--fgColor-muted);
-}
-
-.cmp-end strong {
-  color: var(--fgColor-default);
-}
-
-.cmp-end .lp-hero-cta {
-  margin-top: var(--base-size-20);
 }
 
 /* ── Narrower screens ─────────────────────────────────────────── */
 
 @media (max-width: 960px) {
-  .cmp-kpis {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .cmp-grid--3,
   .cmp-arch,
   .cmp-gpu {
@@ -1250,9 +1147,8 @@
 
 /* A phone: one column, and every table as labelled blocks. */
 @media (max-width: 700px) {
-  .cmp-body {
-    padding-left: var(--base-size-16);
-    padding-right: var(--base-size-16);
+  .cmp-toc {
+    padding: 0 var(--base-size-16);
   }
 
   .cmp-grid--2,
@@ -1261,21 +1157,8 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .cmp-fig {
-    padding: var(--base-size-12);
-  }
-
-  .cmp-section {
-    padding-top: var(--base-size-48);
-  }
-
-  .cmp-verdict {
+  .cmp-panel {
     padding: var(--base-size-16);
-    font-size: var(--text-body-size-medium);
-  }
-
-  .cmp-kpi-v {
-    font-size: var(--text-body-size-large);
   }
 
   .cmp-week-row {
@@ -1350,6 +1233,21 @@
     font-size: var(--text-body-size-small);
     font-weight: var(--base-text-weight-semibold);
     color: var(--fgColor-muted);
+  }
+
+  .cmp-cov .cmp-table th,
+  .cmp-cov .cmp-table td {
+    padding-left: var(--base-size-8);
+    padding-right: var(--base-size-8);
+  }
+
+  .cmp-cov .cmp-has-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .cmp-usage .cmp-table .cmp-num {
