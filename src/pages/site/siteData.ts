@@ -126,6 +126,9 @@ export const PRODUCTS: { slug: string; name: string; line: string }[] = [
   { slug: 'factory', name: 'Factory', line: 'Domain models trained on your data' },
 ]
 
+/** The comparison with AWS Bedrock AgentCore: linked from the footer and the Fleet page. */
+export const COMPARE_AGENTCORE = '/compare/agentcore'
+
 /** The Products menu: the pages grouped by what kind of thing each is. */
 export const PRODUCT_GROUPS: { label: string; note: string; slugs: string[] }[] = [
   { label: 'Extensions', note: 'Add to the igni app', slugs: ['codeindex', 'artifacts'] },

@@ -41,14 +41,24 @@ describe('the committed sitemap', () => {
   })
 
   it('lists only routes the public build serves', () => {
-    // `/`, the product pages, `/docs` and `/docs/:slug` — see the PUBLIC_SITE branch in
-    // App.tsx. Everything else is a redirect to `/`.
+    // `/`, the product pages, the AgentCore comparison, `/docs` and
+    // `/docs/:slug` — see App.tsx. Everything else is a redirect to `/`.
     const locs = [...COMMITTED.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) =>
       m[1].slice(ORIGIN.length),
     )
     const products = ['codeindex', 'artifacts', 'fleet', 'factory'].map((s) => `/${s}`)
-    const allowed = new Set(['/', '/docs', ...products, ...docSlugs().map((s) => `/docs/${s}`)])
+    const allowed = new Set([
+      '/',
+      '/docs',
+      '/compare/agentcore',
+      ...products,
+      ...docSlugs().map((s) => `/docs/${s}`),
+    ])
 
     expect(locs.filter((l) => !allowed.has(l))).toEqual([])
+  })
+
+  it('lists the AgentCore comparison', () => {
+    expect(COMMITTED).toContain(`<loc>${ORIGIN}/compare/agentcore</loc>`)
   })
 })

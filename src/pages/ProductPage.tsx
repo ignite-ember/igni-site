@@ -4,6 +4,7 @@ import {
   MailIcon,
   BookIcon,
   CheckIcon,
+  GitCompareIcon,
   SearchIcon,
   ServerIcon,
   WorkflowIcon,
@@ -16,6 +17,7 @@ import {
   CALENDLY_URL,
   CONTACT_EMAIL,
   CODEINDEX_PRICES,
+  COMPARE_AGENTCORE,
   FACTORY_PER_YEAR,
   FLEET_PRICES,
   PRODUCTS,
@@ -66,6 +68,8 @@ type Product = {
     | { kind: 'bands'; unit: string; values: number[]; note?: string }
     | { kind: 'flat'; note: string }
   docs: { slug: string; title: string }[]
+  /** Other pages on the site worth reading next, shown beside the docs. */
+  related?: { href: string; title: string }[]
 }
 
 const PRODUCT_LIST: Product[] = [
@@ -245,6 +249,7 @@ const PRODUCT_LIST: Product[] = [
     ],
     prices: { kind: 'bands', unit: 'people', values: FLEET_PRICES, note: 'Each band includes as many app agents as people, at a time. An app\u2019s end users count as apps. Remove one and its place is free for a new one; past the cap, a new one is refused until you do or move up a band. The unlimited tier has no limit on either.' },
     docs: [{ slug: 'fleet', title: 'Fleet: an agent in a microVM for every person and app' }],
+    related: [{ href: COMPARE_AGENTCORE, title: 'igni + Fleet vs AWS Bedrock AgentCore' }],
   },
   {
     slug: 'factory',
@@ -431,6 +436,11 @@ export function ProductPage({ slug }: { slug: string }) {
           {p.docs.map((d) => (
             <a key={d.slug} href={`/docs/${d.slug}`}>
               <CheckIcon size={14} /> {d.title}
+            </a>
+          ))}
+          {p.related?.map((r) => (
+            <a key={r.href} href={r.href}>
+              <GitCompareIcon size={14} /> {r.title}
             </a>
           ))}
         </div>

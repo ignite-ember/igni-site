@@ -1,0 +1,1368 @@
+/* ── The AgentCore comparison page ────────────────────────────────
+ *
+ * On top of landing-shared.css and LandingPage.css (nav, hero, buttons,
+ * pills, step numbers, footer). Every colour is a Primer token or the
+ * page's two side colours below, so both themes follow the OS. Orange is
+ * igni, as everywhere on the site; AgentCore is neutral grey, the colour
+ * the landing page gives the thing igni is measured against.
+ *
+ * The page is long and mostly text, tables and figures, so it reads
+ * left-aligned in one column rather than in the product pages' centred
+ * sections. Every figure reflows to a phone; the one line chart scrolls
+ * inside its own box below its natural width, and the wide tables turn
+ * into labelled blocks.
+ */
+
+.lp-cmp {
+  --cmp-aws: var(--fgColor-muted);
+  --cmp-aws-soft: var(--bgColor-neutral-muted);
+  --cmp-igni: var(--lp-orange);
+  --cmp-igni-soft: var(--lp-orange-soft);
+  --cmp-igni-mid: color-mix(in srgb, var(--lp-orange) 45%, transparent);
+  --cmp-radius: var(--borderRadius-large);
+}
+
+.cmp-hero {
+  padding-bottom: var(--base-size-48);
+}
+
+.cmp-meta {
+  max-width: 46rem;
+  margin: var(--base-size-16) auto 0;
+  font-size: var(--text-body-size-small);
+  color: var(--fgColor-muted);
+  text-wrap: balance;
+}
+
+.cmp-body {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 0 var(--base-size-24) var(--base-size-64);
+}
+
+.lp-cmp code {
+  font-family: var(--fontStack-monospace);
+  font-size: 0.9em;
+  padding: 0 var(--base-size-4);
+  border-radius: var(--borderRadius-small);
+  background-color: var(--bgColor-neutral-muted);
+  white-space: nowrap;
+}
+
+.cmp-nowrap {
+  white-space: nowrap;
+}
+
+.cmp-muted {
+  color: var(--fgColor-muted);
+}
+
+.cmp-small {
+  font-size: var(--text-body-size-small);
+}
+
+.cmp-strong {
+  font-weight: var(--base-text-weight-semibold);
+}
+
+/* ── Short version, key figures, contents ─────────────────────── */
+
+.cmp-verdict {
+  margin: 0;
+  padding: var(--base-size-20) var(--base-size-24);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-left: var(--borderWidth-thicker) solid var(--cmp-igni);
+  border-radius: var(--cmp-radius);
+  background-color: var(--bgColor-muted);
+  font-size: var(--text-body-size-large);
+  line-height: 1.6;
+}
+
+.cmp-verdict strong {
+  color: var(--igni-orange-text);
+}
+
+.cmp-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--base-size-12);
+  margin-top: var(--base-size-16);
+}
+
+.cmp-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-4);
+  padding: var(--base-size-16);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--cmp-radius);
+}
+
+.cmp-kpi-v {
+  font-size: var(--text-title-size-medium);
+  font-weight: var(--base-text-weight-semibold);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--igni-orange-text);
+}
+
+.cmp-kpi-v small {
+  font-size: var(--text-body-size-medium);
+  color: var(--fgColor-muted);
+  white-space: nowrap;
+}
+
+.cmp-kpi-k {
+  font-size: var(--text-body-size-small);
+  line-height: 1.5;
+  color: var(--fgColor-muted);
+}
+
+.cmp-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--base-size-8);
+  margin: var(--base-size-24) 0 0;
+}
+
+.cmp-toc a {
+  padding: var(--base-size-4) var(--base-size-12);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-full);
+  font-size: var(--text-body-size-small);
+  color: var(--fgColor-default);
+  text-decoration: none;
+}
+
+.cmp-toc a:hover {
+  border-color: var(--cmp-igni);
+}
+
+/* ── Sections ─────────────────────────────────────────────────── */
+
+.cmp-section {
+  padding-top: var(--base-size-64);
+  /* Clear the sticky nav when a contents link scrolls here. */
+  scroll-margin-top: var(--base-size-48);
+}
+
+.cmp-section h3 {
+  margin: 0 0 var(--base-size-8);
+  font-size: var(--text-title-size-large);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.cmp-h4 {
+  margin: var(--base-size-40) 0 var(--base-size-8);
+  font-size: var(--text-title-size-medium);
+  scroll-margin-top: var(--base-size-80);
+}
+
+.cmp-h5 {
+  margin: 0 0 var(--base-size-8);
+  font-size: var(--text-body-size-large);
+}
+
+.cmp-sub {
+  max-width: 48rem;
+  margin: 0 0 var(--base-size-20);
+  font-size: var(--text-body-size-large);
+  line-height: 1.6;
+  color: var(--fgColor-muted);
+}
+
+.cmp-note {
+  margin: var(--base-size-12) 0 0;
+  font-size: var(--text-body-size-small);
+  line-height: 1.6;
+  color: var(--fgColor-muted);
+}
+
+.cmp-note--top {
+  margin: 0 0 var(--base-size-12);
+}
+
+.cmp-gap {
+  margin-top: var(--base-size-16);
+}
+
+.cmp-inshort {
+  max-width: 52rem;
+  margin: var(--base-size-20) 0 0;
+  line-height: 1.65;
+}
+
+/* ── Cards, the two sides ─────────────────────────────────────── */
+
+.cmp-grid {
+  display: grid;
+  gap: var(--base-size-16);
+}
+
+.cmp-grid--2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cmp-grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.cmp-card {
+  min-width: 0;
+  padding: var(--base-size-16) var(--base-size-20);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--cmp-radius);
+  font-size: var(--text-body-size-medium);
+  line-height: 1.6;
+}
+
+.cmp-card h4 {
+  margin: 0 0 var(--base-size-8);
+  font-size: var(--text-body-size-large);
+}
+
+.cmp-card p {
+  margin: 0 0 var(--base-size-8);
+  color: var(--fgColor-muted);
+}
+
+.cmp-card ul {
+  margin: 0;
+  padding-left: var(--base-size-20);
+  color: var(--fgColor-muted);
+}
+
+.cmp-card li + li {
+  margin-top: var(--base-size-6);
+}
+
+.cmp-card li b {
+  color: var(--fgColor-default);
+}
+
+.cmp-card--aws h4 {
+  color: var(--fgColor-default);
+}
+
+.cmp-card--igni h4 {
+  color: var(--igni-orange-text);
+}
+
+.cmp-card--aws {
+  border-top: var(--borderWidth-thicker) solid var(--cmp-aws);
+}
+
+.cmp-card--igni {
+  border-top: var(--borderWidth-thicker) solid var(--cmp-igni);
+}
+
+.cmp-card-label {
+  display: block;
+  margin: 0 0 var(--base-size-8) !important;
+  font-size: var(--text-body-size-small) !important;
+  font-weight: var(--base-text-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fgColor-muted);
+}
+
+.cmp-vs {
+  display: grid;
+  gap: var(--base-size-8);
+}
+
+.cmp-side {
+  padding: var(--base-size-8) var(--base-size-12);
+  border-radius: var(--borderRadius-medium);
+  font-size: var(--text-body-size-small);
+  line-height: 1.55;
+}
+
+.cmp-side b {
+  display: block;
+  margin-bottom: var(--base-size-2);
+  font-size: var(--text-caption-size, var(--text-body-size-small));
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.cmp-side--aws {
+  background-color: var(--cmp-aws-soft);
+}
+
+.cmp-side--igni {
+  background-color: var(--cmp-igni-soft);
+}
+
+.cmp-side--igni b {
+  color: var(--igni-orange-text);
+}
+
+/* ── Figures ──────────────────────────────────────────────────── */
+
+.cmp-fig {
+  margin: var(--base-size-16) 0;
+  padding: var(--base-size-16) var(--base-size-20);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--cmp-radius);
+}
+
+.cmp-fig > h4 {
+  margin: 0 0 var(--base-size-4);
+  font-size: var(--text-body-size-large);
+}
+
+.cmp-cap {
+  margin: 0 0 var(--base-size-16);
+  font-size: var(--text-body-size-small);
+  line-height: 1.55;
+  color: var(--fgColor-muted);
+}
+
+.cmp-cap--after {
+  margin: var(--base-size-12) 0 0;
+}
+
+.cmp-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--base-size-8) var(--base-size-20);
+  margin-top: var(--base-size-12);
+  font-size: var(--text-body-size-small);
+  color: var(--fgColor-muted);
+}
+
+.cmp-legend--col {
+  flex-direction: column;
+  gap: var(--base-size-4);
+}
+
+.cmp-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-6);
+}
+
+.cmp-swatch {
+  display: inline-block;
+  flex-shrink: 0;
+  width: var(--base-size-12);
+  height: var(--base-size-12);
+  border-radius: var(--borderRadius-small);
+}
+
+.cmp-swatch--round {
+  border-radius: var(--borderRadius-full);
+}
+
+.cmp-swatch--running {
+  background-color: var(--cmp-igni);
+}
+
+.cmp-swatch--suspended {
+  background-color: var(--cmp-igni-soft);
+  box-shadow: inset 0 0 0 var(--borderWidth-thin) var(--cmp-igni-mid);
+}
+
+.cmp-swatch--session {
+  border: var(--borderWidth-thin) dashed var(--cmp-aws);
+  background-color: var(--cmp-aws-soft);
+}
+
+/* Where each piece runs: two panels, side by side, then stacked. */
+.cmp-arch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--base-size-16);
+}
+
+.cmp-arch-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
+  padding: var(--base-size-16);
+  border-radius: var(--cmp-radius);
+  font-size: var(--text-body-size-small);
+}
+
+.cmp-arch-panel--aws {
+  background-color: var(--cmp-aws-soft);
+}
+
+.cmp-arch-panel--igni {
+  background-color: var(--cmp-igni-soft);
+}
+
+.cmp-arch-where {
+  margin-bottom: var(--base-size-12);
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.cmp-arch-panel--igni .cmp-arch-where {
+  color: var(--igni-orange-text);
+}
+
+.cmp-arch-box {
+  padding: var(--base-size-8) var(--base-size-12);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background-color: var(--bgColor-default);
+  text-align: center;
+}
+
+.cmp-arch-box--left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-8);
+  text-align: left;
+}
+
+.cmp-arch-down {
+  display: block;
+  margin: var(--base-size-2) 0;
+  text-align: center;
+  color: var(--fgColor-muted);
+}
+
+.cmp-arch-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: var(--base-size-12);
+  align-items: start;
+}
+
+.cmp-arch-vms {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--base-size-6);
+}
+
+.cmp-arch-vm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--base-size-2);
+  padding: var(--base-size-8) var(--base-size-4);
+  border-radius: var(--borderRadius-medium);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.cmp-arch-vm em {
+  font-style: normal;
+  color: var(--fgColor-muted);
+}
+
+.cmp-arch-vm--session {
+  border: var(--borderWidth-thin) dashed var(--cmp-aws);
+}
+
+.cmp-arch-vm--owned {
+  border: var(--borderWidth-thick) solid var(--cmp-igni);
+}
+
+.cmp-arch-disk {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-4);
+  margin-top: var(--base-size-4);
+  padding: var(--base-size-2) var(--base-size-6);
+  border: var(--borderWidth-thin) solid var(--cmp-igni-mid);
+  border-radius: var(--borderRadius-small);
+  background-color: var(--cmp-igni-soft);
+}
+
+.cmp-arch-services {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cmp-arch-services li {
+  padding: var(--base-size-6) var(--base-size-8);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background-color: var(--bgColor-default);
+  text-align: center;
+}
+
+.cmp-arch-foot {
+  margin: var(--base-size-12) 0 0;
+  text-align: center;
+  color: var(--fgColor-muted);
+}
+
+/* A week of one person's agent. */
+.cmp-week {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-8);
+}
+
+.cmp-week-row {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr);
+  gap: var(--base-size-12);
+  align-items: center;
+}
+
+.cmp-week-label {
+  font-size: var(--text-body-size-small);
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.cmp-week-label--igni {
+  color: var(--igni-orange-text);
+}
+
+.cmp-week-days {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  font-size: var(--text-body-size-small);
+  color: var(--fgColor-muted);
+  text-align: center;
+}
+
+.cmp-week-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  height: var(--base-size-32);
+}
+
+.cmp-week-day {
+  border-left: var(--borderWidth-thin) solid var(--borderColor-muted);
+}
+
+.cmp-week-day:last-of-type {
+  border-right: var(--borderWidth-thin) solid var(--borderColor-muted);
+}
+
+.cmp-week-span {
+  position: absolute;
+  top: var(--base-size-4);
+  bottom: var(--base-size-4);
+  border-radius: var(--borderRadius-small);
+}
+
+.cmp-week-span--session {
+  border: var(--borderWidth-thin) dashed var(--cmp-aws);
+  background-color: var(--cmp-aws-soft);
+}
+
+.cmp-week-span--aws-files {
+  background-color: color-mix(in srgb, var(--cmp-aws) 70%, transparent);
+}
+
+.cmp-week-span--aws-files-after {
+  background-color: color-mix(in srgb, var(--cmp-aws) 25%, transparent);
+}
+
+.cmp-week-span--suspended {
+  background-color: var(--cmp-igni-soft);
+}
+
+.cmp-week-span--running {
+  background-color: var(--cmp-igni);
+}
+
+.cmp-week-span--workspace {
+  background-color: var(--cmp-igni-mid);
+}
+
+.cmp-week-update {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: var(--borderWidth-thick) dashed;
+}
+
+.cmp-week-update--wiped {
+  border-color: var(--fgColor-danger);
+}
+
+.cmp-week-update--kept {
+  border-color: var(--fgColor-success);
+}
+
+.cmp-week-note {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0 var(--base-size-4);
+  border-radius: var(--borderRadius-small);
+  background-color: var(--bgColor-default);
+  font-size: var(--text-body-size-small);
+  font-weight: var(--base-text-weight-semibold);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.cmp-week-note--wiped {
+  color: var(--fgColor-danger);
+}
+
+.cmp-week-note--kept {
+  color: var(--fgColor-success);
+}
+
+/* Horizontal bars: label, track, value. */
+.cmp-bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-12);
+}
+
+.cmp-week + .cmp-bars {
+  margin-top: var(--base-size-24);
+  padding-top: var(--base-size-16);
+  border-top: var(--borderWidth-thin) solid var(--borderColor-muted);
+}
+
+.cmp-bars-title {
+  margin: 0 0 var(--base-size-4);
+  font-size: var(--text-body-size-medium);
+}
+
+.cmp-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 17rem) minmax(0, 1fr) 6rem;
+  gap: var(--base-size-12);
+  align-items: center;
+  font-size: var(--text-body-size-small);
+}
+
+.cmp-bar--wrap {
+  grid-template-columns: minmax(0, 17rem) minmax(0, 1fr);
+}
+
+.cmp-bar--wrap .cmp-bar-value {
+  grid-column: 2;
+  margin-top: calc(-1 * var(--base-size-8));
+}
+
+.cmp-bar-label--igni {
+  font-weight: var(--base-text-weight-semibold);
+  color: var(--igni-orange-text);
+}
+
+.cmp-bar-label--aws {
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.cmp-bar-track {
+  display: block;
+  height: var(--base-size-24);
+  border-radius: var(--borderRadius-medium);
+  background-color: var(--bgColor-muted);
+  overflow: hidden;
+}
+
+.cmp-bar-track--bare {
+  background-color: transparent;
+  overflow: visible;
+}
+
+.cmp-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--borderRadius-medium);
+}
+
+.cmp-bar-fill--aws {
+  background-color: var(--cmp-aws);
+}
+
+.cmp-bar-fill--igni {
+  background-color: var(--cmp-igni);
+}
+
+.cmp-bar-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--fgColor-muted);
+}
+
+.cmp-cost-bar .cmp-bar-value {
+  font-weight: var(--base-text-weight-semibold);
+  color: var(--fgColor-default);
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* What each bill is made of: one stacked bar per side. */
+.cmp-stack-bar {
+  display: flex;
+  height: var(--base-size-32);
+  border-radius: var(--borderRadius-medium);
+  overflow: hidden;
+}
+
+.cmp-stack-part {
+  flex-basis: 0;
+}
+
+.cmp-stack-part + .cmp-stack-part {
+  border-left: var(--borderWidth-thick) solid var(--bgColor-default);
+}
+
+.cmp-stack-part--1 {
+  opacity: 0.65;
+}
+
+.cmp-stack-part--2 {
+  opacity: 0.35;
+}
+
+.cmp-stack-legend {
+  margin-top: var(--base-size-6);
+}
+
+.cmp-stack .cmp-legend {
+  padding-left: calc(17rem + var(--base-size-12));
+}
+
+/* Wake times: the value sits after the bar, or under it when the bar
+   fills the track. */
+.cmp-wake-track {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--base-size-4) var(--base-size-8);
+  height: auto;
+}
+
+.cmp-wake-track .cmp-bar-fill {
+  flex-shrink: 0;
+  height: var(--base-size-24);
+}
+
+.cmp-wake-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--fgColor-muted);
+  white-space: nowrap;
+}
+
+.cmp-wake-axis {
+  position: relative;
+  display: block;
+  height: var(--base-size-20);
+  border-top: var(--borderWidth-thin) solid var(--borderColor-default);
+  font-size: var(--text-body-size-small);
+  color: var(--fgColor-muted);
+}
+
+.cmp-wake-axis span {
+  position: absolute;
+  top: var(--base-size-2);
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.cmp-wake-axis span:first-child {
+  transform: none;
+}
+
+.cmp-wake-axis span:last-child {
+  transform: translateX(-100%);
+}
+
+/* At a glance: filled, half, ring. */
+.cmp-has {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--base-size-8);
+}
+
+.cmp-has .cmp-dot {
+  align-self: center;
+}
+
+.cmp-dot {
+  display: inline-block;
+  flex-shrink: 0;
+  width: var(--base-size-12);
+  height: var(--base-size-12);
+  border: var(--borderWidth-thick) solid currentColor;
+  border-radius: var(--borderRadius-full);
+}
+
+.cmp-dot--full {
+  background-color: currentColor;
+}
+
+.cmp-dot--half {
+  background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+}
+
+.cmp-cov-aws .cmp-dot {
+  color: var(--cmp-aws);
+}
+
+.cmp-cov-igni .cmp-dot {
+  color: var(--cmp-igni);
+}
+
+.cmp-cov .cmp-table td {
+  padding-top: var(--base-size-6);
+  padding-bottom: var(--base-size-6);
+}
+
+/* How an extension connects: three boxes and two links. */
+.cmp-flow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1.4fr);
+  gap: var(--base-size-12);
+  align-items: center;
+  font-size: var(--text-body-size-small);
+}
+
+.cmp-flow-box,
+.cmp-flow-app {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-4);
+  padding: var(--base-size-16);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--cmp-radius);
+  text-align: center;
+}
+
+.cmp-flow-box--ext {
+  border: var(--borderWidth-thick) solid var(--cmp-igni);
+}
+
+.cmp-flow-chip {
+  margin-top: var(--base-size-8);
+  padding: var(--base-size-4) var(--base-size-8);
+  border-radius: var(--borderRadius-medium);
+  background-color: var(--cmp-igni-soft);
+}
+
+.cmp-flow-link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-8);
+  color: var(--fgColor-muted);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.cmp-flow-link b {
+  font-weight: var(--base-text-weight-normal);
+}
+
+.cmp-flow-app {
+  gap: var(--base-size-6);
+  border: 0;
+  background-color: var(--cmp-igni-soft);
+  text-align: left;
+}
+
+.cmp-flow-app-name {
+  font-weight: var(--base-text-weight-semibold);
+  color: var(--igni-orange-text);
+}
+
+.cmp-flow-item {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  padding: var(--base-size-6) var(--base-size-8);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background-color: var(--bgColor-default);
+}
+
+.cmp-flow-item svg {
+  flex-shrink: 0;
+  color: var(--fgColor-muted);
+}
+
+.cmp-flow-agent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-2);
+  margin-top: var(--base-size-4);
+  padding: var(--base-size-8) var(--base-size-12);
+  border: var(--borderWidth-thick) solid var(--cmp-igni);
+  border-radius: var(--borderRadius-medium);
+  background-color: var(--bgColor-default);
+}
+
+/* Screenshots. */
+.cmp-shots {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-24);
+}
+
+.cmp-shot {
+  margin: 0;
+}
+
+.cmp-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+}
+
+.cmp-shot figcaption {
+  margin-top: var(--base-size-8);
+  font-size: var(--text-body-size-small);
+  line-height: 1.55;
+  color: var(--fgColor-muted);
+}
+
+.cmp-shot figcaption b {
+  color: var(--fgColor-default);
+}
+
+/* One GH200: 200 people, and where their cache lives. */
+.cmp-gpu {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--base-size-32);
+}
+
+.cmp-gpu-dots {
+  display: grid;
+  grid-template-columns: repeat(20, minmax(0, 1fr));
+  gap: var(--base-size-4);
+  max-width: 26rem;
+}
+
+.cmp-gpu-dot {
+  aspect-ratio: 1;
+  border-radius: var(--borderRadius-full);
+  background-color: var(--cmp-igni-soft);
+  box-shadow: inset 0 0 0 var(--borderWidth-thin) var(--cmp-igni-mid);
+}
+
+.cmp-gpu-dot--on {
+  background-color: var(--cmp-igni);
+  box-shadow: none;
+}
+
+.cmp-tiers {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--base-size-12);
+}
+
+.cmp-tiers ol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-8);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cmp-tier {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-2);
+  padding: var(--base-size-12) var(--base-size-16);
+  border-radius: var(--borderRadius-medium);
+  font-size: var(--text-body-size-small);
+}
+
+.cmp-tier--1 {
+  background-color: var(--cmp-igni-mid);
+}
+
+.cmp-tier--2 {
+  background-color: color-mix(in srgb, var(--lp-orange) 25%, transparent);
+}
+
+.cmp-tier--3 {
+  border: var(--borderWidth-thin) solid var(--cmp-igni-mid);
+  background-color: var(--cmp-igni-soft);
+}
+
+.cmp-tier-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--text-body-size-small);
+  text-align: center;
+}
+
+.cmp-tier-axis em {
+  font-style: normal;
+  color: var(--fgColor-muted);
+}
+
+.cmp-tier-arrow {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  font-size: var(--text-title-size-medium);
+  color: var(--fgColor-muted);
+}
+
+/* The usage chart: SVG, scrolling inside its box on a phone. */
+.cmp-scroll {
+  overflow-x: auto;
+}
+
+.cmp-chart {
+  display: block;
+  width: 100%;
+  max-width: 45rem;
+  height: auto;
+  /* In viewBox units, so this scales with the drawing. */
+  font-size: 0.8125rem;
+}
+
+.cmp-chart-grid {
+  stroke: var(--borderColor-muted);
+}
+
+.cmp-chart-muted {
+  fill: var(--fgColor-muted);
+}
+
+.cmp-chart-band {
+  fill: var(--cmp-igni-soft);
+  stroke: var(--cmp-igni-mid);
+}
+
+.cmp-chart-line {
+  fill: none;
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.cmp-chart-line--igni {
+  stroke: var(--cmp-igni);
+}
+
+.cmp-chart-line--aws {
+  stroke: var(--cmp-aws);
+}
+
+.cmp-chart-dot--igni {
+  fill: var(--cmp-igni);
+}
+
+.cmp-chart-dot--aws {
+  fill: var(--cmp-aws);
+}
+
+.cmp-chart-rule {
+  stroke: var(--fgColor-muted);
+  stroke-dasharray: 4 4;
+}
+
+.cmp-chart-label--aws {
+  fill: var(--fgColor-default);
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.cmp-chart-label--igni {
+  fill: var(--igni-orange-text);
+  font-weight: var(--base-text-weight-semibold);
+}
+
+/* Erasure: four steps in a row. */
+.cmp-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--base-size-12);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cmp-steps li {
+  display: flex;
+  gap: var(--base-size-12);
+  padding: var(--base-size-12);
+  border: var(--borderWidth-thin) solid var(--cmp-igni-mid);
+  border-radius: var(--borderRadius-medium);
+}
+
+.cmp-steps li > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-2);
+  font-size: var(--text-body-size-small);
+}
+
+.cmp-steps .lp-step-n {
+  flex-shrink: 0;
+  background-color: var(--lp-orange);
+}
+
+/* ── Tables ───────────────────────────────────────────────────── */
+
+.cmp-table-wrap {
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--cmp-radius);
+  overflow-x: auto;
+}
+
+.cmp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-body-size-small);
+  line-height: 1.55;
+}
+
+.cmp-table th,
+.cmp-table td {
+  padding: var(--base-size-8) var(--base-size-12);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+  text-align: left;
+  vertical-align: top;
+}
+
+.cmp-table thead th {
+  background-color: var(--bgColor-muted);
+  font-size: var(--text-body-size-small);
+  font-weight: var(--base-text-weight-semibold);
+  color: var(--fgColor-muted);
+}
+
+.cmp-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.cmp-table .cmp-num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.cmp-total td {
+  background-color: var(--bgColor-muted);
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.cmp-table td:first-child {
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.cmp-numeric .cmp-table td:first-child {
+  font-weight: var(--base-text-weight-normal);
+}
+
+.cmp-numeric .cmp-table .cmp-total td {
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.cmp-compare .cmp-table td {
+  width: 40%;
+}
+
+.cmp-compare .cmp-table td:first-child {
+  width: 20%;
+}
+
+.cmp-rated {
+  display: block;
+  margin-top: var(--base-size-4);
+}
+
+.cmp-sources {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-8);
+  margin: 0;
+  padding-left: var(--base-size-20);
+  font-size: var(--text-body-size-small);
+  line-height: 1.6;
+  color: var(--fgColor-muted);
+}
+
+.cmp-sources,
+.cmp-table td,
+.cmp-card {
+  overflow-wrap: anywhere;
+}
+
+.cmp-end {
+  margin-top: var(--base-size-64);
+  padding: var(--base-size-24);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--cmp-radius);
+  background-color: var(--bgColor-muted);
+  text-align: center;
+}
+
+.cmp-end p {
+  max-width: 46rem;
+  margin: 0 auto;
+  line-height: 1.6;
+  color: var(--fgColor-muted);
+}
+
+.cmp-end strong {
+  color: var(--fgColor-default);
+}
+
+.cmp-end .lp-hero-cta {
+  margin-top: var(--base-size-20);
+}
+
+/* ── Narrower screens ─────────────────────────────────────────── */
+
+@media (max-width: 960px) {
+  .cmp-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cmp-grid--3,
+  .cmp-arch,
+  .cmp-gpu {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cmp-flow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The links between the boxes now run downwards. */
+  .cmp-flow-link {
+    flex-direction: row;
+    justify-content: center;
+    gap: var(--base-size-16);
+  }
+
+  .cmp-flow-link b {
+    display: inline-block;
+    transform: rotate(90deg);
+  }
+
+  .cmp-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* A phone: one column, and every table as labelled blocks. */
+@media (max-width: 700px) {
+  .cmp-body {
+    padding-left: var(--base-size-16);
+    padding-right: var(--base-size-16);
+  }
+
+  .cmp-grid--2,
+  .cmp-steps,
+  .cmp-arch-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cmp-fig {
+    padding: var(--base-size-12);
+  }
+
+  .cmp-section {
+    padding-top: var(--base-size-48);
+  }
+
+  .cmp-verdict {
+    padding: var(--base-size-16);
+    font-size: var(--text-body-size-medium);
+  }
+
+  .cmp-kpi-v {
+    font-size: var(--text-body-size-large);
+  }
+
+  .cmp-week-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--base-size-4);
+  }
+
+  .cmp-week-row--head .cmp-week-label {
+    display: none;
+  }
+
+  .cmp-bar,
+  .cmp-bar--wrap {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--base-size-4) var(--base-size-8);
+  }
+
+  .cmp-bar-label {
+    grid-column: 1 / -1;
+  }
+
+  .cmp-bar--wrap .cmp-bar-track {
+    grid-column: 1 / -1;
+  }
+
+  .cmp-bar--wrap .cmp-bar-value {
+    grid-column: 1 / -1;
+    margin-top: 0;
+  }
+
+  .cmp-stack .cmp-legend {
+    padding-left: 0;
+  }
+
+  .cmp-table-wrap:not(.cmp-numeric):not(.cmp-cov) thead {
+    display: none;
+  }
+
+  .cmp-table-wrap:not(.cmp-numeric):not(.cmp-cov) tr,
+  .cmp-table-wrap:not(.cmp-numeric):not(.cmp-cov) td {
+    display: block;
+    width: auto !important;
+  }
+
+  .cmp-table-wrap:not(.cmp-numeric):not(.cmp-cov) tr {
+    border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+  }
+
+  .cmp-table-wrap:not(.cmp-numeric):not(.cmp-cov) tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .cmp-table-wrap:not(.cmp-numeric):not(.cmp-cov) td {
+    border-bottom: 0;
+    padding-top: var(--base-size-4);
+    padding-bottom: var(--base-size-4);
+    text-align: left;
+    white-space: normal;
+  }
+
+  .cmp-table-wrap:not(.cmp-numeric):not(.cmp-cov) td:first-child {
+    padding-top: var(--base-size-12);
+  }
+
+  .cmp-table-wrap:not(.cmp-numeric):not(.cmp-cov) td:last-child {
+    padding-bottom: var(--base-size-12);
+  }
+
+  .cmp-table-wrap:not(.cmp-numeric):not(.cmp-cov) td:not(:first-child)::before {
+    content: attr(data-label);
+    display: block;
+    font-size: var(--text-body-size-small);
+    font-weight: var(--base-text-weight-semibold);
+    color: var(--fgColor-muted);
+  }
+
+  .cmp-usage .cmp-table .cmp-num {
+    white-space: normal;
+  }
+
+  /* The chart is drawn at about half size here; larger text keeps it
+     readable without making it scroll. */
+  .cmp-chart {
+    font-size: 1.25rem;
+  }
+
+  .cmp-week-note-lead {
+    display: none;
+  }
+}

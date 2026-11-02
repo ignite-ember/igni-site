@@ -5,11 +5,13 @@ import { ProductPage } from "./pages/ProductPage";
 import { DownloadPage } from "./pages/DownloadPage";
 import { DocsPage } from "./pages/DocsPage";
 import { DocArticlePage } from "./pages/DocArticlePage";
+import { AgentCorePage } from "./pages/AgentCorePage";
 
 /**
  * The public site — what ignite-ember.sh serves.
  *
- * Landing page, one page per paid module, and the documentation. It
+ * Landing page, one page per paid module, a comparison with AWS Bedrock
+ * AgentCore, and the documentation. It
  * was a build flag (`VITE_PUBLIC_SITE=1`) inside the igni server
  * portal until 2026-10-31, when it moved to its own repository so the
  * server could be published without the price list in it.
@@ -31,6 +33,8 @@ export default function App() {
             <Route path="artifacts" element={<ProductPage slug="artifacts" />} />
             <Route path="fleet" element={<ProductPage slug="fleet" />} />
             <Route path="factory" element={<ProductPage slug="factory" />} />
+            {/* Comparisons with other platforms, one page each. */}
+            <Route path="compare/agentcore" element={<AgentCorePage />} />
             <Route path="docs" element={<DocsPage />} />
             <Route path="docs/:slug" element={<DocArticlePage />} />
             {/* Unlisted: nothing links here, it is absent from

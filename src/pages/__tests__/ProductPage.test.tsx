@@ -133,4 +133,9 @@ describe('Fleet', () => {
     expect(text).toMatch(/137 ms/)
     expect(text).not.toMatch(/~25 ms/)
   })
+
+  test('links to the comparison with AWS Bedrock AgentCore', () => {
+    renderProduct('fleet')
+    expect(document.querySelector('.lp-prod-docs a[href="/compare/agentcore"]')).not.toBeNull()
+  })
 })

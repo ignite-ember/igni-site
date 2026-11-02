@@ -44,6 +44,8 @@ export function buildSitemap() {
       priority: '0.9',
       changefreq: 'monthly',
     })),
+    // The comparison with AWS Bedrock AgentCore (src/pages/AgentCorePage.tsx).
+    { loc: '/compare/agentcore', priority: '0.8', changefreq: 'monthly' },
     { loc: '/docs', priority: '0.9', changefreq: 'weekly' },
     ...docSlugs().map((slug) => ({
       loc: `/docs/${slug}`,

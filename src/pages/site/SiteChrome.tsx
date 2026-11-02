@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ChevronDownIcon, MarkGithubIcon } from '@primer/octicons-react'
 import { IgniLogo } from '../../components/IgniLogo'
-import { CALENDLY_URL, CONTACT_EMAIL, GITHUB_REPO, PRODUCT_GROUPS, PRODUCTS, mailto } from './siteData'
+import { CALENDLY_URL, COMPARE_AGENTCORE, CONTACT_EMAIL, GITHUB_REPO, PRODUCT_GROUPS, PRODUCTS, mailto } from './siteData'
 
 function productsIn(slugs: string[]) {
   return slugs.map((slug) => PRODUCTS.find((p) => p.slug === slug)!).filter(Boolean)
@@ -153,6 +153,7 @@ export function SiteFooter({ home = false }: { home?: boolean }) {
           <li key={n.id}><a href={sectionHref(n.id, home)}>{n.label}</a></li>
         ))}
         <li><a href="/docs">Docs</a></li>
+        <li><a href={COMPARE_AGENTCORE}>igni vs AgentCore</a></li>
         <li>
           <a href={CALENDLY_URL} target="_blank" rel="noopener noreferrer">
             Schedule a call

@@ -2,8 +2,9 @@
 
 The public website at [ignite-ember.sh](https://ignite-ember.sh): the landing
 page, one page per paid module (`/codeindex`, `/artifacts`, `/fleet`,
-`/factory`) and the documentation (`/docs`, `/docs/:slug`). `/download` is
-served but unlisted.
+`/factory`), a comparison with AWS Bedrock AgentCore (`/compare/agentcore`)
+and the documentation (`/docs`, `/docs/:slug`). `/download` is served but
+unlisted.
 
 Until 2026-10-31 this lived inside the igni server portal behind a
 `VITE_PUBLIC_SITE=1` build flag. It moved here so the server can be published
