@@ -16,11 +16,12 @@
  */
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { cleanup, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { Route, Routes } from 'react-router-dom'
 import { renderWithProviders } from '../../test/render'
 import { AgentCorePage } from '../AgentCorePage'
 import { AUTOPILOT_PRICES, FACTORY_EVAL, FACTORY_PER_YEAR, FLEET_PRICES } from '../site/siteData'
-import { BAND_200, COST_BARS, COVERAGE, USAGE, WAKE, WAKE_MAX_MS, countFull } from '../compare/agentcoreData'
+import { BAND_200, COST_BARS, COST_SCALE, COVERAGE, USAGE, WAKE, WAKE_MAX_MS, countFull } from '../compare/agentcoreData'
 
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
@@ -162,11 +163,11 @@ describe('every figure is drawn to its number', () => {
     expect(countFull('aws')).toBe(13)
     expect(countFull('igni')).toBe(17)
     expect(text()).toMatch(`AgentCore has 13 of ${COVERAGE.length} in full; igni has 17`)
-    expect(document.querySelectorAll('.cmp-cov-aws .cmp-dot--full')).toHaveLength(13)
-    expect(document.querySelectorAll('.cmp-cov-igni .cmp-dot--full')).toHaveLength(17)
+    expect(document.querySelectorAll('.cmp-cov .cmp-cov-aws .cmp-dot--full')).toHaveLength(13)
+    expect(document.querySelectorAll('.cmp-cov .cmp-cov-igni .cmp-dot--full')).toHaveLength(17)
   })
 
-  test('each cost bar is its upper figure against the largest', () => {
+  test('each cost bar is its upper figure against the largest, amount beside it', () => {
     renderPage()
     const max = Math.max(...COST_BARS.map((b) => b.high))
     const bars = Array.from(document.querySelectorAll('.cmp-cost-bar'))
@@ -175,7 +176,8 @@ describe('every figure is drawn to its number', () => {
       const high = Number(bar.querySelector('.cmp-bar-value')?.getAttribute('data-high'))
       expect(bar.querySelector('.cmp-bar-value')?.textContent).toMatch(new RegExp(`–${high}k$`))
       const width = parseFloat((bar.querySelector('.cmp-bar-fill') as HTMLElement).style.width)
-      expect(width).toBeCloseTo((high / max) * 100, 5)
+      // The longest bar takes COST_SCALE% of the track, so its amount fits after it.
+      expect(width).toBeCloseTo((high / max) * COST_SCALE, 5)
     }
   })
 
@@ -215,6 +217,61 @@ describe('it is built from the landing page’s pieces', () => {
     sections.forEach((sec, i) => {
       expect(sec.parentElement?.classList.contains('lp-band'), sec.id).toBe(i % 2 === 1)
     })
+  })
+})
+
+describe('long sections stay short', () => {
+  test('the feature detail is behind a button, and still in the page', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    const button = screen.getByRole('button', { name: 'Show the detail for each capability' })
+    expect(button).toHaveAttribute('aria-expanded', 'false')
+    const region = document.getElementById(button.getAttribute('aria-controls')!)!
+    expect(region).not.toBeVisible()
+    expect(region.textContent).toMatch(/FastMCP/)
+
+    await user.click(button)
+    expect(button).toHaveAttribute('aria-expanded', 'true')
+    expect(button).toHaveTextContent('Hide the detail')
+    expect(region).toBeVisible()
+  })
+
+  test('the detail rates each row in the at-a-glance dots, not a second badge system', () => {
+    renderPage()
+    expect(document.querySelectorAll('#feature-detail .lp-pill')).toHaveLength(0)
+    expect(document.querySelectorAll('#feature-detail .cmp-dot--full').length).toBeGreaterThan(10)
+    expect(document.querySelectorAll('#feature-detail .cmp-dot--half')).toHaveLength(2)
+  })
+
+  test('the screenshots are tabs, one shown at a time', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    const tabs = screen.getAllByRole('tab').filter((t) => t.id.startsWith('cmp-shot-tab'))
+    expect(tabs.map((t) => t.textContent)).toEqual(['Plain igni', 'An extension’s page', 'In the chat'])
+    const shown = () => Array.from(document.querySelectorAll<HTMLImageElement>('.cmp-shot img')).filter((i) => i.closest('[hidden]') === null)
+    expect(shown()).toHaveLength(1)
+    expect(shown()[0].getAttribute('src')).toMatch(/plain-light/)
+
+    await user.click(tabs[2])
+    expect(tabs[2]).toHaveAttribute('aria-selected', 'true')
+    expect(shown()).toHaveLength(1)
+    expect(shown()[0].getAttribute('src')).toMatch(/chat-light/)
+  })
+})
+
+describe('the Fleet diagram says only what is true today', () => {
+  test('no client app is drawn connecting to Fleet', () => {
+    renderPage()
+    const fleet = document.querySelector('.cmp-arch-panel--igni')?.textContent ?? ''
+    expect(fleet).not.toMatch(/desktop|web app/i)
+    expect(fleet).toMatch(/Your services, commands and events/)
+  })
+
+  test('erasure resuming after a crash says how it was tested', () => {
+    renderPage()
+    for (const el of Array.from(document.querySelectorAll('main *')).filter((e) => e.children.length === 0 && /after a crash/.test(e.textContent ?? ''))) {
+      expect(el.textContent).toMatch(/simulated nodes/)
+    }
   })
 })
 

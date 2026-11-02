@@ -14,7 +14,9 @@ export function SectionHead({ label, title, children }: { label: string; title: 
   return (
     <>
       <span className="landing-section-label">{label}</span>
-      <h3>{title}</h3>
+      {/* With no intro, the heading takes the space the intro would have
+          left, as the product pages' headline-only sections do. */}
+      <h3 className={children ? undefined : 'lp-h3-tight'}>{title}</h3>
       {children && <p className="landing-section-desc lp-desc">{children}</p>}
     </>
   )
@@ -63,3 +65,45 @@ export function StatRow({ stats }: { stats: { value: string; label: ReactNode }[
     </div>
   )
 }
+
+/**
+ * The landing page's pill tabs (the department tabs): a tablist of
+ * buttons controlling one panel, which the caller renders with
+ * `role="tabpanel"`, `id={panelId}` and `aria-labelledby={`${idPrefix}-${active}`}`.
+ */
+export function PillTabs<T extends string>({
+  label,
+  tabs,
+  active,
+  onSelect,
+  idPrefix,
+  panelId,
+}: {
+  label: string
+  tabs: { id: T; label: ReactNode; icon?: ReactNode }[]
+  active: T
+  onSelect: (id: T) => void
+  idPrefix: string
+  panelId: string
+}) {
+  return (
+    <div className="lp-scn-tabs" role="tablist" aria-label={label}>
+      {tabs.map((t) => (
+        <button
+          key={t.id}
+          type="button"
+          role="tab"
+          id={`${idPrefix}-${t.id}`}
+          aria-selected={t.id === active}
+          aria-controls={panelId}
+          className={`lp-scn-tab${t.id === active ? ' lp-scn-tab--on' : ''}`}
+          onClick={() => onSelect(t.id)}
+        >
+          {t.icon}
+          {t.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+

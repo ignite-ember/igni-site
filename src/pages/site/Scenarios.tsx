@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { PillTabs } from './Sections'
 import {
   AlertIcon,
   ArrowRightIcon,
@@ -302,23 +303,14 @@ export function Scenarios() {
 
   return (
     <div className="lp-scn">
-      <div className="lp-scn-tabs" role="tablist" aria-label="Departments">
-        {SCENARIOS.map((x) => (
-          <button
-            key={x.id}
-            type="button"
-            role="tab"
-            id={`lp-scn-tab-${x.id}`}
-            aria-selected={x.id === active}
-            aria-controls="lp-scn-panel"
-            className={`lp-scn-tab${x.id === active ? ' lp-scn-tab--on' : ''}`}
-            onClick={() => setActive(x.id)}
-          >
-            {x.icon}
-            {x.dept}
-          </button>
-        ))}
-      </div>
+      <PillTabs
+        label="Departments"
+        tabs={SCENARIOS.map((x) => ({ id: x.id, label: x.dept, icon: x.icon }))}
+        active={active}
+        onSelect={setActive}
+        idPrefix="lp-scn-tab"
+        panelId="lp-scn-panel"
+      />
       <div
         className="lp-scn-panel"
         role="tabpanel"

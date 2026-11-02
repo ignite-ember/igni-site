@@ -69,6 +69,9 @@ export const COST_BARS: { label: string; side: Side; low: number; high: number }
   { label: 'igni: Fleet + servers + 1 GH200 (bought or rented)', side: 'igni', low: 51, high: 57 },
 ]
 
+/** The longest cost bar's share of its track, leaving room for its amount after it. */
+export const COST_SCALE = 80
+
 /** What each bill is made of: open-weight model, heavy use, middle of each range. */
 export const BREAKDOWN: { side: Side; name: string; total: number; parts: { label: string; k: number }[] }[] = [
   {

@@ -89,6 +89,12 @@
   scroll-margin-top: var(--base-size-80);
 }
 
+/* A section with no intro leaves the same space under its heading as
+   an intro leaves under itself. */
+.lp-cmp .cmp-section .lp-h3-tight {
+  margin-bottom: var(--base-size-48) !important;
+}
+
 .landing--main .cmp-wrap > .cmp-desc {
   margin-bottom: var(--base-size-32);
 }
@@ -612,10 +618,10 @@
   color: var(--fgColor-muted);
 }
 
+/* Each amount sits just after its bar. */
 .cmp-cost-bar .cmp-bar-value {
   font-weight: var(--base-text-weight-semibold);
   color: var(--fgColor-default);
-  text-align: right;
   white-space: nowrap;
 }
 
@@ -699,6 +705,7 @@
 /* At a glance: filled, half, ring. */
 .cmp-has {
   display: inline-flex;
+  white-space: nowrap;
   align-items: baseline;
   gap: var(--base-size-8);
 }
@@ -934,17 +941,21 @@
   color: var(--fgColor-muted);
 }
 
-/* The usage chart: SVG, scrolling inside its box on a phone. */
-.cmp-scroll {
-  overflow-x: auto;
-}
-
+/* The usage chart: the wide drawing spans its panel; a phone gets the
+   narrow, taller one. Font sizes are in viewBox units, so they scale
+   with the drawing. */
 .cmp-chart {
   display: block;
   width: 100%;
-  max-width: 45rem;
   height: auto;
-  /* In viewBox units, so this scales with the drawing. */
+}
+
+.cmp-chart--wide {
+  font-size: 0.875rem;
+}
+
+.cmp-chart--narrow {
+  display: none;
   font-size: 0.8125rem;
 }
 
@@ -1026,6 +1037,44 @@
 .cmp-steps .lp-step-n {
   flex-shrink: 0;
   background-color: var(--lp-orange);
+}
+
+/* A detail cell's status, in the at-a-glance dots. */
+.cmp-rated-status {
+  display: block;
+  font-weight: var(--base-text-weight-semibold);
+}
+
+/* A second, muted line in a table cell, kept on one line. */
+.cmp-cell-sub {
+  display: block;
+  white-space: nowrap;
+  font-size: var(--text-body-size-small);
+  color: var(--fgColor-muted);
+}
+
+/* Detail behind a button. */
+.cmp-disclosure {
+  margin-top: var(--base-size-24);
+  text-align: center;
+}
+
+.cmp-disclosure > div {
+  margin-top: var(--base-size-24);
+  text-align: left;
+}
+
+.cmp-disclosure-btn svg {
+  transition: transform 0.15s;
+}
+
+.cmp-disclosure--open .cmp-disclosure-btn svg {
+  transform: rotate(180deg);
+}
+
+/* Two tables side by side, each in its own panel. */
+.cmp-panel--table {
+  margin: 0;
 }
 
 /* ── Tables ───────────────────────────────────────────────────── */
@@ -1254,10 +1303,12 @@
     white-space: normal;
   }
 
-  /* The chart is drawn at about half size here; larger text keeps it
-     readable without making it scroll. */
-  .cmp-chart {
-    font-size: 1.25rem;
+  .cmp-chart--wide {
+    display: none;
+  }
+
+  .cmp-chart--narrow {
+    display: block;
   }
 
   .cmp-week-note-lead {

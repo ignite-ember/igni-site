@@ -1,6 +1,7 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import {
   BrowserIcon,
+  ChevronDownIcon,
   CommentIcon,
   GearIcon,
   LockIcon,
@@ -8,6 +9,7 @@ import {
 } from '@primer/octicons-react'
 import {
   BREAKDOWN,
+  COST_SCALE,
   COST_BARS,
   COVERAGE,
   HAS_LABEL,
@@ -16,6 +18,7 @@ import {
   WAKE_MAX_MS,
   type Has,
 } from './agentcoreData'
+import { PillTabs } from '../site/Sections'
 
 /* ── The comparison page's figures ────────────────────────────────
  *
@@ -121,7 +124,6 @@ const IGNI_SERVICES = [
   'Models · your GPUs',
   'Keys · your Vault',
   'Your object store',
-  'Your services',
   'igni server · audit',
 ]
 
@@ -162,15 +164,15 @@ export function Architecture() {
       <section className="cmp-arch-panel cmp-arch-panel--igni" aria-label="igni with Fleet">
         <span className="cmp-arch-where">Your network — can be air-gapped</span>
         <div className="cmp-arch-box">
-          igni desktop / web app <span className="cmp-muted">+ extension pages</span>
+          Your services, commands and events <span className="cmp-muted">· through igni server and the gateway&rsquo;s API</span>
         </div>
         <span className="cmp-arch-down" aria-hidden="true">↓</span>
         <div className="cmp-arch-split">
           <div>
-            <div className="cmp-arch-box cmp-small">Fleet gateway · routes, caps, egress rules</div>
+            <div className="cmp-arch-box cmp-small">Fleet gateway · authenticates, wakes, routes, caps</div>
             <span className="cmp-arch-down" aria-hidden="true">↓</span>
             <div className="cmp-arch-box cmp-arch-box--left">
-              <strong>Node</strong>
+              <strong>Node <span className="cmp-muted">· egress rules</span></strong>
               <div className="cmp-arch-vms">
                 {['Ada', 'Ben', 'Claims app'].map((who) => (
                   <span key={who} className="cmp-arch-vm cmp-arch-vm--owned">
@@ -290,7 +292,7 @@ export function WorkspaceBars() {
 
 /* ── At a glance ───────────────────────────────────────────────── */
 
-function Dot({ has, note }: { has: Has; note?: string }) {
+export function Dot({ has, note }: { has: Has; note?: string }) {
   return (
     <span className="cmp-has">
       <span className={`cmp-dot cmp-dot--${has}`} aria-hidden="true" />
@@ -366,6 +368,30 @@ export function ExtensionFlow() {
   )
 }
 
+/**
+ * Detail that would make a section very long, behind a button. The
+ * content stays in the page (hidden), so search and tests still find it.
+ */
+export function Disclosure({ id, show, hide, children }: { id: string; show: string; hide: string; children: ReactNode }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className={`cmp-disclosure${open ? ' cmp-disclosure--open' : ''}`}>
+      <button
+        type="button"
+        className="landing-btn-secondary cmp-disclosure-btn"
+        aria-expanded={open}
+        aria-controls={id}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <ChevronDownIcon size={16} /> {open ? hide : show}
+      </button>
+      <div id={id} hidden={!open}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
 /** A screenshot in the reader's theme. */
 export function Shot({ light, dark, alt, children }: { light: string; dark: string; alt: string; children: ReactNode }) {
   return (
@@ -376,6 +402,36 @@ export function Shot({ light, dark, alt, children }: { light: string; dark: stri
       </picture>
       <figcaption>{children}</figcaption>
     </figure>
+  )
+}
+
+type ShotTab<T extends string> = { id: T; tab: string; light: string; dark: string; alt: string; caption: ReactNode }
+
+/**
+ * Screenshots behind the landing's pill tabs, one at a time. All of them
+ * stay in the page; the others are hidden, and a lazy image loads when
+ * its tab shows it.
+ */
+export function ShotTabs<T extends string>({ label, shots }: { label: string; shots: ShotTab<T>[] }) {
+  const [active, setActive] = useState<T>(shots[0].id)
+  return (
+    <div className="cmp-shot-tabs">
+      <PillTabs
+        label={label}
+        tabs={shots.map((x) => ({ id: x.id, label: x.tab }))}
+        active={active}
+        onSelect={setActive}
+        idPrefix="cmp-shot-tab"
+        panelId="cmp-shot-panel"
+      />
+      <div role="tabpanel" id="cmp-shot-panel" aria-labelledby={`cmp-shot-tab-${active}`}>
+        {shots.map((x) => (
+          <div key={x.id} hidden={x.id !== active}>
+            <Shot light={x.light} dark={x.dark} alt={x.alt}>{x.caption}</Shot>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -437,12 +493,12 @@ export function CostBars() {
   return (
     <div className="cmp-bars">
       {COST_BARS.map((b) => (
-        <div key={b.label} className="cmp-bar cmp-cost-bar">
+        <div key={b.label} className="cmp-bar cmp-bar--wrap cmp-cost-bar">
           <span className="cmp-bar-label">{b.label}</span>
-          <span className="cmp-bar-track">
-            <span className={`cmp-bar-fill cmp-bar-fill--${b.side}`} style={{ width: `${(b.high / COST_MAX) * 100}%` }} />
+          <span className="cmp-bar-track cmp-bar-track--bare cmp-wake-track">
+            <span className={`cmp-bar-fill cmp-bar-fill--${b.side}`} style={{ width: `${(b.high / COST_MAX) * COST_SCALE}%` }} />
+            <span className="cmp-bar-value" data-high={b.high}>€{b.low}–{b.high}k</span>
           </span>
-          <span className="cmp-bar-value" data-high={b.high}>€{b.low}–{b.high}k</span>
         </div>
       ))}
     </div>
@@ -485,18 +541,19 @@ export function Breakdown() {
   )
 }
 
-/* The usage chart. Geometry in viewBox units. Text is sized in the
- * stylesheet, which on SVG text is also in viewBox units: larger on a
- * phone, where the drawing is scaled down to fit. */
-const W = 600
-const H = 330
-const M = { l: 76, r: 28, t: 28, b: 58 }
+/* The usage chart, drawn twice: a wide drawing for the panel on a
+ * desktop, and a narrower, taller one for a phone, so that its text
+ * stays readable instead of shrinking with a wide drawing. CSS shows
+ * one. Geometry is in viewBox units; text is sized in the stylesheet,
+ * which on SVG text is in viewBox units too. */
+type Geometry = { W: number; H: number; M: { l: number; r: number; t: number; b: number }; ticks: number[] }
+
+const WIDE: Geometry = { W: 960, H: 380, M: { l: 72, r: 24, t: 28, b: 64 }, ticks: [25, 50, 100, 150, 200, 250, 300] }
+const NARROW: Geometry = { W: 340, H: 400, M: { l: 54, r: 12, t: 28, b: 64 }, ticks: [25, 100, 200, 300] }
+
 const X_MAX = 320
 const Y_MAX = 350
-const x = (pct: number) => M.l + (pct / X_MAX) * (W - M.l - M.r)
-const y = (k: number) => H - M.b - (k / Y_MAX) * (H - M.t - M.b)
 const mid = (r: [number, number]) => (r[0] + r[1]) / 2
-const pts = (f: (u: (typeof USAGE)[number]) => number) => USAGE.map((u) => `${x(u.pct)},${y(f(u))}`).join(' ')
 
 /** Where AgentCore's line crosses igni's, between the first two points. */
 function breakEven(): number {
@@ -505,47 +562,55 @@ function breakEven(): number {
   return a.pct + ((b.pct - a.pct) * (target - a.aws)) / (b.aws - a.aws)
 }
 
-export function UsageChart() {
-  const last = USAGE[USAGE.length - 1]
+const last = USAGE[USAGE.length - 1]
+const USAGE_LABEL = `Cost against usage, € a year, open-weight model. AgentCore rises from €${USAGE[0].aws}k at ${USAGE[0].pct}% to €${last.aws}k at ${last.pct}%. igni with Fleet stays at €${USAGE[0].igni[0]}–${USAGE[0].igni[1]}k up to 100% and reaches €${last.igni[0]}–${last.igni[1]}k at ${last.pct}%. They cross at about 50%.`
+
+function UsageDrawing({ g, className }: { g: Geometry; className: string }) {
+  const { W, H, M } = g
+  const x = (pct: number) => M.l + (pct / X_MAX) * (W - M.l - M.r)
+  const y = (k: number) => H - M.b - (k / Y_MAX) * (H - M.t - M.b)
+  const pts = (f: (u: (typeof USAGE)[number]) => number) => USAGE.map((u) => `${x(u.pct)},${y(f(u))}`).join(' ')
   const band = [
     ...USAGE.map((u) => `${x(u.pct)},${y(u.igni[0])}`),
     ...[...USAGE].reverse().map((u) => `${x(u.pct)},${y(u.igni[1])}`),
   ].join(' ')
   const be = breakEven()
   return (
-    <div className="cmp-scroll">
-      <svg
-        className="cmp-chart"
-        viewBox={`0 0 ${W} ${H}`}
-        role="img"
-        aria-label={`Cost against usage, € a year, open-weight model. AgentCore rises from €${USAGE[0].aws}k at ${USAGE[0].pct}% to €${last.aws}k at ${last.pct}%. igni with Fleet stays at €${USAGE[0].igni[0]}–${USAGE[0].igni[1]}k up to 100% and reaches €${last.igni[0]}–${last.igni[1]}k at ${last.pct}%. They cross at about 50%.`}
-      >
-        {[0, 100, 200, 300].map((k) => (
-          <g key={k}>
-            <line x1={M.l} x2={W - M.r} y1={y(k)} y2={y(k)} className="cmp-chart-grid" />
-            <text x={M.l - 8} y={y(k) + 5} textAnchor="end" className="cmp-chart-muted">€{k}k</text>
-          </g>
-        ))}
-        {[50, 100, 150, 200, 250, 300].map((p) => (
-          <text key={p} x={x(p)} y={H - M.b + 22} textAnchor="middle" className="cmp-chart-muted">{p}%</text>
-        ))}
-        <text x={(M.l + W - M.r) / 2} y={H - 8} textAnchor="middle" className="cmp-chart-muted">usage, % of the heavy case</text>
+    <svg className={`cmp-chart ${className}`} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={USAGE_LABEL}>
+      {[0, 100, 200, 300].map((k) => (
+        <g key={k}>
+          <line x1={M.l} x2={W - M.r} y1={y(k)} y2={y(k)} className="cmp-chart-grid" />
+          <text x={M.l - 8} y={y(k) + 5} textAnchor="end" className="cmp-chart-muted">€{k}k</text>
+        </g>
+      ))}
+      {g.ticks.map((p) => (
+        <text key={p} x={x(p)} y={H - M.b + 24} textAnchor="middle" className="cmp-chart-muted">{p}%</text>
+      ))}
+      <text x={(M.l + W - M.r) / 2} y={H - 10} textAnchor="middle" className="cmp-chart-muted">usage, % of the heavy case</text>
 
-        <polygon points={band} className="cmp-chart-band" />
-        <polyline points={pts((u) => mid(u.igni))} className="cmp-chart-line cmp-chart-line--igni" />
-        <polyline points={pts((u) => u.aws)} className="cmp-chart-line cmp-chart-line--aws" />
-        {USAGE.map((u) => (
-          <g key={u.pct}>
-            <circle cx={x(u.pct)} cy={y(u.aws)} r={4} className="cmp-chart-dot--aws" />
-            <circle cx={x(u.pct)} cy={y(mid(u.igni))} r={4} className="cmp-chart-dot--igni" />
-          </g>
-        ))}
+      <polygon points={band} className="cmp-chart-band" />
+      <polyline points={pts((u) => mid(u.igni))} className="cmp-chart-line cmp-chart-line--igni" />
+      <polyline points={pts((u) => u.aws)} className="cmp-chart-line cmp-chart-line--aws" />
+      {USAGE.map((u) => (
+        <g key={u.pct}>
+          <circle cx={x(u.pct)} cy={y(u.aws)} r={4} className="cmp-chart-dot--aws" />
+          <circle cx={x(u.pct)} cy={y(mid(u.igni))} r={4} className="cmp-chart-dot--igni" />
+        </g>
+      ))}
 
-        <line x1={x(be)} x2={x(be)} y1={M.t} y2={H - M.b} className="cmp-chart-rule" />
-        <text x={x(be) + 6} y={M.t + 14} className="cmp-chart-muted">break-even ≈ 50%</text>
-        <text x={x(last.pct) - 8} y={y(last.aws) - 2} textAnchor="end" className="cmp-chart-label--aws">AgentCore €{last.aws}k</text>
-        <text x={x(last.pct) - 8} y={y(last.igni[1]) - 10} textAnchor="end" className="cmp-chart-label--igni">igni + Fleet €{last.igni[0]}–{last.igni[1]}k</text>
-      </svg>
+      <line x1={x(be)} x2={x(be)} y1={M.t} y2={H - M.b} className="cmp-chart-rule" />
+      <text x={x(be) + 6} y={M.t + 4} className="cmp-chart-muted">break-even ≈ 50%</text>
+      <text x={x(last.pct) - 8} y={y(last.aws) - 4} textAnchor="end" className="cmp-chart-label--aws">AgentCore €{last.aws}k</text>
+      <text x={x(last.pct) - 8} y={y(last.igni[1]) - 12} textAnchor="end" className="cmp-chart-label--igni">igni + Fleet €{last.igni[0]}–{last.igni[1]}k</text>
+    </svg>
+  )
+}
+
+export function UsageChart() {
+  return (
+    <div className="cmp-usage-chart">
+      <UsageDrawing g={WIDE} className="cmp-chart--wide" />
+      <UsageDrawing g={NARROW} className="cmp-chart--narrow" />
     </div>
   )
 }
@@ -582,7 +647,7 @@ const ERASE_STEPS: { title: string; note: string }[] = [
   { title: 'Discard command', note: 'person removed, or app discarded' },
   { title: 'New VM at once', note: 'a fresh disk was prepared ahead' },
   { title: 'Old data erased', note: 'volume, replicas, offloaded copies' },
-  { title: 'Keys destroyed · audited', note: 'resumes by itself after a crash' },
+  { title: 'Keys destroyed · audited', note: 'resumes by itself after a crash (tested on simulated nodes so far)' },
 ]
 
 export function ErasureSteps() {

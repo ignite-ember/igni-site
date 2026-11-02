@@ -24,9 +24,11 @@ import {
   Figure,
   GpuCapacity,
   RTable,
-  Shot,
   UsageChart,
   VsCard,
+  Disclosure,
+  Dot,
+  ShotTabs,
   WakeChart,
   WeekTimeline,
   WorkspaceBars,
@@ -93,10 +95,16 @@ function Pill({ tone, children }: { tone: 'good' | 'warn'; children: ReactNode }
 }
 
 /** A detail cell that opens with a status pill. */
+/**
+ * A detail cell that opens with its status, in the at-a-glance table's
+ * own dots: filled orange for has it, half for via open source.
+ */
 function Rated({ tone, pill, children }: { tone: 'good' | 'warn'; pill: string; children: ReactNode }) {
   return (
     <>
-      <Pill tone={tone}>{pill}</Pill>
+      <span className="cmp-cov-igni cmp-rated-status">
+        <Dot has={tone === 'good' ? 'full' : 'half'} note={pill} />
+      </span>
       <span className="cmp-rated">{children}</span>
     </>
   )
@@ -213,7 +221,7 @@ export function AgentCorePage() {
             <VsCard
               label="And when you want it gone"
               aws="Discards the VM by default. Memory, S3, CloudWatch and session storage are deleted service by service, by you."
-              igni="Keeps by default and erases on command: discard an app (a new one starts at once while the old data is erased in the background), erase a removed person’s VM, or erase idle apps and spaces after a set time. Erasure destroys the keys and the data, is audited, and resumes after a crash."
+              igni="Keeps by default and erases on command: discard an app (a new one starts at once while the old data is erased in the background), erase a removed person’s VM, or erase idle apps and spaces after a set time. Erasure destroys the keys and the data, is audited, and resumes after a crash (so far tested against simulated nodes, not yet on a real Fleet host)."
             />
           </div>
         </Section>
@@ -228,35 +236,37 @@ export function AgentCorePage() {
         >
           <Figure
             title="At a glance"
-            caption={`Filled: has it. Half: partial or in build. Ring: not offered. AgentCore has ${countFull('aws')} of ${COVERAGE.length} in full; igni has ${countFull('igni')}, including what an organisation that keeps everything in-house needs. Detail in the table below.`}
+            caption={`Filled: has it. Half: partial or in build. Ring: not offered. AgentCore has ${countFull('aws')} of ${COVERAGE.length} in full; igni has ${countFull('igni')}, including what an organisation that keeps everything in-house needs. The detail for each is behind the button below.`}
           >
             <Coverage />
           </Figure>
 
-          <RTable
-            className="cmp-compare"
-            head={['Capability', 'AWS AgentCore', 'igni + Fleet']}
-            rows={[
-              ['Agent runtime', 'Runtime: one microVM per session, up to 8 h, any framework. Runtime Instances: a dedicated EC2 instance per session for up to 14 days, with EBS, at the EC2 price + 12%. Managed harness (GA June 2026).', <Rated tone="good" pill="Has it">Fleet: one microVM per person or app, suspends when idle and resumes in ~29 ms, persistent encrypted volume; gateway, node agent, PostgreSQL job queue, audited erasure, egress rules.</Rated>],
-              ['Persistence', 'Session storage (preview): per session, up to 1 GB, kept 14 days idle, wiped on every agent redeploy. Or shared EFS / S3 Files mounts (not per user), or Instances with EBS kept until the session is deleted.', <Rated tone="good" pill="Bigger, longer, per person">Per person/app volume (10 GiB default, up to 50 GiB), dm-crypt encrypted, survives redeploys and idle time, offloaded to your own object store when cold; erased only by policy or command.</Rated>],
-              ['Memory', 'Memory: short-term events and long-term extracted records with semantic retrieval; billed per GB and per 1,000 records.', <Rated tone="good" pill="Has it">User memory and profiles, entity memory and session context carried across conversations (Agno&rsquo;s learning machine), conversation history in SQLite or PostgreSQL with automatic compaction — plus the agent&rsquo;s own persistent disk. Artifacts and CodeIndex (paid) add versioned documents and code retrieval.</Rated>],
-              ['MCP tools', 'Gateway: connects agents to MCP servers, with tool search across them; billed per call.', <Rated tone="good" pill="Has it">Any MCP server, over stdio or SSE/HTTP, with per-tool approvals and filters; extensions add tools of their own. No search across tools when a deployment has hundreds of them.</Rated>],
-              ['REST APIs as MCP tools', 'Gateway turns REST APIs (OpenAPI) and Lambda functions into MCP tools, as a managed service.', <Rated tone="warn" pill="Via open source">Not built into igni. Open-source converters do it inside your network — e.g. FastMCP&rsquo;s OpenAPI import (Apache-2.0) generates an MCP server from an OpenAPI spec — and igni connects to the result like any MCP server.</Rated>],
-              ['Identity', 'Identity: inbound auth (IAM, OIDC) and an outbound OAuth / API-key vault for agents.', <Rated tone="good" pill="Has it">Inbound OIDC sign-in (Entra ID, Okta, Keycloak…), SCIM provisioning, organisations and roles. Outbound credentials come from your own vault (Vault, CyberArk, 1Password via a command) rather than a vault igni runs. SAML not yet built.</Rated>],
-              ['Policy & network', 'Policy: Cedar (GA), checked on tool calls through Gateway. VPC, security groups, PrivateLink.', <Rated tone="good" pill="Has it">A permission check on every tool call, with hooks; group policy packs pushed to every user; guardrails for PII, prompt injection and moderation; roles, app caps and egress rules; VM egress internal-only with <code>air_gapped = true</code>.</Rated>],
-              ['Audit & observability', 'Observability: OpenTelemetry traces and metrics into CloudWatch.', <Rated tone="good" pill="Has it">Audit trail in the server (including every erasure) and a log of every tool run. OpenTelemetry traces and metrics (agent, model and tool spans; tokens and tool calls) to your own collector, with prompt content stripped unless enabled.</Rated>],
-              ['Code execution', 'Code Interpreter: a separate managed sandbox, billed per vCPU-hour.', <Rated tone="good" pill="Built in">The agent&rsquo;s own VM runs code; no separate service or bill.</Rated>],
-              ['Web browser', 'Browser: a managed headless browser for agents.', <Rated tone="warn" pill="Via open source">No managed browser, but any VM can have one: headless Chromium with Playwright, driven through an open-source MCP server such as Microsoft&rsquo;s Playwright MCP, measured in a Fleet VM at ~1 GB at peak. See <a href="#vm-profiles">The agent&rsquo;s VM is extensible</a>.</Rated>],
-              ['Web search', 'Web Search: Amazon’s own web index and knowledge graph, through Gateway as an MCP tool; snippets, URLs, titles and dates; domain and date filters. $7 per 1,000 queries. us-east-1, Ireland and Tokyo.', <Rated tone="good" pill="Has it">A built-in web search tool (DuckDuckGo-based, free, no key); every search asks the person first, and it is off when air-gapped. <b>Recommended for daily use: Brave Search API</b> through MCP, at $5 per 1,000 searches, under a contract with Brave. Other search APIs plug in the same way. At the 10 searches a person a day assumed below: ~€2.4k a year on Brave, against ~€3.4k on AgentCore.</Rated>],
-              ['Changeable VM profiles', 'One container image per agent runtime. Changing what is in it means a new version and a redeploy, which wipes session storage; there is no per-group or per-app variant.', <Rated tone="good" pill="Has it">Profiles per organisation, group or app, changed by an admin at any time. Timeouts and normal memory apply at once. Packages, CPUs and memory ceiling are rolled out in the background: sleeping VMs are re-prepared in batches beside their old snapshot, awake ones switch at their next sleep. Nobody is interrupted and every workspace keeps its files.</Rated>],
-              ['Evaluations', 'Evaluations: LLM-judge scoring of agent output, plus A/B tests and prompt recommendations.', <Rated tone="good" pill="Has it">Agent evaluations: accuracy scored by an LLM judge, reliability (were the right tools called), and performance, defined in YAML per agent. The Factory (paid) evaluates and tunes models; Autopilot improves them from real use.</Rated>],
-              ['Models', 'Any model: Bedrock (Claude, Llama, MiniMax…) or an external API; tokens billed separately.', <Rated tone="good" pill="Any model">igni&rsquo;s own 4B and 27B on your GPUs; any open-weight model you serve; and, where your policy allows, OpenAI-compatible APIs, Anthropic&rsquo;s Claude and Google Gemini. One GH200 serves ~200 people working with it, ~60 generating at the same moment. See <a href="#models">Models and GPU capacity</a>.</Rated>],
-              ['Coding assistant', 'AgentCore harness: managed agent loop with shell, files and memory; no desktop or IDE client.', <Rated tone="good" pill="Included, on-prem">Desktop app and CLI (free); CodeIndex for code search, analysis and PR review (paid).</Rated>],
-              ['User interface', 'For builders only: a console playground to chat with and test an agent, and observability dashboards. No end-user app; the front end your people use is yours to build.', <Rated tone="good" pill="Included">Desktop app and web client people work in every day, the CLI, and the server&rsquo;s admin portal (organisations, roles, services, erasures). See <a href="#extensions">Extensions and the UI</a>.</Rated>],
-              ['Extensions', 'Add tools through Gateway (MCP). No way for an integration to add pages, commands or settings to a user-facing app.', <Rated tone="good" pill="Has it">A signed extension adds tools, prompts, pages, commands, settings and status to the igni app, and its service can talk to the agent. See below.</Rated>],
-              ['Source & lock-in', 'Closed managed service. Agent code is portable; code using Memory, Gateway and Identity APIs must be rewritten to leave.', <Rated tone="good" pill="Open core">Harness, server and models are Apache-2.0 and public. Fleet, CodeIndex and Artifacts are closed source, licensed with an offline key.</Rated>],
-            ]}
-          />
+          <Disclosure id="feature-detail" show="Show the detail for each capability" hide="Hide the detail">
+            <RTable
+              className="cmp-compare"
+              head={['Capability', 'AWS AgentCore', 'igni + Fleet']}
+              rows={[
+                ['Agent runtime', 'Runtime: one microVM per session, up to 8 h, any framework. Runtime Instances: a dedicated EC2 instance per session for up to 14 days, with EBS, at the EC2 price + 12%. Managed harness (GA June 2026).', <Rated tone="good" pill="Has it">Fleet: one microVM per person or app, suspends when idle and resumes in ~29 ms, persistent encrypted volume; gateway, node agent, PostgreSQL job queue, audited erasure, egress rules.</Rated>],
+                ['Persistence', 'Session storage (preview): per session, up to 1 GB, kept 14 days idle, wiped on every agent redeploy. Or shared EFS / S3 Files mounts (not per user), or Instances with EBS kept until the session is deleted.', <Rated tone="good" pill="Bigger, longer, per person">Per person/app volume (10 GiB default, up to 50 GiB), dm-crypt encrypted, survives redeploys and idle time, offloaded to your own object store when cold; erased only by policy or command.</Rated>],
+                ['Memory', 'Memory: short-term events and long-term extracted records with semantic retrieval; billed per GB and per 1,000 records.', <Rated tone="good" pill="Has it">User memory and profiles, entity memory and session context carried across conversations (Agno&rsquo;s learning machine), conversation history in SQLite or PostgreSQL with automatic compaction — plus the agent&rsquo;s own persistent disk. Artifacts and CodeIndex (paid) add versioned documents and code retrieval.</Rated>],
+                ['MCP tools', 'Gateway: connects agents to MCP servers, with tool search across them; billed per call.', <Rated tone="good" pill="Has it">Any MCP server, over stdio or SSE/HTTP, with per-tool approvals and filters; extensions add tools of their own. No search across tools when a deployment has hundreds of them.</Rated>],
+                ['REST APIs as MCP tools', 'Gateway turns REST APIs (OpenAPI) and Lambda functions into MCP tools, as a managed service.', <Rated tone="warn" pill="Via open source">Not built into igni. Open-source converters do it inside your network — e.g. FastMCP&rsquo;s OpenAPI import (Apache-2.0) generates an MCP server from an OpenAPI spec — and igni connects to the result like any MCP server.</Rated>],
+                ['Identity', 'Identity: inbound auth (IAM, OIDC) and an outbound OAuth / API-key vault for agents.', <Rated tone="good" pill="Has it">Inbound OIDC sign-in (Entra ID, Okta, Keycloak…), SCIM provisioning, organisations and roles. Outbound credentials come from your own vault (Vault, CyberArk, 1Password via a command) rather than a vault igni runs. SAML not yet built.</Rated>],
+                ['Policy & network', 'Policy: Cedar (GA), checked on tool calls through Gateway. VPC, security groups, PrivateLink.', <Rated tone="good" pill="Has it">A permission check on every tool call, with hooks; group policy packs pushed to every user; guardrails for PII, prompt injection and moderation; roles, app caps and egress rules; VM egress internal-only with <code>air_gapped = true</code>.</Rated>],
+                ['Audit & observability', 'Observability: OpenTelemetry traces and metrics into CloudWatch.', <Rated tone="good" pill="Has it">Audit trail in the server (including every erasure) and a log of every tool run. OpenTelemetry traces and metrics (agent, model and tool spans; tokens and tool calls) to your own collector, with prompt content stripped unless enabled.</Rated>],
+                ['Code execution', 'Code Interpreter: a separate managed sandbox, billed per vCPU-hour.', <Rated tone="good" pill="Built in">The agent&rsquo;s own VM runs code; no separate service or bill.</Rated>],
+                ['Web browser', 'Browser: a managed headless browser for agents.', <Rated tone="warn" pill="Via open source">No managed browser, but any VM can have one: headless Chromium with Playwright, driven through an open-source MCP server such as Microsoft&rsquo;s Playwright MCP, measured in a Fleet VM at ~1 GB at peak. See <a href="#vm-profiles">The agent&rsquo;s VM is extensible</a>.</Rated>],
+                ['Web search', 'Web Search: Amazon’s own web index and knowledge graph, through Gateway as an MCP tool; snippets, URLs, titles and dates; domain and date filters. $7 per 1,000 queries. us-east-1, Ireland and Tokyo.', <Rated tone="good" pill="Has it">A built-in web search tool (DuckDuckGo-based, free, no key); every search asks the person first, and it is off when air-gapped. <b>Recommended for daily use: Brave Search API</b> through MCP, at $5 per 1,000 searches, under a contract with Brave. Other search APIs plug in the same way. At the 10 searches a person a day assumed below: ~€2.4k a year on Brave, against ~€3.4k on AgentCore.</Rated>],
+                ['Changeable VM profiles', 'One container image per agent runtime. Changing what is in it means a new version and a redeploy, which wipes session storage; there is no per-group or per-app variant.', <Rated tone="good" pill="Has it">Profiles per organisation, group or app, changed by an admin at any time. Timeouts and normal memory apply at once. Packages, CPUs and memory ceiling are rolled out in the background: sleeping VMs are re-prepared in batches beside their old snapshot, awake ones switch at their next sleep. Nobody is interrupted and every workspace keeps its files.</Rated>],
+                ['Evaluations', 'Evaluations: LLM-judge scoring of agent output, plus A/B tests and prompt recommendations.', <Rated tone="good" pill="Has it">Agent evaluations: accuracy scored by an LLM judge, reliability (were the right tools called), and performance, defined in YAML per agent. The Factory (paid) evaluates and tunes models; Autopilot improves them from real use.</Rated>],
+                ['Models', 'Any model: Bedrock (Claude, Llama, MiniMax…) or an external API; tokens billed separately.', <Rated tone="good" pill="Any model">igni&rsquo;s own 4B and 27B on your GPUs; any open-weight model you serve; and, where your policy allows, OpenAI-compatible APIs, Anthropic&rsquo;s Claude and Google Gemini. One GH200 serves ~200 people working with it, ~60 generating at the same moment. See <a href="#models">Models and GPU capacity</a>.</Rated>],
+                ['Coding assistant', 'AgentCore harness: managed agent loop with shell, files and memory; no desktop or IDE client.', <Rated tone="good" pill="Included, on-prem">Desktop app and CLI (free); CodeIndex for code search, analysis and PR review (paid).</Rated>],
+                ['User interface', 'For builders only: a console playground to chat with and test an agent, and observability dashboards. No end-user app; the front end your people use is yours to build.', <Rated tone="good" pill="Included">Desktop app and web client people work in every day, the CLI, and the server&rsquo;s admin portal (organisations, roles, services, erasures). See <a href="#extensions">Extensions and the UI</a>.</Rated>],
+                ['Extensions', 'Add tools through Gateway (MCP). No way for an integration to add pages, commands or settings to a user-facing app.', <Rated tone="good" pill="Has it">A signed extension adds tools, prompts, pages, commands, settings and status to the igni app, and its service can talk to the agent. See below.</Rated>],
+                ['Source & lock-in', 'Closed managed service. Agent code is portable; code using Memory, Gateway and Identity APIs must be rewritten to leave.', <Rated tone="good" pill="Open core">Harness, server and models are Apache-2.0 and public. Fleet, CodeIndex and Artifacts are closed source, licensed with an offline key.</Rated>],
+              ]}
+            />
+          </Disclosure>
 
           <h4 className="lp-subhead" id="vm-profiles">The agent&rsquo;s VM is extensible</h4>
           <p className="landing-section-desc lp-desc cmp-desc">What the agent&rsquo;s environment contains, who decides, and what happens when it changes.</p>
@@ -318,38 +328,56 @@ export function AgentCorePage() {
             title="What it looks like in the igni app"
             caption={<>Screenshots of the real igni web client. The claims and the &ldquo;Claims desk&rdquo; extension are example data: first igni on its own, then with the extension installed.</>}
           >
-            <div className="cmp-shots">
-              <Shot
-                light={claimsPlainLight}
-                dark={claimsPlainDark}
-                alt="Plain igni, no extensions: a chat where the agent reads the claim report and photo from the shared folder and lists what is missing from the file."
-              >
+            <ShotTabs
+              label="Screens"
+              shots={[
+              {
+                id: 'plain',
+                tab: 'Plain igni',
+                light: claimsPlainLight,
+                dark: claimsPlainDark,
+                alt: 'Plain igni, no extensions: a chat where the agent reads the claim report and photo from the shared folder and lists what is missing from the file.',
+                caption: (
+                  <>
                 <b>Plain igni, no extensions.</b> The same claims team using igni as it ships:
                 the agent reads the claim report and the photo from the team&rsquo;s folder,
                 summarises what happened and the cover, and lists what is missing from the file.
                 Tools, files and the model picker (<code>igni 1.0 4b</code>) are igni&rsquo;s own.
-              </Shot>
-              <Shot
-                light={claimsAppLight}
-                dark={claimsAppDark}
-                alt="The Claims desk extension page inside the igni app: a table of open claims with statuses and assignees, and a detail panel with the agent summary, the missing documents and a drafted reply."
-              >
+                  </>
+                ),
+              },
+              {
+                id: 'page',
+                tab: 'An extension’s page',
+                light: claimsAppLight,
+                dark: claimsAppDark,
+                alt: 'The Claims desk extension page inside the igni app: a table of open claims with statuses and assignees, and a detail panel with the agent summary, the missing documents and a drafted reply.',
+                caption: (
+                  <>
                 <b>An extension&rsquo;s page.</b> Claims desk sits in igni&rsquo;s sidebar with a
                 count of claims waiting. Its page lists the open claims and, for the selected
                 one, the agent&rsquo;s summary, the missing documents and a drafted reply.
-              </Shot>
-              <Shot
-                light={claimsChatLight}
-                dark={claimsChatDark}
-                alt="A chat in igni where the Claims desk service reports a new claim, the agent calls the claims tool, and a claim card with an Assign button appears; a status chip reads Claims: 4 open."
-              >
+                  </>
+                ),
+              },
+              {
+                id: 'chat',
+                tab: 'In the chat',
+                light: claimsChatLight,
+                dark: claimsChatDark,
+                alt: 'A chat in igni where the Claims desk service reports a new claim, the agent calls the claims tool, and a claim card with an Assign button appears; a status chip reads Claims: 4 open.',
+                caption: (
+                  <>
                 <b>The extension in the chat.</b> The claims system messages the agent
                 (&ldquo;from Claims desk&rdquo;), the agent calls the extension&rsquo;s tool
                 (<code>claims_get_claim</code>), and the extension adds a card with an action.
                 The status chip at the bottom (&ldquo;Claims: 4 open&rdquo;) is the
                 extension&rsquo;s too.
-              </Shot>
-            </div>
+                  </>
+                ),
+              },
+              ]}
+            />
           </Figure>
           <div className="cmp-grid cmp-grid--2">
             <div className="lp-sec-card cmp-card">
@@ -507,9 +535,9 @@ export function AgentCorePage() {
           </Figure>
 
           <div className="cmp-grid cmp-grid--2 cmp-cost-tables">
-            <div>
-              <h4 className="cmp-h5">AgentCore, per year at list</h4>
-              <p className="cmp-note cmp-note--top">
+            <figure className="cmp-panel cmp-panel--table">
+              <h4>AgentCore, per year at list</h4>
+              <p className="cmp-cap">
                 Every line is for all 200 people working at the same time, each in their own
                 session. AgentCore bills CPU only while it computes, not while the agent waits
                 for the model.
@@ -535,14 +563,14 @@ export function AgentCorePage() {
                   ['Total, committed + 10% discount, open-weight / Sonnet', '88k / 363k'],
                 ]}
               />
-              <p className="cmp-note">
+              <p className="cmp-cap cmp-cap--after">
                 Priced at us-east-1 list in dollars, converted at €1 = $1.10. In the EU,
                 platform V2 (priced here) is offered only in Ireland; Frankfurt runs V1. Left
                 out: AWS support plans, Evaluations, and internet egress.
               </p>
-            </div>
-            <div>
-              <h4 className="cmp-h5">igni + Fleet, per year</h4>
+            </figure>
+            <figure className="cmp-panel cmp-panel--table">
+              <h4>igni + Fleet, per year</h4>
               <RTable
                 className="cmp-numeric"
                 head={['Line', '€ / year']}
@@ -559,12 +587,12 @@ export function AgentCorePage() {
                   [<><em>Optional, with the Factory:</em> Autopilot — improves the Factory&rsquo;s models from real users&rsquo; conversations, with no one in the loop. Up to 200 people.</>, `+${k(AUTOPILOT_200)}`],
                 ]}
               />
-              <p className="cmp-note">
+              <p className="cmp-cap cmp-cap--after">
                 Hardware is shown bought. Renting instead is one of the options below — you pick
                 one. One GH200 carries the 200 people; a second, for GPU failover, is optional
                 (+€14–18k).
               </p>
-            </div>
+            </figure>
           </div>
 
           <h4 className="lp-subhead">igni&rsquo;s hardware: pick one option</h4>
@@ -607,7 +635,7 @@ export function AgentCorePage() {
             className="cmp-numeric cmp-usage"
             head={['Usage per person (vs the heavy case)', 'AgentCore, list', 'igni + Fleet, licence included']}
             num={[1, 2]}
-            rows={USAGE.map((u) => [`${u.pct}%`, `~${u.aws}k`, `${u.igni[0]}–${u.igni[1]}k (${u.hw})`])}
+            rows={USAGE.map((u) => [`${u.pct}%`, `~${u.aws}k`, <>{u.igni[0]}–{u.igni[1]}k<span className="cmp-cell-sub">{u.hw}</span></>])}
           />
           <Figure
             title="Cost as usage changes"
