@@ -1299,6 +1299,22 @@
     white-space: nowrap;
   }
 
+  /* A note ("Via open source") wraps beside its dot, so the capability
+     column keeps room for whole words. */
+  .cmp-cov .cmp-has:has(.cmp-has-note) {
+    white-space: normal;
+    align-items: flex-start;
+  }
+
+  .cmp-cov .cmp-has:has(.cmp-has-note) .cmp-dot {
+    align-self: auto;
+    margin-top: var(--base-size-4);
+  }
+
+  .cmp-cov .cmp-table td:first-child {
+    overflow-wrap: normal;
+  }
+
   .cmp-usage .cmp-table .cmp-num {
     white-space: normal;
   }
