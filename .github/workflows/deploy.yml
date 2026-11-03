@@ -15,8 +15,10 @@ on:
 permissions:
   contents: read
 
+# Not "deploy-production": deploy-site.yml's job holds that group, and the
+# same name here deadlocks the run against its own deploy job.
 concurrency:
-  group: deploy-production
+  group: release-production
   cancel-in-progress: false
 
 jobs:
