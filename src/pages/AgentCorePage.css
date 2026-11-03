@@ -1331,3 +1331,24 @@
     display: none;
   }
 }
+
+/* ── Phones, 2026-11-03 ───────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* "Software, not a service: CRA evidence in build" broke inside its
+     words ("Softwar e") in a column var(--base-size-80) wide. The note now goes under
+     its dot and keeps whole words. */
+  .cmp-cov .cmp-has:has(.cmp-has-note) {
+    flex-direction: column;
+    gap: var(--base-size-4);
+  }
+
+  .cmp-cov .cmp-table td.cmp-cov-igni,
+  .cmp-cov .cmp-has-note {
+    overflow-wrap: normal;
+    hyphens: auto;
+  }
+
+  .cmp-disclosure-btn {
+    min-height: var(--base-size-44);
+  }
+}
