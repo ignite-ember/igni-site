@@ -48,7 +48,9 @@ const PX = /(?<![\w-])(\d+(?:\.\d+)?)px/g
  * lower.
  */
 const CEILINGS: Record<string, number> = {
-  'pages/landing-shared.css': 511,
+  // +1 on 2026-11-03: the phone breakpoint for the nav, menu and footer
+  // tap targets. A `@media` condition cannot read a custom property.
+  'pages/landing-shared.css': 512,
   // Raised from 282 on 2026-10-28: the page was rewritten for the
   // modular price list, with a drawn platform diagram, department mocks,
   // a deal estimator, the Fleet grid, the extensions mocks and the partner
@@ -69,8 +71,9 @@ const CEILINGS: Record<string, number> = {
   // Primer publishes no token for "how wide should this page's
   // column be", a spacing token used as a width is a token used for
   // the wrong thing, and a `@media` condition cannot read a custom
-  // property at all. Every colour in this file is a token.
-  'pages/DownloadPage.css': 5,
+  // property at all. Every colour in this file is a token. +1 on
+  // 2026-11-03: the phone breakpoint.
+  'pages/DownloadPage.css': 6,
   // Two breakpoints, which a `@media` condition cannot take from a
   // custom property, and the 1px box of the standard visually-hidden
   // pattern (a status word kept for screen readers on a phone).

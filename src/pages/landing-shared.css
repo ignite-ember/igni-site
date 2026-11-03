@@ -1667,6 +1667,11 @@ th.landing-compare-igni {
   .landing-mobile-nav {
     display: flex;
     flex-direction: column;
+    /* A short or landscape screen scrolls the menu instead of cutting
+       off "Schedule a call" below the fold. */
+    max-height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 16px 24px;
     background-color: var(--bgColor-default);
     border-bottom: 1px solid var(--borderColor-default);
@@ -1952,4 +1957,65 @@ th.landing-compare-igni {
   .landing-bench-value-lg  { font-size: 18px; }
   .landing-bench-metric    { min-width: 160px; }
   .landing-bench-hint      { font-size: 10px; }
+}
+
+/* ── Phones: one gutter, 44px tap targets ─────────────────────────
+ *
+ * The content runs at a 16px gutter on a phone; the nav bar was still
+ * at the desktop's 24px, so the logo and the text below it did not
+ * line up. The hamburger, the logo and every footer link were 16–32px
+ * tall. Nothing here applies above 640px.
+ */
+@media (max-width: 640px) {
+  .landing-nav-inner {
+    padding: var(--base-size-6) var(--base-size-16);
+  }
+
+  .landing-nav-brand {
+    min-height: var(--base-size-44);
+  }
+
+  .landing-nav-hamburger {
+    align-items: center;
+    justify-content: center;
+    width: var(--base-size-44);
+    height: var(--base-size-44);
+    margin-right: calc(-1 * var(--base-size-12));
+    padding: 0;
+  }
+
+  .landing-mobile-nav {
+    padding: var(--base-size-8) var(--base-size-16) var(--base-size-16);
+  }
+
+  /* Footer links as a two-column grid of full-height rows, instead of
+     a ragged centred wrap of var(--base-size-16)-tall words. */
+  .landing-footer {
+    align-items: stretch;
+    gap: var(--base-size-12);
+    padding: var(--base-size-32) var(--base-size-16);
+  }
+
+  .landing .landing-footer .landing-footer-links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 var(--base-size-12);
+    row-gap: 0;
+  }
+
+  /* The odd one out, and the e-mail address (too long for half a
+     row), take a whole row. */
+  .landing-footer-links li:last-child:nth-child(odd),
+  .landing-footer-links li:has(> a[href^="mailto:"]) {
+    grid-column: 1 / -1;
+  }
+
+  .landing-footer-links a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--base-size-44);
+    font-size: var(--text-body-size-medium);
+    overflow-wrap: anywhere;
+  }
 }

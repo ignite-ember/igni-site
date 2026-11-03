@@ -270,3 +270,16 @@
     font-size: var(--text-title-size-large, 32px);
   }
 }
+
+/* Phones: the site's 16px gutter, and rows and buttons a thumb can hit. */
+@media (max-width: 640px) {
+  .dl section,
+  .dl-hero {
+    padding-inline: var(--base-size-16, var(--base-size-16));
+  }
+
+  .dl-row,
+  .dl-btn {
+    min-height: var(--base-size-44);
+  }
+}
