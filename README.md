@@ -42,8 +42,32 @@ npm run sitemap
 
 ## Deploy
 
-TBD. The build is a static bundle (`dist/`); every route is client-side, so
-the host has to serve `index.html` for unknown paths.
+The build is a static bundle (`dist/`) served from a Cloud Storage bucket
+behind a load balancer. Every route is client-side, and a path with no
+object behind it is a 404 there, so the deploy uploads a copy of
+`index.html` at each route (`fleet`, `compare/agentcore`, `docs/<slug>`…).
+The routes come from `src/App.tsx` and the docs manifest
+(`node scripts/site-routes.mjs`); `src/test/siteRoutes.test.ts` fails if a
+route is missing from the list.
+
+```sh
+npm run build
+scripts/deploy-site.sh <bucket> igni-public-urlmap <host>[,<host>…]   # DRY_RUN=1 to print only
+scripts/smoke-site.sh https://<host>
+```
+
+`deploy-site.sh` uploads hashed `assets/` first (immutable for a year, never
+deleted, so a page cached before the release still loads), then the other
+static files (5 minutes), then the route copies and `index.html` last
+(`no-cache`), then invalidates the CDN for each host.
+
+CI (`.github/workflows/ci.yml`) lints, builds and runs the unit and
+Playwright tests on every push to main and every pull request. After a
+push to main it deploys to stage (`igni-public-site-stage`,
+stage.ignite-ember.sh) through `deploy-site.yml`, once the repository
+variable `DEPLOY_STAGE` is `true` and Workload Identity Federation is set
+up for the `igni-site-deploy-stage` service account. Production is still
+deployed by hand with the commands above.
 
 ### Where it is served today (checked 2026-11-03)
 
