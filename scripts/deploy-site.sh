@@ -45,6 +45,15 @@ for f in "$DIST"/*; do
   run gcloud storage cp "$f" "gs://$BUCKET/$(basename "$f")" --cache-control='public, max-age=300'
 done
 
+echo "== 2b. published JSON Schemas → gs://$BUCKET/schema (short cache)"
+# igni's extension manifests name https://ignite-ember.sh/schema/… in
+# "$schema"; step 2 uploads only the top level of dist/.
+for f in "$DIST"/schema/*.json; do
+  [ -f "$f" ] || continue
+  run gcloud storage cp "$f" "gs://$BUCKET/schema/$(basename "$f")" \
+    --content-type='application/schema+json' --cache-control='public, max-age=300'
+done
+
 echo "== 3. index.html at every route"
 routes=$(node "$HERE/site-routes.mjs")
 [ -n "$routes" ] || { echo "site-routes.mjs listed nothing" >&2; exit 1; }
