@@ -12,7 +12,8 @@
     "sitemap": "node scripts/generate-sitemap.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "og-image": "node scripts/og-image/render.mjs"
   },
   "dependencies": {
     "@primer/octicons-react": "^19.22.0",
