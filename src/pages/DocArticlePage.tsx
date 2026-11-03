@@ -59,6 +59,28 @@ function useActiveSectionId(sectionIds: string[]): string | null {
   return activeId
 }
 
+/** The same list for screens too narrow for the right-hand column. */
+function MobileTableOfContents({ sections }: { sections: { id: string; title: string }[] }) {
+  const ref = useRef<HTMLDetailsElement>(null)
+  const scrollTo = useCallback((id: string) => {
+    if (ref.current) ref.current.open = false
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [])
+
+  return (
+    <details className="doc-toc-mobile" ref={ref}>
+      <summary><ListUnorderedIcon size={14} /> On this page</summary>
+      <ol>
+        {sections.map((s) => (
+          <li key={s.id}>
+            <a href={`#${s.id}`} onClick={(e) => { e.preventDefault(); scrollTo(s.id) }}>{s.title}</a>
+          </li>
+        ))}
+      </ol>
+    </details>
+  )
+}
+
 function TableOfContents({ sections, activeSectionId }: { sections: { id: string; title: string }[]; activeSectionId: string | null }) {
   const scrollTo = useCallback((id: string) => {
     const el = document.getElementById(id)
@@ -123,7 +145,7 @@ export function DocArticlePage() {
     <div className="doc-article-layout">
       <div className="doc-article-main">
         <Stack gap="normal">
-          <Breadcrumbs>
+          <Breadcrumbs className="doc-breadcrumbs">
             <Breadcrumbs.Item as={Link} to="/">igni</Breadcrumbs.Item>
             <Breadcrumbs.Item as={Link} to="/docs">Docs</Breadcrumbs.Item>
             <Breadcrumbs.Item selected>{doc.title}</Breadcrumbs.Item>
@@ -133,6 +155,8 @@ export function DocArticlePage() {
             <Heading as="h1" className="doc-article-title">{doc.title}</Heading>
             <Text className="docs-muted">{doc.description}</Text>
           </div>
+
+          {toc.length > 2 && <MobileTableOfContents sections={toc} />}
 
           <div className="doc-article-body">
             <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]} components={markdownComponents}>{body}</ReactMarkdown>

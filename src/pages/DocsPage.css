@@ -493,3 +493,179 @@
     font-size: 12px;
   }
 }
+
+/* ── Previous / next: never wider than the column ──
+ * A long title on a nowrap button pushed the page sideways below
+ * ~900px (the layout viewport grew to fit, so a phone zoomed out).
+ * Below the two-column breakpoint the buttons stack, full width, and
+ * their labels wrap. */
+@media (max-width: 900px) {
+  .doc-prev-next {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .doc-prev-next > span:empty {
+    display: none;
+  }
+
+  .doc-prev-next button {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: var(--base-size-44);
+    padding-block: var(--base-size-8);
+  }
+
+  .doc-prev-next button:last-child:not(:first-child) {
+    justify-content: flex-end;
+  }
+
+  .doc-prev-next button [class*="ButtonContent"] {
+    flex: 1 1 auto;
+    min-width: 0;
+    grid-template-columns: min-content minmax(0, 1fr) min-content;
+  }
+
+  .doc-prev-next button [class*="Label"] {
+    white-space: normal;
+    text-align: left;
+  }
+
+  .doc-prev-next button:last-child:not(:first-child) [class*="Label"] {
+    text-align: right;
+  }
+}
+
+/* ── On this page, for narrow screens ──
+ * The right-hand table of contents is hidden below 900px; this is the
+ * same list as a collapsed disclosure above the article. */
+.doc-toc-mobile {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .doc-toc-mobile {
+    display: block;
+    border: var(--borderWidth-thin, 0.0625rem) solid var(--borderColor-default);
+    border-radius: var(--borderRadius-medium, var(--base-size-6));
+  }
+
+  .doc-toc-mobile summary {
+    display: flex;
+    align-items: center;
+    gap: var(--base-size-8);
+    min-height: var(--base-size-44);
+    padding: 0 var(--base-size-12);
+    cursor: pointer;
+    list-style: none;
+    font-size: var(--text-body-size-medium);
+    font-weight: 600;
+    color: var(--fgColor-muted);
+  }
+
+  .doc-toc-mobile summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .doc-toc-mobile summary::after {
+    content: '';
+    margin-left: auto;
+    width: var(--base-size-8);
+    height: var(--base-size-8);
+    border-right: var(--borderWidth-thick) solid currentColor;
+    border-bottom: var(--borderWidth-thick) solid currentColor;
+    transform: rotate(45deg) translateY(-0.125rem);
+    transition: transform 0.15s;
+  }
+
+  .doc-toc-mobile[open] summary::after {
+    transform: rotate(-135deg) translateY(-0.125rem);
+  }
+
+  .doc-toc-mobile ol {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 var(--base-size-6);
+    border-top: var(--borderWidth-thin, 0.0625rem) solid var(--borderColor-muted);
+  }
+
+  .doc-toc-mobile a {
+    display: flex;
+    align-items: center;
+    min-height: var(--base-size-44);
+    padding: 0 var(--base-size-12);
+    font-size: 0.9375rem;
+    color: var(--fgColor-default);
+    text-decoration: none;
+  }
+}
+
+/* ── Phones (docs) ──
+ * Readable sizes, tables that scroll inside their own box with a
+ * shadow at the edge that still has more, and tap targets of 44px. */
+@media (max-width: 640px) {
+  .docs-public-wrapper {
+    padding: var(--base-size-8) var(--base-size-16) var(--base-size-32);
+  }
+
+  .doc-article-body {
+    font-size: 0.9375rem;
+  }
+
+  .doc-callout {
+    font-size: var(--text-body-size-medium);
+  }
+
+  .doc-article-body pre,
+  .doc-article-body pre code {
+    font-size: 0.8125rem;
+  }
+
+  /* Break a long identifier only when it cannot fit on a line of its
+     own, instead of at every line end. */
+  .doc-article-body :not(pre) > code {
+    word-break: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* The table scrolls; its cells keep whole words. */
+  .doc-article-body table {
+    width: max-content;
+    max-width: 100%;
+    font-size: var(--text-body-size-medium);
+    background:
+      linear-gradient(to right, var(--bgColor-default) 30%, transparent) left / var(--base-size-24) 100% no-repeat local,
+      linear-gradient(to left, var(--bgColor-default) 30%, transparent) right / var(--base-size-24) 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%, rgb(0 0 0 / 0.18), transparent) left / var(--base-size-12) 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / 0.18), transparent) right / var(--base-size-12) 100% no-repeat scroll;
+  }
+
+  .doc-article-body th,
+  .doc-article-body td {
+    min-width: 7em;
+    max-width: 24em;
+    word-break: normal;
+    overflow-wrap: normal;
+    vertical-align: top;
+  }
+
+  /* An identifier in a table stays on one line; the table scrolls. */
+  .doc-article-body td code,
+  .doc-article-body th code {
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+
+  .doc-breadcrumbs a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--base-size-44);
+    min-width: var(--base-size-44);
+  }
+
+  .docs-search,
+  .docs-search input {
+    min-height: var(--base-size-44);
+  }
+}

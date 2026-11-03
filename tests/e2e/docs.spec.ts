@@ -24,7 +24,11 @@ test.describe('docs', () => {
   test('a table-of-contents link lands on its heading', async ({ page }) => {
     await page.goto('/docs')
     await page.locator('.doc-card').first().click()
-    const toc = page.locator('a[href^="#"]').first()
+    // Wait for the article: checking before it renders skipped the test.
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    // :visible, because below 900px the same links are in a collapsed
+    // "On this page" above the article, first in the document.
+    const toc = page.locator('a[href^="#"]:visible').first()
     test.skip(!(await toc.isVisible().catch(() => false)), 'this article has no sections')
 
     const id = (await toc.getAttribute('href'))!.slice(1)

@@ -189,3 +189,17 @@
   font-size: 11px;
   font-weight: 700;
 }
+
+/* On a phone the figure is wider than its box: a shadow at the edge
+   that still has more says it scrolls. The local layers cover the
+   shadow once that edge is reached. */
+@media (max-width: 720px) {
+  .dd-scroll {
+    background:
+      linear-gradient(to right, var(--bgColor-muted, #f6f8fa) 30%, transparent) left / var(--base-size-24) 100% no-repeat local,
+      linear-gradient(to left, var(--bgColor-muted, #f6f8fa) 30%, transparent) right / var(--base-size-24) 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%, rgb(0 0 0 / 0.18), transparent) left / var(--base-size-12) 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / 0.18), transparent) right / var(--base-size-12) 100% no-repeat scroll,
+      var(--bgColor-muted, #f6f8fa);
+  }
+}

@@ -60,15 +60,18 @@ const CEILINGS: Record<string, number> = {
   // +1 on 2026-11-03: the breakpoint of the phone pass (tabs, switch,
   // code windows, product-page spacing).
   'pages/LandingPage.css': 790,
-  'pages/DocsPage.css': 97,
+  // +3 on 2026-11-03: breakpoints for the stacked prev/next, the
+  // narrow-screen table of contents and the phone pass.
+  'pages/DocsPage.css': 100,
   // Geometry inside a `viewBox`, which is not CSS pixels. A
   // `font-size` on SVG text is a length in *user units* that scales
   // with the drawing, so a text-size token there would size a label
   // against the page instead of against the figure it is in — and the
   // figure would re-proportion itself whenever Primer retuned the
   // token. `min-width` is the drawing's own intrinsic width, below
-  // which it scrolls. Colour in this file is all tokens.
-  'docs/DocDiagram.css': 8,
+  // which it scrolls. Colour in this file is all tokens. +1 on
+  // 2026-11-03: the breakpoint for the scroll shadow on a phone.
+  'docs/DocDiagram.css': 9,
   // Two content-column widths, two grid minimums and a breakpoint.
   // Primer publishes no token for "how wide should this page's
   // column be", a spacing token used as a width is a token used for

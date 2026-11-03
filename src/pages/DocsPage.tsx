@@ -57,7 +57,7 @@ export function DocsPage() {
     <main className="docs-public-wrapper">
     <div className="docs-page-stack">
       <div className="docs-page-header">
-        <Breadcrumbs>
+        <Breadcrumbs className="doc-breadcrumbs">
           <Breadcrumbs.Item as={Link} to="/">igni</Breadcrumbs.Item>
           <Breadcrumbs.Item selected>Docs</Breadcrumbs.Item>
         </Breadcrumbs>
