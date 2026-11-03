@@ -1,0 +1,91 @@
+# Production: a release-vX.Y.Z tag on main → ignite-ember.sh.
+#
+#   git tag release-v1.0.0 && git push origin release-v1.0.0
+#
+# Rollback: Actions → Deploy → Run workflow, "Use workflow from" the older
+# tag. It has to run from a tag: the production service account trusts
+# only refs/tags/release-v* (scripts/setup-deploy-gcp.sh).
+name: Deploy
+
+on:
+  push:
+    tags: ['release-v*.*.*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: The ref is a release tag
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          if [[ ! "$REF" =~ ^refs/tags/release-v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Production deploys only from a release-vX.Y.Z tag, not $REF"
+            exit 1
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: The tag is on main
+        run: |
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "::error::$(git rev-parse --short HEAD) is not on main; tag a commit from main"
+            exit 1
+          fi
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npm test
+
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Playwright (chromium)
+        run: npx playwright test --project=chromium
+
+      - name: Keep the Playwright results on failure
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 7
+
+      - name: Keep the build for the deploy
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist
+          path: dist/
+          retention-days: 90
+          if-no-files-found: error
+
+  production:
+    needs: check
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/deploy-site.yml
+    with:
+      environment: production
+      bucket: igni-public-site
+      hosts: ignite-ember.sh,www.ignite-ember.sh
+      site_url: https://ignite-ember.sh
+      service_account: igni-site-deploy-prod@ember-prod-491411.iam.gserviceaccount.com

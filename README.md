@@ -66,8 +66,22 @@ Playwright tests on every push to main and every pull request. After a
 push to main it deploys to stage (`igni-public-site-stage`,
 stage.ignite-ember.sh) through `deploy-site.yml`, signed in as
 `igni-site-deploy-stage` through Workload Identity Federation. Set the
-repository variable `DEPLOY_STAGE` to `false` to pause it. Production is
-still deployed by hand with the commands above.
+repository variable `DEPLOY_STAGE` to `false` to pause it.
+
+Production (`.github/workflows/deploy.yml`) deploys a release tag on main:
+
+```sh
+git tag release-v1.2.3 && git push origin release-v1.2.3
+```
+
+It refuses a tag that is not `release-vX.Y.Z` or not on main, runs the same
+checks as CI, then deploys to ignite-ember.sh and www as
+`igni-site-deploy-prod`, which only a `release-v*` tag can sign in as.
+**Rollback:** Actions → Deploy → Run workflow, "Use workflow from" the
+older tag. Its build is made again from that tag; old hashed assets are
+still in the bucket, so cached pages keep loading either way. The run uses
+the GitHub environment `production`, where required reviewers can be
+added.
 
 One-time Google Cloud setup (identity pool, the stage and prod service
 accounts, the CDN-invalidation role; `--https-redirect` also does the
