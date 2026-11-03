@@ -134,7 +134,7 @@ const SCENARIOS: Scenario[] = [
     title: 'igni reviews every pull and merge request',
     body: 'CodeIndex keeps a map of every repository and re-analyses it on every push. It reviews each pull or merge request on GitHub or GitLab: what calls the changed code, what it could break, and what has no test.',
     outcome: 'Reviewers see what the change could break next to the diff they are reading.',
-    // ember-code docs/BENCHMARKS.md: 12 tasks × 5 runs, deterministic
+    // igni docs/BENCHMARKS.md: 12 tasks × 5 runs, deterministic
     // grading. igni ran an open-weight model (MiniMax-M2.7) with CodeIndex;
     // Claude Code ran Opus 4.7 without it. Not the igni model, not Opus 5.
     stat: {

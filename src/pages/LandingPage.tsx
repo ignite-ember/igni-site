@@ -434,7 +434,7 @@ const GUARANTEES: { title: string; desc: string }[] = [
 /* ── What an app adds, on the real app ────────────────────────────
  *
  * Three captures of the real web client against its fixture backend
- * (ember-code clients/web e2e/landing-shot-extensions.spec.ts), for an
+ * (igni clients/web e2e/landing-shot-extensions.spec.ts), for an
  * illustrative Claims desk app: plain igni, the app's own page open
  * inside igni, and the app at work in a chat. The marks sit on boxes the
  * spec measured with locator.boundingBox(), read from the JSON the spec
@@ -575,14 +575,14 @@ function AppZones() {
 }
 
 /*
- * Extensions, from ember-code docs/EXTENSIBILITY.md and the
+ * Extensions, from igni docs/EXTENSIBILITY.md and the
  * igni__extension-starter walkthrough: a service the organisation runs,
  * plus an extension that every igni installs once an administrator has
  * approved exactly what it adds. CodeIndex and Artifacts attach through
  * the same contract. "Remote" means inside the customer's network; igni
  * hosts nothing.
  */
-// Real SDK calls, from ember-code
+// Real SDK calls, from igni
 // packages/igni-extension (README, host_model.py), docs/HOST_OBJECT_MODEL.md,
 // docs/CLOUD.md §6 and igni-server docs/service-identity.md §15. The
 // claims-desk names are the example; every method and field is igni's own.
@@ -1004,7 +1004,7 @@ export function LandingPage() {
           </div>
         </div>
 
-        {/* How an app talks to igni, from ember-code docs/EXTENSIBILITY.md,
+        {/* How an app talks to igni, from igni docs/EXTENSIBILITY.md,
             HOST_OBJECT_MODEL.md, CLOUD.md §6 and the igni-service /
             igni-extension SDK READMEs. Three lanes, each explicit: the
             extension acting in the app through the host API; the service
