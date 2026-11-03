@@ -30,10 +30,11 @@ for p in $paths; do
   if [ -n "$ok" ]; then echo "ok   $p  200, this build"; else echo "FAIL $p  last status $code" >&2; fail=1; fi
 done
 
-if [ -f "$DIST/schema/extension-manifest-1.json" ]; then
-  code=$(curl -sS -o /dev/null -w '%{http_code}' "$SITE/schema/extension-manifest-1.json?$bust")
-  if [ "$code" = 200 ]; then echo "ok   /schema/extension-manifest-1.json 200"; else echo "FAIL /schema/extension-manifest-1.json $code" >&2; fail=1; fi
-fi
+for schema in schema/extension-manifest-1.json schema/theme-1.json; do
+  [ -f "$DIST/$schema" ] || continue
+  code=$(curl -sS -o /dev/null -w '%{http_code}' "$SITE/$schema?$bust")
+  if [ "$code" = 200 ]; then echo "ok   /$schema 200"; else echo "FAIL /$schema $code" >&2; fail=1; fi
+done
 
 code=$(curl -sS -o /dev/null -w '%{http_code}' "$SITE/$js")
 if [ "$code" = 200 ]; then echo "ok   /$js 200"; else echo "FAIL /$js $code" >&2; fail=1; fi

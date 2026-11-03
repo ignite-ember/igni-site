@@ -42,3 +42,20 @@ describe('the extension manifest schema', () => {
     expect(upload).toContain('application/schema+json')
   })
 })
+
+describe('the deployment theme schema', () => {
+  // docs/UI_FLOOR.md's theme.json example names it; igni's
+  // docs/theme.schema.json, copied here.
+  const THEME_URL = 'https://ignite-ember.sh/schema/theme-1.json'
+  const THEME_FILE = join(process.cwd(), 'public/schema/theme-1.json')
+
+  it('is in public/ under the path its $id names', () => {
+    const schema = JSON.parse(readFileSync(THEME_FILE, 'utf8'))
+    expect(schema.$id).toBe(THEME_URL)
+    expect(schema.title).toBe('igni deployment theme')
+  })
+
+  it('is checked by the smoke test once deployed', () => {
+    expect(readFileSync('scripts/smoke-site.sh', 'utf8')).toContain('schema/theme-1.json')
+  })
+})
