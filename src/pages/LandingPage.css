@@ -3416,3 +3416,99 @@ p.lp-zones-unseen {
 .lp-partners-actions .landing-btn-secondary {
   padding: 12px 20px;
 }
+
+/* ══ Phones, 2026-11-03 ═════════════════════════════════════════════
+ *
+ * Tidying for screens of 640px and less, on the landing page and the
+ * product and comparison pages that share its classes. Nothing here
+ * applies above 640px.
+ */
+@media (max-width: 640px) {
+  /* Hero buttons fill their row in equal parts instead of sitting as a
+     ragged centred pair with a third one underneath. */
+  .landing--main .lp-hero-cta > * {
+    flex: 1 1 8.75rem;
+    justify-content: center;
+  }
+
+  .lp-partners-actions > * {
+    flex: 1 1 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* The swipeable tab rows run to the screen edge and fade out at the
+     right, so a cut-off tab reads as "more this way". The end padding
+     lets the last tab clear the fade once scrolled to. */
+  .lp-scn-tabs {
+    padding-right: var(--base-size-40);
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - var(--base-size-40)), transparent);
+    mask-image: linear-gradient(to right, black calc(100% - var(--base-size-40)), transparent);
+  }
+
+  .landing-section .lp-scn-tabs {
+    margin-left: calc(-1 * var(--base-size-16));
+    margin-right: calc(-1 * var(--base-size-16));
+    padding-left: var(--base-size-16);
+  }
+
+  .lp-scn-tab {
+    min-height: var(--base-size-44);
+  }
+
+  /* The three-way screenshot switch: a segmented control of equal
+     parts, labels on two lines where they need to, instead of a pill
+     that wrapped onto a second row. */
+  .lp-zones-switch {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    border-radius: var(--base-size-12);
+  }
+
+  .lp-zones-switch button {
+    min-height: var(--base-size-44);
+    padding: var(--base-size-6) var(--base-size-8);
+    border-radius: var(--base-size-8);
+    line-height: 1.25;
+  }
+
+  .lp-scn-more,
+  .lp-module-more,
+  .lp-prod-docs a {
+    min-height: var(--base-size-44);
+    margin-top: 0;
+  }
+
+  .lp-prod-docs {
+    row-gap: 0;
+  }
+
+  .lp-pricelist summary {
+    padding: var(--base-size-12) 0;
+    margin-bottom: var(--base-size-4);
+  }
+
+  /* Code windows scroll sideways inside their frame; the right edge
+     fades so a cut-off line reads as "more this way". The wider line
+     padding lets the end of the longest line clear the fade. */
+  .lp-code pre {
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - var(--base-size-28)), transparent);
+    mask-image: linear-gradient(to right, black calc(100% - var(--base-size-28)), transparent);
+  }
+
+  .lp-code-line {
+    padding-right: var(--base-size-32);
+  }
+
+  /* Product pages: consecutive sections on one background each added
+     3.5rem, so every heading sat under a var(--base-size-112) gap. */
+  .lp-prod:not(.lp-cmp) .landing-section {
+    padding-top: var(--base-size-40);
+    padding-bottom: var(--base-size-40);
+  }
+
+  .lp-h3-tight {
+    margin-bottom: var(--base-size-24) !important;
+  }
+}

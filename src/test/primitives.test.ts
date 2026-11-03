@@ -57,7 +57,9 @@ const CEILINGS: Record<string, number> = {
   // block, the 2026-10-29 visual pass (bands, accordion, phone layouts), the
   // factory showcase, the app screenshot and the extension code windows — all
   // marketing visuals.
-  'pages/LandingPage.css': 789,
+  // +1 on 2026-11-03: the breakpoint of the phone pass (tabs, switch,
+  // code windows, product-page spacing).
+  'pages/LandingPage.css': 790,
   'pages/DocsPage.css': 97,
   // Geometry inside a `viewBox`, which is not CSS pixels. A
   // `font-size` on SVG text is a length in *user units* that scales
