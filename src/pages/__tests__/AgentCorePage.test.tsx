@@ -4,7 +4,7 @@
  * So the checks are the ones a sceptical reader would make:
  *
  * * **it still says when AWS was checked**, and keeps what counts
- *   against igni — where AgentCore is ahead, no certification yet, and
+ *   against igni — where AgentCore is ahead, no certificate held, and
  *   that the costs are estimates, not a quote;
  * * **igni's side is the price list.** The cost tables were worked out
  *   on the ≤ 200 band; if the price list moves, this fails and the sums
@@ -106,7 +106,7 @@ describe('it stays honest', () => {
   test('it keeps what counts against igni', () => {
     renderPage()
     const t = text()
-    expect(t).toMatch(/No certification yet/)
+    expect(t).toMatch(/igni holds no certificate/)
     expect(t).toMatch(/No independent penetration test yet/)
     expect(t).toMatch(/Estimates, not a quote/)
     expect(t).toMatch(/your integrator quotes the final price/)

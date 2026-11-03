@@ -701,7 +701,7 @@ const OBJECTIONS: { q: string; a: string }[] = [
   },
   {
     q: 'Is it production-ready? You are an early-stage company.',
-    a: 'Ignite Ember is an early-stage Dutch company. The platform, CodeIndex, Artifacts, Fleet and the factory pipeline are built, and SAML sign-in is coming next. igni is starting on the path to ISO 27001, SOC 2 Type I and Type II, and GDPR compliance. The annual order lapses if the pilot fails its criteria, production accreditation is refused, or a serious security finding in igni is not fixed.',
+    a: 'Ignite Ember is an early-stage Dutch company. The platform, CodeIndex, Artifacts, Fleet and the factory pipeline are built, and SAML sign-in is coming next. igni is software you run, not a service we host, so like PostgreSQL there is no service to certify: it runs inside your own certified estate, and it is assessed as a product under the EU Cyber Resilience Act. The annual order lapses if the pilot fails its criteria, production accreditation is refused, or a serious security finding in igni is not fixed.',
   },
   {
     q: 'igni\u2019s models are built on a Chinese base model. Can we use them?',
@@ -920,9 +920,10 @@ export function LandingPage() {
         {/* Said here, not only in the FAQ: a CISO looks for it in this
             section, and its absence reads as something hidden. */}
         <p className="lp-note">
-          igni holds no certificate yet. It is starting on the path to ISO 27001, SOC 2
-          Type I and Type II, and GDPR compliance, and the pack includes a
-          self-assessment against all three.
+          igni hosts nothing, so like PostgreSQL there is no service to certify: it runs
+          inside your own certified estate. It is assessed as a product under the EU Cyber
+          Resilience Act: SBOMs and vulnerability scanning today, signed images and build
+          provenance in build, and ISO 27001 for the build and release process planned.
         </p>
         <div className="lp-hero-cta">
           <a href={mailto('Request: igni security pack')} className="landing-btn-secondary" title={CONTACT_EMAIL}>

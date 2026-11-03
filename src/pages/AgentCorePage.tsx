@@ -55,7 +55,7 @@ import './AgentCorePage.css'
  * The same rules as the product pages, and one more. Measured numbers
  * say where they were measured; modelled ones say they are modelled.
  * And the page keeps what counts against igni — where AgentCore is
- * ahead, no certification yet, the assumptions, and that the cost
+ * ahead, no certificate held, the assumptions, and that the cost
  * figures are estimates rather than a quote. A comparison that hides
  * those is the first thing a buyer's architect takes apart.
  *
@@ -730,7 +730,7 @@ export function AgentCorePage() {
                 <li>Self-hosted: runs on your own servers, in your own country, so data never leaves its jurisdiction. With <code>air_gapped = true</code> (one setting) nothing calls out; the licence is checked offline.</li>
                 <li>Disks (dm-crypt) and memory snapshots (fscrypt) are encrypted under per-person keys wrapped by your own Vault / OpenBao; igni never holds a key.</li>
                 <li>Harness, server and models are open source; Fleet, CodeIndex and Artifacts are closed.</li>
-                <li>EU-owned. <b>No certification yet</b>; ISO 27001 and SOC 2 work has started. No independent penetration test yet.</li>
+                <li>EU-owned. <b>Software you run, not a service we host</b> — like PostgreSQL, it holds no service certificate; it sits inside your own certified estate. Assessed as a product under the EU Cyber Resilience Act: SBOMs and vulnerability scanning today, signed images and build provenance in build. ISO 27001 for the build and release process is planned. No independent penetration test yet.</li>
               </ul>
             </div>
           </div>
@@ -759,7 +759,7 @@ export function AgentCorePage() {
           <RTable
             head={['Area', 'Gap', 'How igni addresses it']}
             rows={[
-              ['Certifications', 'AWS has them; igni has none yet.', 'ISO 27001 / SOC 2 work started. Available today: SBOM, network diagram, exit runbook, self-assessment and policies. The software runs inside your own certified estate.'],
+              ['Certification', 'AWS’s hosted service is certified (SOC 2, ISO 27001). igni holds no certificate.', 'igni hosts nothing, so there is no service to certify: it runs inside your own certified estate and your certificates cover it, as they do PostgreSQL. It is assessed as a product, under the EU Cyber Resilience Act. Available today: SBOM, vulnerability scanning, network diagram, exit runbook, self-assessment and policies. In build: signed images and build provenance. Planned: ISO 27001 for the build and release process.'],
               ['Managed high availability', 'AWS runs multi-zone for you.', 'Fleet resumes a VM on another node from its replica in ~0.5 s, after a 10–60 s lock timeout; tested on nested VMs with NFS.'],
               ['Support', 'AWS 24/7 with SLAs.', 'Your integrator gives 24/7 first- and second-line support; Ignite Ember gives third-line in business hours, Sev 1 within 4 business hours.'],
               ['Exit & continuity', 'AWS is large and stable.', 'A lapsed licence keeps running 90 days, then goes read-only — never a hard stop. Models don’t expire. Source escrow is being set up (no agreement signed yet).'],

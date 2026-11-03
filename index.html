@@ -18,9 +18,9 @@
       }
     </script>
 
-    <title>igni — Self-hosted AI coding agent on your own GPUs</title>
-    <meta name="description" content="A self-hosted AI coding agent with its own model. The software is free — you pay only for the GPU, about $2.50 per developer per month." />
-    <meta name="keywords" content="self-hosted AI coding agent, on-premise AI coding assistant, air-gapped AI, CodeIndex, semantic code search, automated PR review, multi-agent orchestration, LoRA fine-tuning, GH200" />
+    <title>igni — AI agents that run inside your network</title>
+    <meta name="description" content="igni is AI agent software that runs inside your network, air-gapped or on dedicated GPUs you rent. Ignite Ember hosts nothing and has no route into your network. The base is free under Apache-2.0, and paid modules are sold separately from €8k a year with nothing metered." />
+    <meta name="keywords" content="self-hosted AI agents, on-premise AI platform, air-gapped AI, regulated organisations, CodeIndex, Artifacts, Fleet, domain model training, DORA exit plan" />
 
     <!-- Canonical -->
     <link rel="canonical" href="https://ignite-ember.sh/" />
@@ -31,18 +31,18 @@
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://ignite-ember.sh/" />
-    <meta property="og:title" content="igni — Self-hosted AI coding agent on your own GPUs" />
-    <meta property="og:description" content="Big AI owns the model, the servers, and every line you send them. With igni, you own everything. The software is free; you pay only for the GPU." />
+    <meta property="og:title" content="igni — AI agents that run inside your network" />
+    <meta property="og:description" content="Agents for every team and models trained on your own data, inside your network. Ignite Ember hosts nothing. The base is free under Apache-2.0; paid modules from €8k a year, nothing metered." />
     <meta property="og:image" content="https://ignite-ember.sh/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="igni — up to 200 developers, one GPU bill. $2.50 per developer per month against $100–200 for a per-seat licence." />
+    <meta property="og:image:alt" content="igni — AI agents that run inside your network." />
     <meta property="og:site_name" content="igni" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="igni — Self-hosted AI coding agent on your own GPUs" />
-    <meta name="twitter:description" content="The software is free; you pay only for the GPU — about $2.50 per developer per month. CodeIndex and PR review optional." />
+    <meta name="twitter:title" content="igni — AI agents that run inside your network" />
+    <meta name="twitter:description" content="Agents for every team and models trained on your own data, inside your network. The base is free under Apache-2.0; paid modules from €8k a year, nothing metered." />
     <meta name="twitter:image" content="https://ignite-ember.sh/og-image.png" />
 
     <!-- Structured Data -->
@@ -52,15 +52,25 @@
       "@type": "SoftwareApplication",
       "name": "igni",
       "url": "https://ignite-ember.sh",
-      "applicationCategory": "DeveloperApplication",
+      "applicationCategory": "BusinessApplication",
       "operatingSystem": "macOS, Windows, Linux",
-      "description": "Self-hosted AI coding agent built on igni 1.0 27B, with multi-agent orchestration, a semantic code index and automated pull-request review. Runs on hardware you control.",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD",
-        "description": "The agent, the model and the harness are free. GPU rental is paid to your own provider; CodeIndex and support are an optional $10 per developer per month."
-      }
+      "description": "AI agent software that runs inside your network, air-gapped or on dedicated GPUs you rent: agents for every team and models trained on your own data. Ignite Ember hosts nothing and has no route into your network.",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "igni base",
+          "price": "0",
+          "priceCurrency": "EUR",
+          "description": "Agents and orchestration, models, MCP plugins, OIDC sign-in, SCIM, roles, audit trail, desktop app and CLI. Free under Apache-2.0."
+        },
+        {
+          "@type": "Offer",
+          "name": "Paid modules",
+          "price": "8000",
+          "priceCurrency": "EUR",
+          "description": "CodeIndex, Artifacts, Fleet, the Factory and Autopilot, each a flat annual licence set by how many people use it, from €8k a year excluding VAT. Nothing is metered."
+        }
+      ]
     }
     </script>
   </head>
@@ -74,31 +84,43 @@
         describes a product you no longer sell is worse than none.
       -->
       <div style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap">
-      <h1>igni — Self-hosted AI coding agent on your own GPUs</h1>
-      <p>Big AI owns the model, the servers, and every line you send them. With igni, you own everything. The agent, the model and the harness cost nothing; you pay only to rent the GPU it runs on — roughly $2.50 per developer per month, because one NVIDIA GH200 serves up to 200 developers.</p>
+      <h1>igni — AI agents that run inside your network</h1>
+      <p>igni is the AI platform regulated organisations can actually run: agents for every team and models trained on your own data, while no AI vendor sees or holds your code, data or models, Ignite Ember included. The base is free under Apache-2.0. Paid modules start at €8k a year, and each can be evaluated free for 30 days, or 60 with your integrator.</p>
 
-      <h2>Your own model, on your own hardware</h2>
-      <p>igni 1.0 27B is a fine-tune of Qwen 3.8 27B, trained for tool-calling, diffs and code review rather than chat. It is small enough to serve 200 developers from a single GH200, so the bill is GPU rental rather than a per-seat licence. Deploy it in our racks, your cloud account, your own datacenter, or fully air-gapped — your code never leaves your network, and there is a full audit trail.</p>
+      <h2>Inside your network</h2>
+      <p>igni runs on GPUs you own, or dedicated GPUs you rent, and starts on one GPU. It runs air-gapped with no outbound connections of its own, and Ignite Ember has no route into your network. Models built from your data have no licence key and no expiry. One installation serves every person and every app.</p>
 
-      <h2>CodeIndex — measured against grep on 18 real repositories</h2>
-      <p>An agent with CodeIndex answers questions about a codebase correctly 90.5% of the time against 69.5% with ripgrep, at 176k tokens per answer against 436k. Measured over 82 questions across 18 real repositories in Python, TypeScript and JavaScript, each asked three times per arm, with the correct answers computed mechanically from source rather than from the index. It beats or ties grep on 15 of 18 repositories. Grep ties it on "which files import this one", because that answer is a literal line of text; the index pulls ahead where the answer is a count across the whole repository.</p>
+      <h2>The igni base, free under Apache-2.0</h2>
+      <p>Agents and orchestration, igni's models, MCP plugins into your systems, OIDC sign-in, SCIM provisioning, roles and an audit trail, and the desktop app and CLI. SAML sign-in is coming next.</p>
 
-      <h2>Automated pull-request review on GitHub and GitLab</h2>
-      <p>Every push re-indexes incrementally and every pull request or merge request is reviewed against the index, with findings posted as comments before a human opens it — security risks, swallowed errors, and untested modules the change depends on. The review reads the call graph, not just the diff.</p>
+      <h2>Modules, each an annual licence</h2>
+      <ul>
+        <li><a href="/codeindex">CodeIndex</a> — answers and reviews from a map of your code. €12k a year for up to 50 developers.</li>
+        <li><a href="/artifacts">Artifacts</a> — a document graph that rebuilds when a source changes. €8k a year for up to 50 people; readers are free.</li>
+        <li><a href="/fleet">Fleet</a> — a cloud agent in an isolated VM for every person and app. €10k a year for up to 50 people, with as many apps; local agents are free.</li>
+        <li><a href="/factory">Factory</a> — domain models trained on your data, and yours to keep. €40k a year for any number of models. Autopilot, on top, from €10k a year for up to 50 people.</li>
+      </ul>
 
-      <h2>Multi-agent orchestration</h2>
-      <p>Twelve specialist agents — Explorer, Architect, Editor, Reviewer, Security, QA, Debugger, Simplifier, Docs, Visualizer, Plan-researcher and a Data-architect that queries the CodeIndex graph — with five team modes and unlimited nesting. Describe a task and the Orchestrator assembles the agents, picks the mode and executes. Agents are Markdown files with YAML frontmatter, so adding one takes no code.</p>
+      <h2>One installation, four departments</h2>
+      <p>Start with one engineering team, where igni reviews every pull and merge request. Add risk and compliance, where every document built on a source is flagged when that source changes; operations, with a cloud agent for every person and every app on your servers; and legal, with a contract-review model trained on your legal team's material. The data, the agents and the results stay on your servers.</p>
+
+      <h2>Security and continuity</h2>
+      <p>Each release ships as a signed bundle with a software bill of materials, which you verify and apply on your schedule. Before the first workshop, your security team receives a pack: the egress test, the SBOM, a network diagram, an exit-test runbook and a compliance self-assessment. No DPA is needed, because Ignite Ember never processes your data. igni hosts nothing, so like PostgreSQL there is no service to certify: it runs inside your own certified estate, and it is assessed as a product under the EU Cyber Resilience Act. If you stop paying, a module runs for 90 days with warnings, then becomes read-only; the base and your models keep running. Each paid module's source goes into verified escrow, set up with your first order.</p>
+
+      <h2>Your own apps inside igni</h2>
+      <p>Everyone works in the igni desktop app, and developers can also use a CLI. Your developers or your integrator can build apps into it with the igni SDKs, adding pages, tools, agents, commands and settings. Each app runs on your servers, and an administrator approves it before anyone receives it.</p>
 
       <h2>Pricing</h2>
-      <p>The software is free. GPU rental works out at about $2.50 per developer per month and is paid to your provider, not to us. CodeIndex, pull-request review, a named engineer and an SLA are an optional $10 per developer per month. Unlimited tokens on every plan, nothing metered, no per-seat licence.</p>
+      <p>A flat annual fee per module, set by how many people use it, up to an unlimited tier above 1,000. People who only read a module's output are not counted, and neither are agents or tokens. Nothing is metered. List prices in EUR per year, excluding VAT; your integrator quotes the final price.</p>
 
-      <h2>Fine-tuning for your domain, from $10,000</h2>
-      <p>Fine-tune the model on an internal framework, a regulated domain, a support corpus or a library of precedent — none of it limited to code. Fine-tunes ship as LoRA adapters loaded and swapped per request, so many departments can hold many adapters on the same GPU without changing the hardware bill. Point a CodeIndex-style index at whatever your teams work in, connect internal systems as MCP servers, and scope agents, skills and policy per team.</p>
+      <h2>How you buy</h2>
+      <p>Try it free: the Apache-2.0 base and every paid module on evaluation, with nothing to sign. Pilot it in production for up to 90 days with no licence fee, against success criteria you agree in writing; the order lapses if they are not met. The annual licence starts only when the criteria are met.</p>
 
-      <h2>Security</h2>
-      <p>Nine layers: permission tiers, protected paths, command blocking, PII detection, prompt-injection blocking, audit logging, agent isolation, orchestration guards and managed policies.</p>
+      <h2>For integrators</h2>
+      <p>Install igni, take it through your client's accreditation, connect identity and CI, and provide first- and second-line support. Ignite Ember supplies the software, the models and signed update bundles, and handles third-line support.</p>
 
       <nav>
+        <a href="/compare/agentcore">igni + Fleet vs AWS Bedrock AgentCore</a>
         <a href="/docs">Documentation</a>
         <a href="/docs/self-hosting-the-server">Self-hosting</a>
         <a href="/docs/administering-your-organisation">Administering</a>

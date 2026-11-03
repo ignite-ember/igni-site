@@ -49,7 +49,7 @@ export const COVERAGE: { cap: string; aws: Has; igni: Has; igniNote?: string }[]
   { cap: 'Extensions with UI', aws: 'half', igni: 'full' },
   { cap: 'On-prem / air-gapped', aws: 'none', igni: 'full' },
   { cap: 'Fixed price', aws: 'none', igni: 'full' },
-  { cap: 'Certifications', aws: 'full', igni: 'none' },
+  { cap: 'Certification & assurance', aws: 'full', igni: 'half', igniNote: 'Software, not a service: CRA evidence in build' },
 ]
 
 export function countFull(side: 'aws' | 'igni'): number {
