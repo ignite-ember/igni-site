@@ -30,7 +30,8 @@ test.describe('docs', () => {
     const id = (await toc.getAttribute('href'))!.slice(1)
     await toc.click()
 
-    const heading = page.locator(`#${CSS.escape(id)}`)
+    // CSS.escape exists only in the browser; an attribute selector needs no escaping.
+    const heading = page.locator(`[id="${id.replace(/"/g, '\\"')}"]`)
     await expect(heading).toBeVisible()
   })
 })
