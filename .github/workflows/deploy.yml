@@ -38,9 +38,10 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
+      # fetch-depth 0 brings every branch, origin/main included; a second
+      # fetch would fail, since persist-credentials is off on a private repo.
       - name: The tag is on main
         run: |
-          git fetch --no-tags origin main
           if ! git merge-base --is-ancestor HEAD origin/main; then
             echo "::error::$(git rev-parse --short HEAD) is not on main; tag a commit from main"
             exit 1
