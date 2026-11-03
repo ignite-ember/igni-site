@@ -1,7 +1,7 @@
 # Every push to main and every pull request: lint, build, unit and
 # Playwright tests. A push to main then deploys the build to stage
-# (stage.ignite-ember.sh) — once the repository variable DEPLOY_STAGE is
-# "true", which is set after scripts/setup-deploy-gcp.sh has run.
+# (stage.ignite-ember.sh). On by default; set the repository variable
+# DEPLOY_STAGE to "false" to pause it.
 # Production is deploy.yml, on a release-v* tag.
 name: CI
 
@@ -62,7 +62,7 @@ jobs:
 
   stage:
     needs: check
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_STAGE == 'true'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_STAGE != 'false'
     permissions:
       contents: read
       id-token: write

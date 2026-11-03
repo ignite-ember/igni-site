@@ -64,10 +64,19 @@ static files (5 minutes), then the route copies and `index.html` last
 CI (`.github/workflows/ci.yml`) lints, builds and runs the unit and
 Playwright tests on every push to main and every pull request. After a
 push to main it deploys to stage (`igni-public-site-stage`,
-stage.ignite-ember.sh) through `deploy-site.yml`, once the repository
-variable `DEPLOY_STAGE` is `true` and Workload Identity Federation is set
-up for the `igni-site-deploy-stage` service account. Production is still
-deployed by hand with the commands above.
+stage.ignite-ember.sh) through `deploy-site.yml`, signed in as
+`igni-site-deploy-stage` through Workload Identity Federation. Set the
+repository variable `DEPLOY_STAGE` to `false` to pause it. Production is
+still deployed by hand with the commands above.
+
+One-time Google Cloud setup (identity pool, the stage and prod service
+accounts, the CDN-invalidation role; `--https-redirect` also does the
+HTTP→HTTPS redirect and HSTS below):
+
+```sh
+DRY_RUN=1 scripts/setup-deploy-gcp.sh --https-redirect   # print the commands
+scripts/setup-deploy-gcp.sh                               # run them
+```
 
 ### Where it is served today (checked 2026-11-03)
 
