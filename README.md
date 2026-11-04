@@ -133,12 +133,13 @@ gcloud compute url-maps import site-http-redirect --global \
 gcloud compute target-http-proxies update <HTTP_PROXY> --global \
   --url-map=site-http-redirect
 
-# 3. HSTS on every HTTPS response. Start with five minutes; once the
-#    redirect has run a day with nothing broken, raise it to a year
-#    (max-age=31536000). Leave includeSubDomains off until every
-#    subdomain (api, dev, stage, …) is HTTPS-only.
+# 3. HSTS on every HTTPS response: a year, since 2026-11-04 (it ran at
+#    five minutes for a day first). A browser that has seen it refuses
+#    plain HTTP for a year, so the certificate must never lapse. Leave
+#    includeSubDomains off until every subdomain (api, dev, stage, …) is
+#    HTTPS-only. --custom-response-header replaces the bucket's whole list.
 gcloud compute backend-buckets update <BACKEND_BUCKET> \
-  --custom-response-header='Strict-Transport-Security: max-age=300'
+  --custom-response-header='Strict-Transport-Security: max-age=31536000'
 
 # 4. Check.
 curl -sI http://ignite-ember.sh/ | head -3          # 301, location: https://ignite-ember.sh/

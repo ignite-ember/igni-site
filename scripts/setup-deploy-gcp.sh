@@ -32,7 +32,7 @@ ROLE_ID=igniSiteCdnInvalidator
 HTTP_PROXY=${HTTP_PROXY:-igni-public-http-proxy}
 REDIRECT_MAP=${REDIRECT_MAP:-igni-public-http-redirect}
 BACKENDS=${BACKENDS:-igni-public-backend igni-stage-backend}
-HSTS=${HSTS:-max-age=300}
+HSTS=${HSTS:-max-age=31536000}
 
 HTTPS_REDIRECT=
 for a in "$@"; do
