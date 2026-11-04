@@ -38,7 +38,6 @@ import {
   AlertIcon,
   DesktopDownloadIcon,
   MarkGithubIcon,
-  PackageIcon,
   TerminalIcon,
 } from '@primer/octicons-react'
 
@@ -46,15 +45,12 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { IgniLogo } from '../components/IgniLogo'
 import {
   classifyAssets,
-  classifyEditorAssets,
   detectPlatform,
   humanSize,
-  JETBRAINS_URL,
   LATEST_API_URL,
   PLATFORM_LABELS,
   RELEASES_URL,
   type Download,
-  type EditorDownloads,
   type Platform,
   type ReleaseAsset,
 } from './downloadAssets'
@@ -165,52 +161,6 @@ function PlatformCard({
   )
 }
 
-function Editors({ editors }: { editors: EditorDownloads }) {
-  return (
-    <section className="dl-editors">
-      <h2>Or work inside your editor</h2>
-      <p className="dl-lede">
-        The same product in a different shell. One account, one session list, one backend across all
-        of them — a conversation you start in the desktop app is in your IDE panel too.
-      </p>
-      <div className="dl-editor-grid">
-        <div className="dl-editor">
-          <h3>
-            <PackageIcon size={16} /> JetBrains
-          </h3>
-          <p>IntelliJ IDEA, PyCharm, WebStorm and the rest. Install it from the marketplace.</p>
-          <a className="dl-btn dl-btn-secondary" href={JETBRAINS_URL}>
-            Open in JetBrains Marketplace
-          </a>
-        </div>
-        <div className="dl-editor">
-          <h3>
-            <PackageIcon size={16} /> VS Code
-          </h3>
-          {/* Not on the marketplace yet — see downloadAssets.ts. The
-              VSIX is a real build from the same release, so the honest
-              thing is to hand it over with the command that installs
-              it rather than link a listing that does not exist. */}
-          <p>
-            Not published to the marketplace yet. Download the extension and install it directly:
-          </p>
-          <code className="dl-code">code --install-extension igni.vsix</code>
-          {editors.vsix ? (
-            <a className="dl-btn dl-btn-secondary" href={editors.vsix.url}>
-              Download the .vsix{' '}
-              {humanSize(editors.vsix.size) && <span>({humanSize(editors.vsix.size)})</span>}
-            </a>
-          ) : (
-            <a className="dl-btn dl-btn-secondary" href={RELEASES_URL}>
-              Find it on the release page
-            </a>
-          )}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 export function DownloadPage() {
   useDocumentTitle('Download igni')
   useNoIndex()
@@ -222,7 +172,6 @@ export function DownloadPage() {
   )
 
   const grouped = useMemo(() => classifyAssets(release?.assets ?? []), [release])
-  const editors = useMemo(() => classifyEditorAssets(release?.assets ?? []), [release])
 
   // macOS is shown as one card pair: the detected Apple-silicon build
   // first, then Intel, because the browser cannot tell them apart.
@@ -305,8 +254,6 @@ export function DownloadPage() {
         </div>
         {!release && !failed && <p className="dl-lede">Looking up the latest release…</p>}
       </section>
-
-      <Editors editors={editors} />
 
       <section className="dl-first-run">
         <h2>What happens the first time you open it</h2>

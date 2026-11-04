@@ -965,8 +965,8 @@
   font-size: 11px;
 }
 
-/* Step-1 install options — the four surfaces (desktop / JetBrains /
-      * VSCode / CLI) stacked as a compact bulleted list. */
+/* Step-1 install options — the surfaces (desktop app / web client /
+      * CLI) stacked as a compact bulleted list. */
 .landing-getstarted-list {
   list-style: none;
   padding: 0;

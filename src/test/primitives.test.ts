@@ -72,13 +72,14 @@ const CEILINGS: Record<string, number> = {
   // which it scrolls. Colour in this file is all tokens. +1 on
   // 2026-11-03: the breakpoint for the scroll shadow on a phone.
   'docs/DocDiagram.css': 9,
-  // Two content-column widths, two grid minimums and a breakpoint.
+  // Two content-column widths, a grid minimum and a breakpoint.
   // Primer publishes no token for "how wide should this page's
   // column be", a spacing token used as a width is a token used for
   // the wrong thing, and a `@media` condition cannot read a custom
   // property at all. Every colour in this file is a token. +1 on
-  // 2026-11-03: the phone breakpoint.
-  'pages/DownloadPage.css': 6,
+  // 2026-11-03: the phone breakpoint. −1 on 2026-11-04: the IDE
+  // plugin cards, and their grid minimum, went (decision D19).
+  'pages/DownloadPage.css': 5,
   // Three breakpoints (the third, 2026-11-03, for the phone pass),
   // which a `@media` condition cannot take from a
   // custom property, and the 1px box of the standard visually-hidden

@@ -18,24 +18,15 @@
  * and `*.app.tar.gz` is the macOS updater payload — three things the
  * app reads and nobody downloads. Listing them would be eleven
  * confusing rows next to the four a person wants.
+ *
+ * Older releases also carry the VS Code (`.vsix`) and JetBrains
+ * (`*jetbrains*.zip`) builds. igni no longer supports the IDE plugins,
+ * so those match nothing below and are never offered.
  */
 
 export const GITHUB_REPO = 'ignite-ember/igni'
 export const RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases`
 export const LATEST_API_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`
-
-/**
- * The JetBrains plugin is published; the VS Code one is not.
- *
- * Checked rather than assumed, because a download page that links a
- * 404 is worse than one that does not mention the thing. The plugin
- * resolves at this URL and reports real downloads; a marketplace
- * query for `ignite-ember.igni-vscode` returns zero extensions, so
- * the VSIX is offered from the release instead, with the one command
- * that installs it. Swap that for a marketplace link once the
- * extension is actually published.
- */
-export const JETBRAINS_URL = 'https://plugins.jetbrains.com/plugin/32377-igni'
 
 export type Platform = 'macos-arm' | 'macos-intel' | 'windows' | 'linux'
 
@@ -151,30 +142,6 @@ export function detectPlatform(userAgent: string): Platform {
   // Everything else — a phone, an unknown shell — gets the list
   // rather than a wrong guess under a primary button.
   return 'linux'
-}
-
-export interface EditorDownloads {
-  /** The packaged VS Code extension, when the release carries one. */
-  vsix?: Download
-  /** The JetBrains plugin zip — a fallback; the marketplace is better. */
-  jetbrains?: Download
-}
-
-/**
- * The two editor builds, which are release assets rather than
- * platform downloads and so are kept out of the grouping above.
- */
-export function classifyEditorAssets(assets: ReleaseAsset[]): EditorDownloads {
-  const found: EditorDownloads = {}
-  for (const asset of assets) {
-    const base = { url: asset.browser_download_url, size: asset.size, platform: 'linux' as Platform }
-    if (asset.name.endsWith('.vsix')) {
-      found.vsix = { ...base, label: 'VS Code extension', kind: 'vsix' }
-    } else if (asset.name.includes('jetbrains') && asset.name.endsWith('.zip')) {
-      found.jetbrains = { ...base, label: 'JetBrains plugin', kind: 'zip' }
-    }
-  }
-  return found
 }
 
 /** `184232345` → `176 MB`. */

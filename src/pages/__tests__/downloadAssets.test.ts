@@ -19,10 +19,8 @@ import { describe, expect, it } from 'vitest'
 import {
   classifyAsset,
   classifyAssets,
-  classifyEditorAssets,
   detectPlatform,
   humanSize,
-  JETBRAINS_URL,
   LATEST_API_URL,
   RELEASES_URL,
 } from '../downloadAssets'
@@ -81,26 +79,15 @@ describe('classifying the v1.0.3 assets', () => {
     expect(Object.values(grouped).flat()).toHaveLength(7)
   })
 
-  it('keeps the editor builds out of the platform grid', () => {
+  it('never offers the IDE plugin builds the release still carries', () => {
+    // igni no longer supports the VS Code and JetBrains plugins; v1.0.3
+    // still ships both files, and neither may reach the page.
     const urls = Object.values(grouped)
       .flat()
       .map((d) => d.url)
 
     expect(urls.filter((u) => u.endsWith('.vsix'))).toEqual([])
     expect(urls.filter((u) => u.includes('jetbrains'))).toEqual([])
-  })
-})
-
-describe('the editor builds', () => {
-  const editors = classifyEditorAssets(V103)
-
-  it('finds the vsix and the plugin zip', () => {
-    expect(editors.vsix?.url).toContain('.vsix')
-    expect(editors.jetbrains?.url).toContain('jetbrains')
-  })
-
-  it('finds neither in a release that has neither', () => {
-    expect(classifyEditorAssets([])).toEqual({})
   })
 })
 
@@ -162,12 +149,5 @@ describe('the links it hands out', () => {
     // exactly the kind of thing that keeps working until it does not.
     expect(RELEASES_URL).toBe('https://github.com/ignite-ember/igni/releases')
     expect(LATEST_API_URL).toContain('/repos/ignite-ember/igni/releases/latest')
-  })
-
-  it('point at the JetBrains plugin that is published', () => {
-    // Plugin 32377, checked against the marketplace API rather than
-    // guessed. The VS Code extension has no listing at all, which is
-    // why there is no constant for one.
-    expect(JETBRAINS_URL).toBe('https://plugins.jetbrains.com/plugin/32377-igni')
   })
 })

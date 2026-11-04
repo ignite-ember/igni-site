@@ -106,19 +106,6 @@
   background: var(--button-primary-bgColor-hover, #0860ca);
 }
 
-.dl-btn-secondary {
-  border: var(--borderWidth-thin, 1px) solid var(--borderColor-default);
-  color: var(--fgColor-default);
-  padding: var(--base-size-8, 8px) var(--base-size-16, 16px);
-  font-size: var(--text-body-size-medium, 14px);
-  align-self: flex-start;
-}
-
-.dl-btn-secondary:hover {
-  background: var(--bgColor-muted);
-  border-color: var(--borderColor-emphasis);
-}
-
 .dl-btn:focus-visible {
   outline: var(--borderWidth-thick, 2px) solid var(--fgColor-accent);
   outline-offset: var(--borderWidth-thick, 2px);
@@ -203,29 +190,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ── Editors, first run, CLI ───────────────────────────────────── */
-
-.dl-editor-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--stack-gap-normal, 16px);
-}
-
-.dl-editor {
-  border: var(--borderWidth-thin, 1px) solid var(--borderColor-default);
-  border-radius: var(--borderRadius-medium, 6px);
-  padding: var(--base-size-16, 16px);
-  display: flex;
-  flex-direction: column;
-  gap: var(--stack-gap-condensed, 8px);
-}
-
-.dl-editor p {
-  color: var(--fgColor-muted);
-  margin: 0;
-  line-height: 1.6;
-  font-size: var(--text-body-size-medium, 14px);
-}
+/* ── First run, CLI ────────────────────────────────────────────── */
 
 .dl-code {
   display: block;

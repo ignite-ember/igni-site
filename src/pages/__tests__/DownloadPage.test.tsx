@@ -33,6 +33,7 @@ const RELEASE = {
     { name: 'igni_1.0.3_x64_en-US.msi', browser_download_url: 'https://e.test/win.msi', size: 1 << 20 },
     { name: 'igni_1.0.3_amd64.AppImage', browser_download_url: 'https://e.test/lin.AppImage', size: 1 << 20 },
     { name: 'ember-code-vscode-1.0.3.vsix', browser_download_url: 'https://e.test/x.vsix', size: 1 << 20 },
+    { name: 'ember-code-jetbrains-1.0.3.zip', browser_download_url: 'https://e.test/jetbrains.zip', size: 1 << 20 },
     { name: 'latest.json', browser_download_url: 'https://e.test/latest.json', size: 10 },
   ],
 }
@@ -86,14 +87,25 @@ describe('with a release to show', () => {
     expect(hrefs.filter((h) => h.includes('latest.json'))).toEqual([])
   })
 
-  it('hands over the vsix, since there is no marketplace listing', async () => {
+  it('offers no IDE plugin, even when the release still carries one', async () => {
+    // igni no longer supports the VS Code and JetBrains plugins. The
+    // fixture keeps a .vsix and a JetBrains zip on purpose: older
+    // releases have them, and the page must not hand them out.
     const { container } = renderPage()
 
-    await waitFor(() => {
-      const hrefs = [...container.querySelectorAll('a')].map((a) => a.getAttribute('href') ?? '')
-      expect(hrefs.some((h) => h.endsWith('.vsix'))).toBe(true)
-    })
-    expect(container.textContent).not.toContain('marketplace.visualstudio.com')
+    await waitFor(() => expect(screen.getByText('Windows')).toBeInTheDocument())
+    const hrefs = [...container.querySelectorAll('a')].map((a) => a.getAttribute('href') ?? '')
+
+    expect(hrefs.filter((h) => h.endsWith('.vsix') || /jetbrains/i.test(h))).toEqual([])
+    expect(container.textContent).not.toMatch(/VS ?Code|JetBrains|vsix|marketplace/i)
+    expect(container.textContent).not.toMatch(/\bIDE\b/)
+  })
+
+  it('still offers the CLI', async () => {
+    const { container } = renderPage()
+
+    await waitFor(() => expect(screen.getByText('Windows')).toBeInTheDocument())
+    expect(container.textContent).toContain('pip install ignite-ember')
   })
 
   it('says what the first launch needs', async () => {
