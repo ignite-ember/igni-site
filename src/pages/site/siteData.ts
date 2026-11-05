@@ -95,9 +95,9 @@ export function fleetApps(i: number): string {
  * — do not edit without re-running it.
  */
 // igni 1.0 4B: Qwen3.5-4B put through the factory (tuning, then
-// preference tuning). igni__fine-tuning, outputs/igni-1.0-4b_MODEL_CARD.md;
-// base column from docs/CATEGORY_EVAL_JUDGED_qwen35-4b.md, tuned column
-// (checkpoint-80) from docs/DPO_CATEGORY_EVAL_JUDGED_qwen35-4b.md.
+// preference tuning). Measured from the model's internal model card and
+// the category-eval records: base column, then the tuned column
+// (checkpoint-80) after preference tuning.
 // 343 held-out scenarios, 48 families: 37 improved, 9 held, 2 dropped.
 export const FACTORY_EVAL = { base: 201, tuned: 305, total: 343, families: 48, up: 37, same: 9, down: 2 }
 export const FACTORY_EVAL_ROWS: { q: string; base: number; tuned: number; n: number }[] = [

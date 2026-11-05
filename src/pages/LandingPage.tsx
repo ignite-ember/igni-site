@@ -575,17 +575,16 @@ function AppZones() {
 }
 
 /*
- * Extensions, from igni docs/EXTENSIBILITY.md and the
- * igni__extension-starter walkthrough: a service the organisation runs,
+ * Extensions, from the igni extensibility docs and the extension-starter
+ * walkthrough: a service the organisation runs,
  * plus an extension that every igni installs once an administrator has
  * approved exactly what it adds. CodeIndex and Artifacts attach through
  * the same contract. "Remote" means inside the customer's network; igni
  * hosts nothing.
  */
-// Real SDK calls, from igni
-// packages/igni-extension (README, host_model.py), docs/HOST_OBJECT_MODEL.md,
-// docs/CLOUD.md §6 and igni-server docs/service-identity.md §15. The
-// claims-desk names are the example; every method and field is igni's own.
+// Real SDK calls, from igni's extension package and the host object model,
+// cloud and service-identity docs. The claims-desk names are the example;
+// every method and field is igni's own.
 //
 // Which chat: `ext.host.chat` is the current session of the igni the
 // extension runs in, so the person's open chat. A service event names its
@@ -1004,9 +1003,9 @@ export function LandingPage() {
           </div>
         </div>
 
-        {/* How an app talks to igni, from igni docs/EXTENSIBILITY.md,
-            HOST_OBJECT_MODEL.md, CLOUD.md §6 and the igni-service /
-            igni-extension SDK READMEs. Three lanes, each explicit: the
+        {/* How an app talks to igni, from the igni extensibility, host
+            object model and cloud docs and the service / extension SDK
+            READMEs. Three lanes, each explicit: the
             extension acting in the app through the host API; the service
             talking to igni directly (igni posts exactly what it sends); and the
             service handing an event to the extension, which acts through the
