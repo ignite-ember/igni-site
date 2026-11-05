@@ -20,7 +20,7 @@ import userEvent from '@testing-library/user-event'
 import { Route, Routes } from 'react-router-dom'
 import { renderWithProviders } from '../../test/render'
 import { AgentCorePage } from '../AgentCorePage'
-import { AUTOPILOT_PRICES, FACTORY_EVAL, FACTORY_PER_YEAR, FLEET_PRICES } from '../site/siteData'
+import { AUTOPILOT_PRICES, BANDS, FACTORY_EVAL, FACTORY_PER_YEAR, FLEET_PRICES } from '../site/siteData'
 import { BAND_200, COST_BARS, COST_SCALE, COVERAGE, USAGE, WAKE, WAKE_MAX_MS, countFull } from '../compare/agentcoreData'
 
 beforeEach(() => {
@@ -110,7 +110,7 @@ describe('it stays honest', () => {
     expect(t).toMatch(/No independent penetration test yet/)
     expect(t).toMatch(/Estimates, not a quote/)
     expect(t).toMatch(/your integrator quotes the final price/)
-    expect(t).toMatch(/Below about half of the heavy case AgentCore is cheaper/)
+    expect(t).toMatch(/Below about 70 people AgentCore is cheaper/)
     expect(document.querySelectorAll('#aws-wins tbody tr').length).toBe(8)
   })
 
@@ -152,8 +152,11 @@ describe('igni’s side is the price list', () => {
     expect(t).toMatch(new RegExp(`passed ${FACTORY_EVAL.tuned} of ${FACTORY_EVAL.total}`))
   })
 
-  test('igni’s range includes the licence at every level of use', () => {
-    for (const u of USAGE) expect(u.igni[0]).toBeGreaterThan(FLEET_PRICES[BAND_200] / 1000)
+  test('igni’s range includes the band licence at every team size', () => {
+    for (const u of USAGE) {
+      const band = BANDS.findIndex((b) => u.people <= b)
+      expect(u.igni[0]).toBeGreaterThan(FLEET_PRICES[band] / 1000)
+    }
   })
 })
 
@@ -194,7 +197,7 @@ describe('every figure is drawn to its number', () => {
     renderPage()
     const rows = Array.from(document.querySelectorAll('.cmp-usage tbody tr'))
     expect(rows).toHaveLength(USAGE.length)
-    expect(document.querySelector('.cmp-chart')?.getAttribute('aria-label')).toMatch(/€315k at 300%/)
+    expect(document.querySelector('.cmp-chart')?.getAttribute('aria-label')).toMatch(/€315k at 600 people/)
   })
 })
 

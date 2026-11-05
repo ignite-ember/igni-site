@@ -621,32 +621,35 @@ export function AgentCorePage() {
             <Breakdown />
           </Figure>
 
-          <h4 className="lp-subhead">If usage is different</h4>
+          <h4 className="lp-subhead">If the team is a different size</h4>
           <p className="landing-section-desc lp-desc cmp-desc">
-            The same 200 people, each using their agent more or less than the heavy case: 300%
-            means three times the tokens and three times the busy CPU per person.
-            AgentCore&rsquo;s bill grows with every token and every busy vCPU. igni&rsquo;s
-            figures include the Fleet licence ({eurK(FLEET_200)}, fixed for up to 200 people)
-            and are flat until the hardware is full: one more GH200 for each further 100%, and a
-            CPU server added as the agents get busier. More people would move the licence to the
-            next band instead. Open-weight model, € a year.
+            The same heavy per-person workload at different team sizes &mdash; and it is not
+            only people: the app agents a Fleet band includes and the parallel subagent runs an
+            agent spawns load the same GPUs too. AgentCore bills every session, token and busy
+            vCPU; igni&rsquo;s figure &mdash; the Fleet licence plus the hardware the load takes
+            &mdash; rises in steps, not with every token. Open-weight model, € a year; figures
+            above 1,000 people are modelled. The chart zooms into 50&ndash;600; the table runs to
+            5,000.
           </p>
           <RTable
             className="cmp-numeric cmp-usage"
-            head={['Usage per person (vs the heavy case)', 'AgentCore, list', 'igni + Fleet, licence included']}
+            head={['People (at the heavy per-person rate)', 'AgentCore, list', 'igni + Fleet, licence included']}
             num={[1, 2]}
-            rows={USAGE.map((u) => [`${u.pct}%`, `~${u.aws}k`, <>{u.igni[0]}–{u.igni[1]}k<span className="cmp-cell-sub">{u.hw}</span></>])}
+            rows={USAGE.map((u) => [`${u.people.toLocaleString('en-US')}`, `~${u.aws.toLocaleString('en-US')}k`, <>{u.igni[0].toLocaleString('en-US')}–{u.igni[1].toLocaleString('en-US')}k<span className="cmp-cell-sub">{u.hw}</span></>])}
           />
           <Figure
-            title="Cost as usage changes"
-            caption="€ a year, open-weight model, up to three times the heavy case. The orange band is igni’s range as GPUs and servers are added."
+            title="Cost as the team grows"
+            caption="€ a year, open-weight model, 50 to 600 people at the heavy per-person rate — with the apps and parallel runs that load the same GPUs (the table above runs to 5,000). AgentCore rises with every person; igni steps up as licence bands, GPUs and servers are added."
           >
             <UsageChart />
           </Figure>
           <p className="cmp-note">
-            Below about half of the heavy case AgentCore is cheaper. igni&rsquo;s cost is flat
-            until the GPU is full, so the gap opens as agents are used more. igni can also use
-            Claude or GPT through their APIs where policy allows; the token bill is then the
+            Below about 70 people AgentCore is cheaper; above it igni costs less, and the gap
+            widens with scale &mdash; more than twice as cheap at 600 people, and about three
+            times at 5,000 (table above) &mdash; because
+            AgentCore&rsquo;s bill grows with every person, app and parallel run, while
+            igni&rsquo;s grows only in steps as a licence band or a GPU is added. igni can also
+            use Claude or GPT through their APIs where policy allows; the token bill is then the
             same as on AgentCore, and igni&rsquo;s fixed licence replaces AgentCore&rsquo;s
             runtime charges.
           </p>

@@ -97,18 +97,38 @@ export const BREAKDOWN: { side: Side; name: string; total: number; parts: { labe
 ]
 
 /**
- * If usage is different: the same 200 people, each using their agent
- * more or less than the heavy case. AgentCore at list; igni's range
- * includes the Fleet licence and the hardware it takes.
+ * If the team is a different size: the same heavy per-person workload, but
+ * a different number of people — from a 50-person team to a 5,000-person
+ * enterprise. The axis is people, but it stands for load: each person's
+ * agent, the app agents a Fleet band includes (as many as there are
+ * people), and the parallel subagent runs an agent spawns all load the
+ * same GPUs, so more apps or more fan-out move along the same curve.
+ *
+ * AgentCore is at list and scales ~linearly with people (≈€0.52k a person
+ * a year: open-weight model, heavy use, one session each). igni is the
+ * Fleet licence for that band plus the hardware the load takes: 1 GH200
+ * per ~200 people (€14–18k each) and a CPU server per ~150 (€6.5–7.5k
+ * each, two minimum). Licence by band from FLEET_PRICES: ≤50 10k, ≤100
+ * 15k, ≤200 24k, ≤500 40k, ≤1,000 64k, then unlimited 128k.
+ *
+ * The 200-person row is the measured/modelled anchor (BAND_200, 1 GH200);
+ * the rows above 1,000 people scale that sizing linearly and are MODELLED,
+ * not measured — the page says so. The table shows every row; the chart
+ * (AgentCoreFigures) plots only the rows ≤600, where the two lines are
+ * still legible side by side. Do not edit a number without redoing the
+ * sum: licence from FLEET_PRICES, hardware from the per-unit rates above.
  */
-export const USAGE: { pct: number; aws: number; igni: [number, number]; hw: string }[] = [
-  { pct: 25, aws: 29, igni: [51, 57], hw: '1 GH200, 2 servers' },
-  { pct: 50, aws: 55, igni: [51, 57], hw: '1 GH200, 2 servers' },
-  { pct: 100, aws: 107, igni: [51, 57], hw: '1 GH200, 2 servers' },
-  { pct: 150, aws: 159, igni: [65, 75], hw: '2 GH200, 2 servers' },
-  { pct: 200, aws: 211, igni: [72, 82], hw: '2 GH200, 3 servers' },
-  { pct: 250, aws: 263, igni: [92, 108], hw: '3 GH200, 4 servers' },
-  { pct: 300, aws: 315, igni: [92, 108], hw: '3 GH200, 4 servers' },
+export const USAGE: { people: number; aws: number; igni: [number, number]; hw: string }[] = [
+  { people: 50, aws: 29, igni: [37, 43], hw: '1 GH200, 2 servers · ≤50 licence' },
+  { people: 100, aws: 55, igni: [42, 48], hw: '1 GH200, 2 servers · ≤100 licence' },
+  { people: 200, aws: 107, igni: [51, 57], hw: '1 GH200, 2 servers · ≤200 licence' },
+  { people: 300, aws: 159, igni: [81, 91], hw: '2 GH200, 2 servers · ≤500 licence' },
+  { people: 400, aws: 211, igni: [88, 98], hw: '2 GH200, 3 servers · ≤500 licence' },
+  { people: 500, aws: 263, igni: [108, 124], hw: '3 GH200, 4 servers · ≤500 licence' },
+  { people: 600, aws: 315, igni: [132, 148], hw: '3 GH200, 4 servers · ≤1,000 licence' },
+  { people: 1000, aws: 523, igni: [180, 207], hw: '5 GH200, 7 servers · ≤1,000 licence' },
+  { people: 2000, aws: 1043, igni: [359, 413], hw: '10 GH200, 14 servers · unlimited licence' },
+  { people: 5000, aws: 2603, igni: [699, 833], hw: '25 GH200, 34 servers · unlimited licence' },
 ]
 
 /* ── Speed ────────────────────────────────────────────────────────── */

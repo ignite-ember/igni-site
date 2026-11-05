@@ -541,67 +541,89 @@ export function Breakdown() {
   )
 }
 
-/* The usage chart, drawn twice: a wide drawing for the panel on a
- * desktop, and a narrower, taller one for a phone, so that its text
- * stays readable instead of shrinking with a wide drawing. CSS shows
- * one. Geometry is in viewBox units; text is sized in the stylesheet,
- * which on SVG text is in viewBox units too. */
+/* The cost-against-team-size chart, drawn twice: a wide drawing for the
+ * panel on a desktop, and a narrower, taller one for a phone, so that its
+ * text stays readable instead of shrinking with a wide drawing. CSS shows
+ * one. The people axis is categorical — the seven team sizes evenly
+ * spaced — and the cost axis is linear in € a year, so the widening gap
+ * between the two bills is read at a glance. Geometry is in viewBox units;
+ * text is sized in the stylesheet, which on SVG text is in viewBox units
+ * too. */
 type Geometry = { W: number; H: number; M: { l: number; r: number; t: number; b: number }; ticks: number[] }
 
-const WIDE: Geometry = { W: 960, H: 380, M: { l: 72, r: 24, t: 28, b: 64 }, ticks: [25, 50, 100, 150, 200, 250, 300] }
-const NARROW: Geometry = { W: 340, H: 400, M: { l: 54, r: 12, t: 28, b: 64 }, ticks: [25, 100, 200, 300] }
+const WIDE: Geometry = { W: 960, H: 380, M: { l: 72, r: 24, t: 28, b: 64 }, ticks: [50, 100, 200, 300, 400, 500, 600] }
+const NARROW: Geometry = { W: 340, H: 400, M: { l: 54, r: 12, t: 28, b: 64 }, ticks: [50, 200, 400, 600] }
 
-const X_MAX = 320
 const Y_MAX = 350
+const Y_TICKS = [0, 100, 200, 300]
 const mid = (r: [number, number]) => (r[0] + r[1]) / 2
+/** The chart plots only the smaller teams, where the two lines stay legible
+ * side by side; the table beside it carries the full range to 5,000. */
+const CHART = USAGE.filter((u) => u.people <= 600)
+const N = CHART.length
 
-/** Where AgentCore's line crosses igni's, between the first two points. */
+/** € a year, short: "€500k", "€2.5M". */
+const yLabel = (k: number) => (k >= 1000 ? `€${k / 1000}M` : `€${k}k`)
+/** A people count, short: "500", "5k". */
+const pLabel = (p: number) => (p >= 1000 ? `${p / 1000}k` : `${p}`)
+/** A € thousands figure with a separator: "2,603". */
+const kf = (n: number) => n.toLocaleString('en-US')
+/** The index (0…N-1) of a people count, for the categorical x-axis. */
+const idxOf = (people: number) => CHART.findIndex((u) => u.people === people)
+
+/** Where AgentCore's line crosses igni's, between the first two points, in people. */
 function breakEven(): number {
-  const [a, b] = USAGE
+  const [a, b] = CHART
   const target = mid(a.igni)
-  return a.pct + ((b.pct - a.pct) * (target - a.aws)) / (b.aws - a.aws)
+  return a.people + ((b.people - a.people) * (target - a.aws)) / (b.aws - a.aws)
 }
 
-const last = USAGE[USAGE.length - 1]
-const USAGE_LABEL = `Cost against usage, € a year, open-weight model. AgentCore rises from €${USAGE[0].aws}k at ${USAGE[0].pct}% to €${last.aws}k at ${last.pct}%. igni with Fleet stays at €${USAGE[0].igni[0]}–${USAGE[0].igni[1]}k up to 100% and reaches €${last.igni[0]}–${last.igni[1]}k at ${last.pct}%. They cross at about 50%.`
+const be = breakEven()
+const beRounded = Math.round(be / 10) * 10
+const last = CHART[CHART.length - 1]
+const USAGE_LABEL = `Cost against team size, € a year, open-weight model. AgentCore rises from €${kf(CHART[0].aws)}k at ${CHART[0].people} people to €${kf(last.aws)}k at ${kf(last.people)} people. igni with Fleet rises in steps as licence bands and GPUs are added, from €${kf(CHART[0].igni[0])}–${kf(CHART[0].igni[1])}k to €${kf(last.igni[0])}–${kf(last.igni[1])}k at ${kf(last.people)} people. They cross at about ${beRounded} people.`
 
 function UsageDrawing({ g, className }: { g: Geometry; className: string }) {
   const { W, H, M } = g
-  const x = (pct: number) => M.l + (pct / X_MAX) * (W - M.l - M.r)
+  const innerW = W - M.l - M.r
+  // Categorical x: the seven bands evenly spaced. A fractional index (the
+  // break-even) lands between its two neighbours.
+  const xi = (i: number) => M.l + (N === 1 ? 0 : (i / (N - 1)) * innerW)
+  const x = (people: number) => xi(idxOf(people))
   const y = (k: number) => H - M.b - (k / Y_MAX) * (H - M.t - M.b)
-  const pts = (f: (u: (typeof USAGE)[number]) => number) => USAGE.map((u) => `${x(u.pct)},${y(f(u))}`).join(' ')
-  const band = [
-    ...USAGE.map((u) => `${x(u.pct)},${y(u.igni[0])}`),
-    ...[...USAGE].reverse().map((u) => `${x(u.pct)},${y(u.igni[1])}`),
-  ].join(' ')
-  const be = breakEven()
+  const pts = (f: (u: (typeof CHART)[number]) => number) => CHART.map((u, i) => `${xi(i)},${y(f(u))}`).join(' ')
+  const lower = CHART.map((u, i) => `${xi(i)},${y(u.igni[0])}`)
+  const upper = CHART.map((u, i) => `${xi(i)},${y(u.igni[1])}`).reverse()
+  const band = [...lower, ...upper].join(' ')
+  // The break-even sits in the first segment: a fractional index 0…1.
+  const beIdx = (be - CHART[0].people) / (CHART[1].people - CHART[0].people)
   return (
     <svg className={`cmp-chart ${className}`} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={USAGE_LABEL}>
-      {[0, 100, 200, 300].map((k) => (
+      {Y_TICKS.map((k) => (
         <g key={k}>
           <line x1={M.l} x2={W - M.r} y1={y(k)} y2={y(k)} className="cmp-chart-grid" />
-          <text x={M.l - 8} y={y(k) + 5} textAnchor="end" className="cmp-chart-muted">€{k}k</text>
+          <text x={M.l - 8} y={y(k) + 5} textAnchor="end" className="cmp-chart-muted">{yLabel(k)}</text>
         </g>
       ))}
       {g.ticks.map((p) => (
-        <text key={p} x={x(p)} y={H - M.b + 24} textAnchor="middle" className="cmp-chart-muted">{p}%</text>
+        <text key={p} x={x(p)} y={H - M.b + 24} textAnchor="middle" className="cmp-chart-muted">{pLabel(p)}</text>
       ))}
-      <text x={(M.l + W - M.r) / 2} y={H - 10} textAnchor="middle" className="cmp-chart-muted">usage, % of the heavy case</text>
+      <text x={(M.l + W - M.r) / 2} y={H - 10} textAnchor="middle" className="cmp-chart-muted">people (at the heavy per-person rate)</text>
 
       <polygon points={band} className="cmp-chart-band" />
       <polyline points={pts((u) => mid(u.igni))} className="cmp-chart-line cmp-chart-line--igni" />
       <polyline points={pts((u) => u.aws)} className="cmp-chart-line cmp-chart-line--aws" />
-      {USAGE.map((u) => (
-        <g key={u.pct}>
-          <circle cx={x(u.pct)} cy={y(u.aws)} r={4} className="cmp-chart-dot--aws" />
-          <circle cx={x(u.pct)} cy={y(mid(u.igni))} r={4} className="cmp-chart-dot--igni" />
+      {CHART.map((u, i) => (
+        <g key={u.people}>
+          <circle cx={xi(i)} cy={y(u.aws)} r={4} className="cmp-chart-dot--aws" />
+          <circle cx={xi(i)} cy={y(mid(u.igni))} r={4} className="cmp-chart-dot--igni" />
         </g>
       ))}
 
-      <line x1={x(be)} x2={x(be)} y1={M.t} y2={H - M.b} className="cmp-chart-rule" />
-      <text x={x(be) + 6} y={M.t + 4} className="cmp-chart-muted">break-even ≈ 50%</text>
-      <text x={x(last.pct) - 8} y={y(last.aws) - 4} textAnchor="end" className="cmp-chart-label--aws">AgentCore €{last.aws}k</text>
-      <text x={x(last.pct) - 8} y={y(last.igni[1]) - 12} textAnchor="end" className="cmp-chart-label--igni">igni + Fleet €{last.igni[0]}–{last.igni[1]}k</text>
+      <line x1={xi(beIdx)} x2={xi(beIdx)} y1={M.t} y2={H - M.b} className="cmp-chart-rule" />
+      <text x={xi(beIdx) + 6} y={M.t + 4} className="cmp-chart-muted">break-even ≈ {beRounded} people</text>
+      <text x={x(last.people) - 8} y={y(last.aws) - 4} textAnchor="end" className="cmp-chart-label--aws">AgentCore €{kf(last.aws)}k</text>
+      <text x={x(last.people) - 8} y={y(last.igni[1]) - 12} textAnchor="end" className="cmp-chart-label--igni">igni + Fleet €{kf(last.igni[0])}–{kf(last.igni[1])}k</text>
     </svg>
   )
 }
