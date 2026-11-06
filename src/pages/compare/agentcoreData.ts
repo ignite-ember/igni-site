@@ -136,14 +136,15 @@ export const USAGE: { people: number; aws: number; igni: [number, number]; hw: s
 /**
  * How long a person waits for their agent after it has been idle, in
  * milliseconds, drawn to `ms` (the upper end of a range). Fleet: measured
- * p50 on a nested-virtualisation GCP VM. AgentCore: AWS's published P75
+ * p50 on a bare-metal GCP server (C3, 50 and 300 agents); the new-app figure
+ * on a nested-virtualisation GCP VM. AgentCore: AWS's published P75
  * cold start, once the idle timeout has ended the session.
  */
 export const WAKE: { label: string; side: Side; ms: number; shown: string }[] = [
   { label: 'Fleet: new app (pre-started)', side: 'igni', ms: 25, shown: '25 ms' },
-  { label: 'Fleet: back from a pause', side: 'igni', ms: 29, shown: '~29 ms' },
-  { label: 'Fleet: from a snapshot', side: 'igni', ms: 150, shown: '~95–150 ms' },
-  { label: 'Fleet: from cold', side: 'igni', ms: 230, shown: '~200–230 ms' },
+  { label: 'Fleet: back from a pause', side: 'igni', ms: 30, shown: '~29–30 ms' },
+  { label: 'Fleet: from a snapshot', side: 'igni', ms: 155, shown: '~146–155 ms' },
+  { label: 'Fleet: from cold', side: 'igni', ms: 139, shown: '~137–139 ms' },
   { label: 'AgentCore: after its idle timeout', side: 'aws', ms: 2000, shown: '~2 s (P75, AWS)' },
 ]
 

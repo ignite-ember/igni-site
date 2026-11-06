@@ -695,12 +695,12 @@ export function AgentCorePage() {
           band
           label="Speed"
           title="Speed"
-          sub={<>Fleet figures are measured through the real gateway with the real igni image, p50, on a nested-virtualisation GCP VM. On a bare-metal server a cold start is faster and a resume from a snapshot a little slower; those figures are on the <a href="/fleet">Fleet page</a>.</>}
+          sub={<>Fleet figures are measured through the real gateway with the real igni image, p50, on a bare-metal GCP server (C3) with 50 and 300 agents; the new-app and reset figures on a nested-virtualisation GCP VM. Details are on the <a href="/fleet">Fleet page</a>.</>}
         >
           <RTable
             head={['Moment', 'AgentCore', 'Fleet (measured)']}
             rows={[
-              ['Agent picks up where it left off', 'Within the idle timeout (15 min by default, up to 8 h): the same VM, warm. After it: a new VM, ~2 s cold start (P75, AWS’s figure), then session storage restored — or a full rebuild if it is off, after a redeploy or after 14 idle days', <><b>~26–29 ms</b> from paused (p95 30–35 ms); ~95–150 ms from a snapshot; ~200–230 ms cold</>],
+              ['Agent picks up where it left off', 'Within the idle timeout (15 min by default, up to 8 h): the same VM, warm. After it: a new VM, ~2 s cold start (P75, AWS’s figure), then session storage restored — or a full rebuild if it is off, after a redeploy or after 14 idle days', <><b>~29–30 ms</b> from paused (p95 36–73 ms); ~146–155 ms from a snapshot; ~137–139 ms cold</>],
               ['While the agent is idle', 'No CPU charge; memory is reclaimed after 120 s down to a 128 MB floor, which is billed until the idle timeout ends the session. A longer timeout keeps it warm for longer at that cost.', 'Paused, holding ~200 MiB on your server; snapshotted to disk, so nothing is lost if the node fails. No extra charge — the licence is fixed.'],
               ['New app created', 'New session each time', '~25 ms hot (pre-started when the app is created); ~300 ms if first used days later'],
               ['After a discard or reset', 'n/a', '~25 ms hot / ~300 ms days later — a fresh disk is prepared in the background'],
@@ -709,7 +709,7 @@ export function AgentCorePage() {
           />
           <Figure
             title="How long a person waits for their agent after it has been idle"
-            caption="To scale. Fleet: measured p50, first answer from igni through the real gateway, nested GCP VM; a person’s first VM is prepared ahead of time, so nobody waits for it. AgentCore: AWS’s published P75 cold start for runtime V2, once the idle timeout (15 min by default) has ended the session; inside the timeout the VM is still warm, and AWS publishes no figure for that."
+            caption="To scale. Fleet: measured p50, first answer from igni through the real gateway, bare-metal GCP server (the new-app figure on a nested GCP VM); a person’s first VM is prepared ahead of time, so nobody waits for it. AgentCore: AWS’s published P75 cold start for runtime V2, once the idle timeout (15 min by default) has ended the session; inside the timeout the VM is still warm, and AWS publishes no figure for that."
           >
             <WakeChart />
           </Figure>
@@ -822,7 +822,7 @@ export function AgentCorePage() {
             <li>igni prices: igni&rsquo;s <a href="/#pricing">price list</a>, up-to-200 band, list, excl. VAT. Servers: Dell PowerEdge R7625 at ~£17.9k each from a UK reseller. GPU ownership at ≈$15–20k a GPU-year is an estimate; get a quote.</li>
             <li>Staff and development are not included on either side.</li>
             <li>AgentCore cold start and idle behaviour: AWS blog &ldquo;The new AgentCore runtime: elastic, optimized, and consistently fast starts&rdquo; and the runtime lifecycle settings page, checked 2 Nov 2026.</li>
-            <li>Fleet timings: igni&rsquo;s own measurements, nested GCP VM (n2-standard-8), Oct–Nov 2026; the bare-metal figures are on the <a href="/fleet">Fleet page</a>. Security tests ran on cloud test VMs with OpenBao in dev mode and a test object store; a pilot repeats them on your hardware.</li>
+            <li>Fleet timings: igni&rsquo;s own measurements, bare-metal GCP server (c3-highcpu-192-metal) and nested GCP VM (n2-standard-8), Oct–Nov 2026; details are on the <a href="/fleet">Fleet page</a>. Security tests ran on cloud test VMs with OpenBao in dev mode and a test object store; a pilot repeats them on your hardware.</li>
             <li>GPU sizing: one GH200 for ~200 people with the 27B, assuming each agent works hard for ~1 minute then idles ~3; ~60 requests generating at once with 25–100k tokens of context; FP8 weights; KV cache tiered across GPU memory, CPU RAM and SSD. Our calculation; a pilot load test confirms it on your hardware. How igni routes to inference nodes: <a href="/docs/inference-backends">Inference backends</a>.</li>
             <li>Model providers: igni&rsquo;s client configuration — OpenAI-compatible, native Anthropic (Messages API, prompt caching, extended thinking) and Gemini — checked 2 Nov 2026.</li>
           </ul>
