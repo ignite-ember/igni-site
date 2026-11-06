@@ -33,6 +33,7 @@ import {
   AUTOPILOT_PRICES,
   CODEINDEX_PRICES,
   FLEET_PRICES,
+  SEAT_MINIMUM,
   graduatedPrice,
   marginalRates,
 } from '../site/siteData'
@@ -328,6 +329,35 @@ describe('the quote adds up', () => {
     }
 
     expect(await perPersonAt(1000)).toBeLessThan(await perPersonAt(50))
+  })
+
+  test('the graduated price floors at the seat minimum', () => {
+    // A team of 1–9 is billed as the minimum, so every module has a floor
+    // equal to its 10-seat price — and that is the entry price.
+    for (const prices of [FLEET_PRICES, CODEINDEX_PRICES, ARTIFACTS_PRICES, AUTOPILOT_PRICES]) {
+      const floor = graduatedPrice(prices, SEAT_MINIMUM)
+      expect(graduatedPrice(prices, 1)).toBe(floor)
+      expect(graduatedPrice(prices, SEAT_MINIMUM - 1)).toBe(floor)
+      expect(graduatedPrice(prices, SEAT_MINIMUM + 1)).toBeGreaterThan(floor)
+      // Off (no seats) is still nothing, not the floor.
+      expect(graduatedPrice(prices, 0)).toBe(0)
+    }
+  })
+
+  test('a headcount below the minimum is billed as the minimum and snaps up on blur', async () => {
+    const user = userEvent.setup()
+    renderLanding()
+    const fleet = screen.getByRole('spinbutton', { name: /Fleet: people/ })
+    expect(fleet).toHaveAttribute('min', String(SEAT_MINIMUM))
+
+    await user.clear(fleet)
+    await user.type(fleet, '4')
+    // Priced as the minimum while the small number is still in the field.
+    expect(lineTotal('.lp-est-line-fleet')).toBe(graduatedPrice(FLEET_PRICES, SEAT_MINIMUM))
+
+    // Leaving the field snaps the headcount up to the minimum.
+    await user.tab()
+    expect((fleet as HTMLInputElement).value).toBe(String(SEAT_MINIMUM))
   })
 
   test('a mid-band headcount is cheaper than the band ceiling it used to round up to', async () => {

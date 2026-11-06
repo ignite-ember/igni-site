@@ -20,10 +20,12 @@ import {
   FACTORY_PER_YEAR,
   FLEET_PRICES,
   PRODUCTS,
+  SEAT_MINIMUM,
   UNLIMITED,
   eur,
   eurK,
   eurSeat,
+  graduatedPrice,
   marginalRates,
   overageRate,
   seatRange,
@@ -330,8 +332,10 @@ function PriceBlock({ p }: { p: Product }) {
       <p className="lp-note">
         Graduated: each band&rsquo;s rate applies only to the people in it, so the fee is
         the sum across the bands your team spans — adding people never reprices those
-        below them. Above 1,000 the top rate continues, capped at {eur.format(values[UNLIMITED])} a
-        year.{note ? ` ${note}` : ''}
+        below them. It starts at a {SEAT_MINIMUM}-seat minimum (a smaller team is billed
+        as {SEAT_MINIMUM}), so the smallest licence is{' '}
+        {eur.format(graduatedPrice(values, SEAT_MINIMUM))} a year. Above 1,000 the top rate
+        continues, capped at {eur.format(values[UNLIMITED])} a year.{note ? ` ${note}` : ''}
       </p>
     </div>
   )

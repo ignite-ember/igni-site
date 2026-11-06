@@ -21,7 +21,7 @@ import {
   WorkflowIcon,
 } from '@primer/octicons-react'
 import { IgniLogo } from '../components/IgniLogo'
-import { CALENDLY_URL, CONTACT_EMAIL, mailto, CODEINDEX_PRICES, ARTIFACTS_PRICES, FLEET_PRICES, FACTORY_PER_YEAR, AUTOPILOT_PRICES, MODULE_FROM_PER_SEAT, graduatedPrice, marginalRates, overageRate, UNLIMITED, eur, eurK, eurSeat, seatRange } from './site/siteData'
+import { CALENDLY_URL, CONTACT_EMAIL, mailto, CODEINDEX_PRICES, ARTIFACTS_PRICES, FLEET_PRICES, FACTORY_PER_YEAR, AUTOPILOT_PRICES, MODULE_FROM_PER_SEAT, SEAT_MINIMUM, graduatedPrice, marginalRates, overageRate, UNLIMITED, eur, eurK, eurSeat, seatRange } from './site/siteData'
 import { SiteFooter, SiteNav } from './site/SiteChrome'
 import { SectionHead, StatRow } from './site/Sections'
 import { Scenarios } from './site/Scenarios'
@@ -146,9 +146,11 @@ function HeadcountField({
 }) {
   const on = value !== null
   const price = on ? graduatedPrice(prices, value) : 0
-  // The blended rate per person at this headcount: it falls as seats are
-  // added, which is the graduated discount made visible.
-  const each = on && value ? price / value : 0
+  // The blended rate per person: it falls as seats are added, which is the
+  // graduated discount made visible. Divided by the billed seats (never
+  // below the minimum), so a team under 10 shows the minimum's real rate
+  // rather than an inflated figure.
+  const each = on && value ? price / Math.max(value, SEAT_MINIMUM) : 0
   return (
     <div className={`lp-est-field${tone ? ` lp-est-field--${tone}` : ''}`}>
       <label className="lp-est-label" htmlFor={`${id}-input`}>
@@ -167,7 +169,7 @@ function HeadcountField({
           id={`${id}-input`}
           className="lp-est-count-input"
           type="number"
-          min={1}
+          min={SEAT_MINIMUM}
           step={1}
           inputMode="numeric"
           placeholder="—"
@@ -176,6 +178,11 @@ function HeadcountField({
           onChange={(e) => {
             const n = e.target.value.trim()
             onChange(n === '' ? null : Math.max(1, Math.floor(Number(n) || 0)))
+          }}
+          onBlur={() => {
+            // Licences start at the minimum; a smaller number snaps up to it
+            // when the field is left, so the quote never sits below its floor.
+            if (value !== null && value < SEAT_MINIMUM) onChange(SEAT_MINIMUM)
           }}
         />
         <span className="lp-est-count-unit">{unit}</span>
@@ -360,10 +367,11 @@ function DealEstimator() {
           <strong className="lp-est-total-annual">{eur.format(annual.total)}</strong>
         </div>
         <p className="lp-est-fine">
-          Third-line support from Ignite Ember is included. Your hardware is not, and
-          neither are your integrator&rsquo;s services: installation, accreditation,
-          identity and CI integration, and first- and second-line support. Your
-          integrator sends the final quote.
+          Each paid module starts at {SEAT_MINIMUM} seats; a smaller team is billed as{' '}
+          {SEAT_MINIMUM}. Third-line support from Ignite Ember is included. Your hardware
+          is not, and neither are your integrator&rsquo;s services: installation,
+          accreditation, identity and CI integration, and first- and second-line support.
+          Your integrator sends the final quote.
         </p>
         <a
           href={CALENDLY_URL}
@@ -793,8 +801,9 @@ export function LandingPage() {
         </div>
         <p className="lp-hero-note">
           The base is free under Apache-2.0. Paid modules start at{' '}
-          {eurSeat(MODULE_FROM_PER_SEAT)} a person a year, graduated by headcount, and each
-          can be evaluated free for 30 days, or 60 with your integrator.
+          {eurSeat(MODULE_FROM_PER_SEAT)} a person a year, graduated by headcount, from a{' '}
+          {SEAT_MINIMUM}-seat minimum; each can be evaluated free for 30 days, or 60 with
+          your integrator.
         </p>
 
         {/* ── The boundary, drawn ─────────────────────────────
@@ -1274,7 +1283,12 @@ export function LandingPage() {
         <p className="lp-note">
           Graduated: each band&rsquo;s rate applies only to the people in it, so a fee is
           the sum across the bands a team spans and a bigger team never reprices the
-          people below it. Above 1,000 the top rate continues, capped at each
+          people below it. Each module starts at a {SEAT_MINIMUM}-seat minimum and a
+          smaller team is billed as {SEAT_MINIMUM}, so the smallest licence is{' '}
+          {eur.format(graduatedPrice(FLEET_PRICES, SEAT_MINIMUM))} a year on Fleet,{' '}
+          {eur.format(graduatedPrice(CODEINDEX_PRICES, SEAT_MINIMUM))} on CodeIndex and{' '}
+          {eur.format(graduatedPrice(ARTIFACTS_PRICES, SEAT_MINIMUM))} on Artifacts. Above
+          1,000 the top rate continues, capped at each
           module&rsquo;s ceiling (CodeIndex {eurK(CODEINDEX_PRICES[UNLIMITED])}, Artifacts{' '}
           {eurK(ARTIFACTS_PRICES[UNLIMITED])}, Fleet and Autopilot{' '}
           {eurK(FLEET_PRICES[UNLIMITED])} a year). So 1,000 people on Fleet is{' '}

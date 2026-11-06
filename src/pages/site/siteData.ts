@@ -73,6 +73,14 @@ export const AUTOPILOT_PRICES = [10_000, 15_000, 24_000, 40_000, 64_000, 128_000
  * edit to a price list.
  */
 
+/**
+ * The smallest licence that can be bought, in seats. A team below this is
+ * billed as this many: it sets the entry price of every banded module
+ * (10 × the first-band rate — Fleet €2,000, CodeIndex €2,400, Artifacts
+ * €1,600 a year). The Factory is flat and unaffected.
+ */
+export const SEAT_MINIMUM = 10
+
 /** The marginal €/seat within each finite band, derived from the anchors. */
 export function marginalRates(prices: readonly number[]): number[] {
   return SEAT_CEILINGS.map((ceil, i) => {
@@ -91,19 +99,21 @@ export function overageRate(prices: readonly number[]): number {
 /** The annual licence, in euros, for `people` under the graduated model. */
 export function graduatedPrice(prices: readonly number[], people: number): number {
   if (people <= 0) return 0
+  // A team below the minimum is billed as the minimum.
+  const billable = Math.max(people, SEAT_MINIMUM)
   const rates = marginalRates(prices)
   let total = 0
   let prev = 0
   for (let i = 0; i < SEAT_CEILINGS.length; i++) {
     const ceil = SEAT_CEILINGS[i]
-    const seats = Math.min(people, ceil) - prev
+    const seats = Math.min(billable, ceil) - prev
     if (seats > 0) total += seats * rates[i]
     prev = ceil
-    if (people <= ceil) return Math.round(total)
+    if (billable <= ceil) return Math.round(total)
   }
   // Above the top finite band: overage at the top band's rate, capped at
   // the unlimited price.
-  const overage = (people - prev) * rates[rates.length - 1]
+  const overage = (billable - prev) * rates[rates.length - 1]
   return Math.round(Math.min(total + overage, prices[UNLIMITED]))
 }
 
