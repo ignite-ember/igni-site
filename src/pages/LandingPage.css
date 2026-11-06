@@ -1478,6 +1478,13 @@
 }
 
 .lp-est-count-off {
+  box-sizing: border-box;
+  /* A minimum tap target of base-size-40; the small label alone left the
+   * button under the phone-touch floor the mobile-layout test enforces. */
+  min-height: var(--base-size-40);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: var(--base-size-8) var(--base-size-12);
   border-radius: 10px;
   border: 1px solid var(--borderColor-default);

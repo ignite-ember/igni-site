@@ -67,7 +67,9 @@ test.describe('the landing page renders', () => {
   test('the entry price is on screen', async ({ page }) => {
     await page.goto('/')
 
-    await expect(page.locator('.lp-hero-note')).toContainText('€8k a year')
+    // Per-seat now, graduated by headcount — not the old per-module band price.
+    await expect(page.locator('.lp-hero-note')).toContainText('€160 a person a year')
+    await expect(page.locator('.lp-hero-note')).toContainText('graduated by headcount')
   })
 })
 
