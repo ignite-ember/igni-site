@@ -24,41 +24,50 @@ import { IgniLogo } from '../components/IgniLogo'
 import { CALENDLY_URL, CONTACT_EMAIL, mailto, CODEINDEX_PRICES, ARTIFACTS_PRICES, FLEET_PRICES, FACTORY_PER_YEAR, AUTOPILOT_PRICES, MODULE_FROM_PER_SEAT, SEAT_MINIMUM, SEAT_CEILINGS, graduatedPrice, marginalRates, UNLIMITED, eur, eurK, eurSeat, seatRange } from './site/siteData'
 
 /**
- * The estimator shows the same priced band tiles the page has always had —
- * ≤50 … ≤3,000 and a flat 3,000+ tile — and a slider that glides across
- * them. The slider is split into one equal segment per tile, so the handle
- * lines up with the tile boundaries; within a segment the headcount moves
- * linearly between that band's edges. The last segment runs into the overage,
- * up to where the price reaches each module's cap.
+ * The estimator shows one priced tile per band — ≤50 … ≤1,000 — and a
+ * 3,000+ tile for the flat fee, with a slider that glides across them. The
+ * slider is split into one equal segment per tile, so the handle lines up
+ * with the tile boundaries; within a segment the headcount moves linearly
+ * between that band's edges. The last segment is the climb from 1,000 to
+ * 3,000, where the price rises gently to each module's flat fee: no tile is
+ * lit there (the readout shows the exact price), and the 3,000+ tile lights
+ * once the fee is flat. A ≤3,000 tile would show the same price as 3,000+.
  */
 const SLIDER_STEPS = 1000
-const OVERAGE_TOP = 10000 // past the 3,000 ceiling the licence is flat; this frames the flat tail
-const BAND_BOUNDS: readonly number[] = [SEAT_MINIMUM, ...SEAT_CEILINGS, OVERAGE_TOP]
+const FLAT_FROM = SEAT_CEILINGS[UNLIMITED - 1] // 3,000: the flat fee from here up
+const RAMP_FROM = SEAT_CEILINGS[UNLIMITED - 2] // 1,000: the last band's ceiling
+const BAND_BOUNDS: readonly number[] = [SEAT_MINIMUM, ...SEAT_CEILINGS]
 const SEGMENTS = BAND_BOUNDS.length - 1 // 6: one per tile
+/** The tiles, by price index: each band up to 1,000, then the flat fee. */
+const TILES: readonly number[] = [...SEAT_CEILINGS.slice(0, UNLIMITED - 1).map((_, i) => i), UNLIMITED]
 
-/** A band tile's label: "≤ 200", or "1,000+" for the overage tile. */
+/** A tile's label: "≤ 200", or "3,000+" for the flat fee. */
 function bandTileLabel(i: number): string {
-  if (i === UNLIMITED) return `${SEAT_CEILINGS[UNLIMITED - 1].toLocaleString('en-US')}+`
+  if (i === UNLIMITED) return `${FLAT_FROM.toLocaleString('en-US')}+`
   return `≤ ${SEAT_CEILINGS[i].toLocaleString('en-US')}`
 }
 
-/** Which tile a headcount sits in (0…UNLIMITED). */
+/** The tile a headcount lights — a band, the flat fee, or none on the climb to it. */
 function bandOf(people: number): number {
-  for (let i = 0; i < SEGMENTS; i++) if (people <= BAND_BOUNDS[i + 1]) return i
-  return UNLIMITED
+  if (people >= FLAT_FROM) return UNLIMITED
+  if (people > RAMP_FROM) return -1
+  for (let i = 0; i < UNLIMITED - 1; i++) if (people <= SEAT_CEILINGS[i]) return i
+  return -1
 }
 
-/** A headcount's position along the slider, 0…1 (tile-aligned). */
+/** A headcount's position along the slider, 0…1 (tile-aligned; 3,000 and up is the end). */
 function sliderPosOf(people: number): number {
-  const p = Math.min(Math.max(people, SEAT_MINIMUM), OVERAGE_TOP)
-  const i = bandOf(p)
+  const p = Math.min(Math.max(people, SEAT_MINIMUM), FLAT_FROM)
+  let i = 0
+  while (i < SEGMENTS - 1 && p > BAND_BOUNDS[i + 1]) i++
   const within = (p - BAND_BOUNDS[i]) / (BAND_BOUNDS[i + 1] - BAND_BOUNDS[i])
   return (i + within) / SEGMENTS
 }
 
 /** The headcount at a slider position, rounded to a tidy number for its size. */
 function seatsAtPos(pos: number): number {
-  const x = Math.min(0.999999, Math.max(0, pos)) * SEGMENTS
+  if (pos >= 1) return FLAT_FROM
+  const x = Math.max(0, pos) * SEGMENTS
   const i = Math.min(SEGMENTS - 1, Math.floor(x))
   const raw = BAND_BOUNDS[i] + (x - i) * (BAND_BOUNDS[i + 1] - BAND_BOUNDS[i])
   if (raw < 100) return Math.round(raw / 5) * 5
@@ -66,9 +75,9 @@ function seatsAtPos(pos: number): number {
   return Math.round(raw / 25) * 25
 }
 
-/** Clicking a tile jumps to it: the band's ceiling, or just into the overage. */
+/** Clicking a tile jumps to it: the band's ceiling, or where the fee goes flat. */
 function bandTarget(i: number): number {
-  return i === UNLIMITED ? SEAT_CEILINGS[UNLIMITED - 1] + 1 : SEAT_CEILINGS[i]
+  return i === UNLIMITED ? FLAT_FROM : SEAT_CEILINGS[i]
 }
 import { SiteFooter, SiteNav } from './site/SiteChrome'
 import { SectionHead, StatRow } from './site/Sections'
@@ -259,7 +268,7 @@ function HeadcountField({
       </div>
 
       <div className="lp-est-bands" role="group" aria-labelledby={`${id}-label`}>
-        {prices.map((_, i) => (
+        {TILES.map((i) => (
           <button
             type="button"
             key={i}
@@ -1303,9 +1312,9 @@ export function LandingPage() {
       <section id="pricing" className="landing-section lp-center">
         <SectionHead label="Pricing" title="A flat annual fee per module. Nothing is metered.">
           The igni base is free. Each paid module has a fixed yearly fee, set by how many
-          people use it, up to an unlimited tier above 1,000. People who only read its
-          output are not counted, and neither are agents or tokens. Fleet includes as
-          many apps as people.
+          people use it: the price per person falls as you grow, and from 3,000 people it
+          is one flat fee. People who only read its output are not counted, and neither
+          are agents or tokens. Fleet includes as many apps as people.
         </SectionHead>
 
         {/* What each module is, before the calculator asks which ones. */}
