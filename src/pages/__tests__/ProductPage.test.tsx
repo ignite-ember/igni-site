@@ -48,7 +48,9 @@ describe('every product page', () => {
     renderProduct(slug)
 
     expect(screen.getByRole('heading', { level: 2 })).toBeInTheDocument()
-    expect(document.querySelector('.lp-hero-note')?.textContent).toMatch(/€\d+k a year/)
+    // Per-seat for the graduated modules ("€240 a developer a year"); flat for
+    // the Factory ("€40k a year").
+    expect(document.querySelector('.lp-hero-note')?.textContent).toMatch(/€[\d,]+k? a (?:developer|person|year)/)
     expect(document.querySelector('.lp-prod-notyet li')).not.toBeNull()
     expect(document.querySelector('a[href^="/docs/"]')).not.toBeNull()
     expect(document.querySelectorAll('.lp-prod-other')).toHaveLength(SLUGS.length - 1)

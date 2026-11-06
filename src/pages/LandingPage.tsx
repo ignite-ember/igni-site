@@ -21,10 +21,9 @@ import {
   WorkflowIcon,
 } from '@primer/octicons-react'
 import { IgniLogo } from '../components/IgniLogo'
-import { CALENDLY_URL, CONTACT_EMAIL, mailto, BANDS, CODEINDEX_PRICES, ARTIFACTS_PRICES, FLEET_PRICES, FACTORY_PER_YEAR, AUTOPILOT_PRICES, MODULE_FROM, eur, eurK, bandSpoken, fleetApps } from './site/siteData'
+import { CALENDLY_URL, CONTACT_EMAIL, mailto, CODEINDEX_PRICES, ARTIFACTS_PRICES, FLEET_PRICES, FACTORY_PER_YEAR, AUTOPILOT_PRICES, MODULE_FROM_PER_SEAT, graduatedPrice, marginalRates, overageRate, UNLIMITED, eur, eurK, eurSeat, seatRange } from './site/siteData'
 import { SiteFooter, SiteNav } from './site/SiteChrome'
 import { SectionHead, StatRow } from './site/Sections'
-import { BandName, BandShort } from './site/BandName'
 import { Scenarios } from './site/Scenarios'
 import './landing-shared.css'
 import './LandingPage.css'
@@ -73,6 +72,7 @@ import extensionZones from '../assets/extension-zones.json'
  * show deals the business has already reasoned through rather than
  * numbers invented to look small.
  */
+/** A deal is a headcount per module (null = not taken) plus the flat Factory. */
 type Deal = {
   codeindex: number | null
   artifacts: number | null
@@ -85,20 +85,20 @@ const PRESETS: { id: string; label: string; who: string; deal: Deal }[] = [
   {
     id: 'team',
     label: 'One team',
-    who: '30 developers on CodeIndex',
-    deal: { codeindex: 0, artifacts: null, fleet: null, factory: false, autopilot: null },
+    who: '50 developers on CodeIndex',
+    deal: { codeindex: 50, artifacts: null, fleet: null, factory: false, autopilot: null },
   },
   {
     id: 'department',
     label: 'One department',
-    who: '60 developers on CodeIndex, 200 people on Artifacts',
-    deal: { codeindex: 1, artifacts: 2, fleet: null, factory: false, autopilot: null },
+    who: '100 developers on CodeIndex, 200 people on Artifacts',
+    deal: { codeindex: 100, artifacts: 200, fleet: null, factory: false, autopilot: null },
   },
   {
     id: 'several',
     label: 'Several departments',
-    who: '300 developers on CodeIndex, 1,000 people on Artifacts, and the Factory',
-    deal: { codeindex: 3, artifacts: 4, fleet: null, factory: true, autopilot: null },
+    who: '500 developers on CodeIndex, 1,000 people on Artifacts, and the Factory',
+    deal: { codeindex: 500, artifacts: 1000, fleet: null, factory: true, autopilot: null },
   },
 ]
 
@@ -110,11 +110,11 @@ function annualFor(deal: Deal): {
   autopilot: number
   total: number
 } {
-  const codeindex = deal.codeindex === null ? 0 : CODEINDEX_PRICES[deal.codeindex]
-  const artifacts = deal.artifacts === null ? 0 : ARTIFACTS_PRICES[deal.artifacts]
-  const fleet = deal.fleet === null ? 0 : FLEET_PRICES[deal.fleet]
+  const codeindex = deal.codeindex === null ? 0 : graduatedPrice(CODEINDEX_PRICES, deal.codeindex)
+  const artifacts = deal.artifacts === null ? 0 : graduatedPrice(ARTIFACTS_PRICES, deal.artifacts)
+  const fleet = deal.fleet === null ? 0 : graduatedPrice(FLEET_PRICES, deal.fleet)
   const factory = deal.factory ? FACTORY_PER_YEAR : 0
-  const autopilot = deal.autopilot === null ? 0 : AUTOPILOT_PRICES[deal.autopilot]
+  const autopilot = deal.autopilot === null ? 0 : graduatedPrice(AUTOPILOT_PRICES, deal.autopilot)
   return {
     codeindex,
     artifacts,
@@ -125,9 +125,10 @@ function annualFor(deal: Deal): {
   }
 }
 
-function BandPicker({
+function HeadcountField({
   id,
   label,
+  unit,
   value,
   prices,
   onChange,
@@ -135,41 +136,49 @@ function BandPicker({
 }: {
   id: string
   label: string
+  /** "developers" or "people" — what the headcount is counted in. */
+  unit: string
   value: number | null
   prices: number[]
   onChange: (v: number | null) => void
   /** The module's colour, as on its card: Fleet blue, Autopilot violet. */
   tone?: 'fleet' | 'factory'
 }) {
+  const on = value !== null
+  const price = on ? graduatedPrice(prices, value) : 0
   return (
     <div className={`lp-est-field${tone ? ` lp-est-field--${tone}` : ''}`}>
-      <span className="lp-est-label" id={`${id}-label`}>
+      <label className="lp-est-label" htmlFor={`${id}-input`}>
         {label}
-      </span>
-      <div className="lp-est-seg" role="radiogroup" aria-labelledby={`${id}-label`}>
+      </label>
+      <div className="lp-est-count">
         <button
           type="button"
-          role="radio"
-          aria-checked={value === null}
-          className={`lp-est-seg-btn${value === null ? ' lp-est-seg-btn--on' : ''}`}
+          className={`lp-est-count-off${on ? '' : ' lp-est-count-off--on'}`}
+          aria-pressed={!on}
           onClick={() => onChange(null)}
         >
           Not now
         </button>
-        {BANDS.map((b, i) => (
-          <button
-            key={b}
-            type="button"
-            role="radio"
-            aria-checked={value === i}
-            className={`lp-est-seg-btn${value === i ? ' lp-est-seg-btn--on' : ''}`}
-            onClick={() => onChange(i)}
-            aria-label={`${bandSpoken(i)}, ${eurK(prices[i])} a year`}
-          >
-            <span aria-hidden><BandShort i={i} /></span>
-            <span className="lp-est-seg-unit">{eurK(prices[i])}</span>
-          </button>
-        ))}
+        <input
+          id={`${id}-input`}
+          className="lp-est-count-input"
+          type="number"
+          min={1}
+          step={1}
+          inputMode="numeric"
+          placeholder="—"
+          value={value ?? ''}
+          aria-describedby={`${id}-price`}
+          onChange={(e) => {
+            const n = e.target.value.trim()
+            onChange(n === '' ? null : Math.max(1, Math.floor(Number(n) || 0)))
+          }}
+        />
+        <span className="lp-est-count-unit">{unit}</span>
+        <span className="lp-est-count-price" id={`${id}-price`} aria-live="polite">
+          {on ? `${eur.format(price)}/yr` : ''}
+        </span>
       </div>
     </div>
   )
@@ -205,23 +214,26 @@ function DealEstimator() {
           ))}
         </div>
 
-        <BandPicker
+        <HeadcountField
           id="lp-est-codeindex"
           label="CodeIndex: developers who use it"
+          unit="developers"
           value={deal.codeindex}
           prices={CODEINDEX_PRICES}
           onChange={(v) => setDeal((d) => ({ ...d, codeindex: v }))}
         />
-        <BandPicker
+        <HeadcountField
           id="lp-est-artifacts"
           label="Artifacts: people who use it"
+          unit="people"
           value={deal.artifacts}
           prices={ARTIFACTS_PRICES}
           onChange={(v) => setDeal((d) => ({ ...d, artifacts: v }))}
         />
-        <BandPicker
+        <HeadcountField
           id="lp-est-fleet"
-          label="Fleet: people who use it (each band includes as many apps)"
+          label="Fleet: people who use it (each includes as many apps)"
+          unit="people"
           tone="fleet"
           value={deal.fleet}
           prices={FLEET_PRICES}
@@ -246,9 +258,10 @@ function DealEstimator() {
             <em>{eur.format(FACTORY_PER_YEAR)} a year, for any number of domain models</em>
           </span>
         </label>
-        <BandPicker
+        <HeadcountField
           id="lp-est-autopilot"
           label="Autopilot, on top of the Factory: people whose conversations it learns from"
+          unit="people"
           tone="factory"
           value={deal.autopilot}
           prices={AUTOPILOT_PRICES}
@@ -278,7 +291,7 @@ function DealEstimator() {
             <li className="lp-est-line-codeindex">
               <span>
                 CodeIndex
-                <em><BandName i={deal.codeindex} unit="developers" /></em>
+                <em>{deal.codeindex.toLocaleString('en-US')} developers</em>
               </span>
               <strong>{eur.format(annual.codeindex)}</strong>
             </li>
@@ -287,7 +300,7 @@ function DealEstimator() {
             <li className="lp-est-line-artifacts">
               <span>
                 Artifacts
-                <em><BandName i={deal.artifacts} /></em>
+                <em>{deal.artifacts.toLocaleString('en-US')} people</em>
               </span>
               <strong>{eur.format(annual.artifacts)}</strong>
             </li>
@@ -296,7 +309,7 @@ function DealEstimator() {
             <li className="lp-est-line-fleet">
               <span>
                 Fleet
-                <em><BandName i={deal.fleet} />, {fleetApps(deal.fleet)}</em>
+                <em>{deal.fleet.toLocaleString('en-US')} people, as many apps</em>
               </span>
               <strong>{eur.format(annual.fleet)}</strong>
             </li>
@@ -314,7 +327,7 @@ function DealEstimator() {
             <li className="lp-est-line-autopilot">
               <span>
                 Autopilot
-                <em><BandName i={deal.autopilot} /></em>
+                <em>{deal.autopilot.toLocaleString('en-US')} people</em>
               </span>
               <strong>{eur.format(annual.autopilot)}</strong>
             </li>
@@ -361,7 +374,7 @@ const MODULES: {
     name: 'CodeIndex',
     line: 'Answers and reviews from a map of your code',
     licensed: 'Licensed on the developers who use it.',
-    price: `${eurK(CODEINDEX_PRICES[0])} a year for up to ${BANDS[0]} developers`,
+    price: `${eurSeat(marginalRates(CODEINDEX_PRICES)[0])} a developer a year, less at scale`,
   },
   {
     id: 'artifacts',
@@ -369,7 +382,7 @@ const MODULES: {
     name: 'Artifacts',
     line: 'A document graph that rebuilds when a source changes',
     licensed: 'Licensed on the people who use it. Readers are free.',
-    price: `${eurK(ARTIFACTS_PRICES[0])} a year for up to ${BANDS[0]} people`,
+    price: `${eurSeat(marginalRates(ARTIFACTS_PRICES)[0])} a person a year, less at scale`,
   },
   {
     id: 'fleet',
@@ -377,7 +390,7 @@ const MODULES: {
     name: 'Fleet',
     line: 'A cloud agent in an isolated VM for every person and app',
     licensed: 'Per person, with as many apps. Local agents are free.',
-    price: `${eurK(FLEET_PRICES[0])} a year for up to ${BANDS[0]} people`,
+    price: `${eurSeat(marginalRates(FLEET_PRICES)[0])} a person a year, less at scale`,
     tone: 'fleet',
   },
   {
@@ -385,7 +398,7 @@ const MODULES: {
     icon: <WorkflowIcon size={22} />,
     name: 'Factory',
     line: 'Domain models trained on your data, and yours to keep',
-    licensed: `Autopilot, on top: from ${eurK(AUTOPILOT_PRICES[0])} a year for up to ${BANDS[0]} people.`,
+    licensed: `Autopilot, on top: ${eurSeat(marginalRates(AUTOPILOT_PRICES)[0])} a person a year, less at scale.`,
     price: `${eurK(FACTORY_PER_YEAR)} a year for any number of models`,
     tone: 'factory',
   },
@@ -725,7 +738,7 @@ const OBJECTIONS: { q: string; a: string }[] = [
 export function LandingPage() {
   useDocumentTitle(
     'AI agents that run inside your network',
-    'igni is AI agent software that runs inside your network, air-gapped or on dedicated GPUs you rent. Ignite Ember hosts nothing and has no route into your network. The base is free under Apache-2.0, and paid modules are sold separately from €8k a year with nothing metered.',
+    'igni is AI agent software that runs inside your network, air-gapped or on dedicated GPUs you rent. Ignite Ember hosts nothing and has no route into your network. The base is free under Apache-2.0, and paid modules are sold separately from €160 a person a year with nothing metered.',
   )
   return (
     <main className="landing landing--main lp">
@@ -758,8 +771,8 @@ export function LandingPage() {
         </div>
         <p className="lp-hero-note">
           The base is free under Apache-2.0. Paid modules start at{' '}
-          {eurK(MODULE_FROM)} a year, and each can be evaluated free for 30 days, or 60
-          with your integrator.
+          {eurSeat(MODULE_FROM_PER_SEAT)} a person a year, graduated by headcount, and each
+          can be evaluated free for 30 days, or 60 with your integrator.
         </p>
 
         {/* ── The boundary, drawn ─────────────────────────────
@@ -1205,37 +1218,50 @@ export function LandingPage() {
         <DealEstimator />
 
         <details className="lp-pricelist">
-          <summary>See the full price list</summary>
+          <summary>See the full rate card</summary>
         <div className="lp-table-wrap">
-          <table className="lp-table">
+          <table className="lp-table lp-ratecard">
             <thead>
               <tr>
-                <th>People</th>
-                <th>CodeIndex</th>
-                <th>Artifacts</th>
-                <th>Fleet</th>
-                <th>Autopilot</th>
+                <th>Team size</th>
+                <th>CodeIndex<small>a developer</small></th>
+                <th>Artifacts<small>a person</small></th>
+                <th>Fleet<small>a person</small></th>
+                <th>Autopilot<small>a person</small></th>
               </tr>
             </thead>
             <tbody>
-              {BANDS.map((b, i) => (
-                <tr key={b}>
-                  <td><BandName i={i} /></td>
-                  <td>{eur.format(CODEINDEX_PRICES[i])}</td>
-                  <td>{eur.format(ARTIFACTS_PRICES[i])}</td>
-                  <td>{eur.format(FLEET_PRICES[i])}</td>
-                  <td>{eur.format(AUTOPILOT_PRICES[i])}</td>
-                </tr>
-              ))}
+              {CODEINDEX_PRICES.map((_, i) => {
+                const last = i === UNLIMITED
+                const rate = (prices: number[]) =>
+                  last ? overageRate(prices) : marginalRates(prices)[i]
+                return (
+                  <tr key={i}>
+                    <td>{seatRange(i)}</td>
+                    <td>{eurSeat(rate(CODEINDEX_PRICES))}</td>
+                    <td>{eurSeat(rate(ARTIFACTS_PRICES))}</td>
+                    <td>{eurSeat(rate(FLEET_PRICES))}</td>
+                    <td>{eurSeat(rate(AUTOPILOT_PRICES))}</td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
         </details>
         <p className="lp-note">
-          List prices in EUR per year, excluding VAT. Multi-year, multi-module and
-          group-wide agreements are quoted. Your integrator quotes the final price. No
-          licence fee is due until a pilot meets the criteria you agree, as set out
-          below.
+          Graduated: each band&rsquo;s rate applies only to the people in it, so a fee is
+          the sum across the bands a team spans and a bigger team never reprices the
+          people below it. Above 1,000 the top rate continues, capped at each
+          module&rsquo;s ceiling (CodeIndex {eurK(CODEINDEX_PRICES[UNLIMITED])}, Artifacts{' '}
+          {eurK(ARTIFACTS_PRICES[UNLIMITED])}, Fleet and Autopilot{' '}
+          {eurK(FLEET_PRICES[UNLIMITED])} a year). So 1,000 people on Fleet is{' '}
+          {eur.format(graduatedPrice(FLEET_PRICES, 1000))} a year and 1,001 is{' '}
+          {eur.format(graduatedPrice(FLEET_PRICES, 1001))} — not{' '}
+          {eur.format(FLEET_PRICES[UNLIMITED])}. List prices in EUR, excluding VAT.
+          Multi-year, multi-module and group-wide agreements are quoted; your integrator
+          quotes the final price. No licence fee is due until a pilot meets the criteria
+          you agree, as set out below.
         </p>
       </section>
 

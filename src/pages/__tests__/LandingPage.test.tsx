@@ -28,6 +28,14 @@ import { act, cleanup, screen, waitFor, within } from '@testing-library/react'
 import { Route, Routes } from 'react-router-dom'
 import { renderWithProviders } from '../../test/render'
 import { LandingPage } from '../LandingPage'
+import {
+  ARTIFACTS_PRICES,
+  AUTOPILOT_PRICES,
+  CODEINDEX_PRICES,
+  FLEET_PRICES,
+  graduatedPrice,
+  marginalRates,
+} from '../site/siteData'
 
 const mediaQuery = { matches: false }
 let mediaListeners: Array<(e: { matches: boolean }) => void> = []
@@ -254,47 +262,65 @@ describe('the quote adds up', () => {
     const factory = screen.getByRole('checkbox', { name: /Factory/ })
     expect(factory).not.toBeChecked()
 
-    const group = screen.getByRole('radiogroup', { name: /Autopilot.*people/ })
-    await user.click(within(group).getByRole('radio', { name: /^Up to 50,/ }))
-    expect(factory, 'picking Autopilot adds the Factory').toBeChecked()
+    const autopilot = screen.getByRole('spinbutton', { name: /Autopilot.*people/ })
+    await user.clear(autopilot)
+    await user.type(autopilot, '50')
+    expect(factory, 'giving Autopilot a headcount adds the Factory').toBeChecked()
 
     await user.click(factory)
     expect(quote().querySelector('.lp-est-line-autopilot'), 'dropping the Factory drops Autopilot').toBeNull()
   })
 
-  test('Autopilot adds its band to the total', async () => {
+  test('Autopilot adds its graduated price to the total', async () => {
     const user = userEvent.setup()
     renderLanding()
     await user.click(screen.getByRole('checkbox', { name: /Factory/ }))
     const before = annualTotal()
 
-    const group = screen.getByRole('radiogroup', { name: /Autopilot.*people/ })
-    await user.click(within(group).getByRole('radio', { name: /^Up to 50,/ }))
+    const autopilot = screen.getByRole('spinbutton', { name: /Autopilot.*people/ })
+    await user.clear(autopilot)
+    await user.type(autopilot, '50')
 
     const line = eurosIn(quote().querySelector('.lp-est-line-autopilot')?.textContent ?? '')[0]
-    expect(line).toBe(10_000)
+    expect(line).toBe(graduatedPrice(AUTOPILOT_PRICES, 50))
     expect(annualTotal()).toBe(before + line)
   })
 
-  test('adding Fleet adds its band to the total', async () => {
+  test('adding Fleet adds its graduated price to the total', async () => {
     const user = userEvent.setup()
     renderLanding()
     const before = annualTotal()
 
-    const group = screen.getByRole('radiogroup', { name: /Fleet: people/ })
-    await user.click(within(group).getByRole('radio', { name: /^Up to 200,/ }))
+    const fleet = screen.getByRole('spinbutton', { name: /Fleet: people/ })
+    await user.clear(fleet)
+    await user.type(fleet, '240')
 
     const fleetLine = eurosIn(quote().querySelector('.lp-est-line-fleet')?.textContent ?? '')[0]
-    expect(fleetLine).toBeGreaterThan(0)
+    expect(fleetLine).toBe(graduatedPrice(FLEET_PRICES, 240))
     expect(annualTotal()).toBe(before + fleetLine)
   })
 
-  test('"Not now" takes a module off the quote', async () => {
+  test('a mid-band headcount is cheaper than the band ceiling it used to round up to', async () => {
+    // The whole point of the change: 240 people is no longer priced as the
+    // old ≤500 band (€40k), but graduated — between the €24k (200) and €40k
+    // (500) anchors.
+    const user = userEvent.setup()
+    renderLanding()
+    const fleet = screen.getByRole('spinbutton', { name: /Fleet: people/ })
+    await user.clear(fleet)
+    await user.type(fleet, '240')
+
+    const line = eurosIn(quote().querySelector('.lp-est-line-fleet')?.textContent ?? '')[0]
+    expect(line).toBeGreaterThan(24_000)
+    expect(line).toBeLessThan(40_000)
+  })
+
+  test('clearing a module takes it off the quote', async () => {
     const user = userEvent.setup()
     renderLanding()
 
-    const group = screen.getByRole('radiogroup', { name: /Artifacts: people who use it/ })
-    await user.click(within(group).getByRole('radio', { name: 'Not now' }))
+    const artifacts = screen.getByRole('spinbutton', { name: /Artifacts: people who use it/ })
+    await user.clear(artifacts)
 
     expect(quote().querySelector('.lp-est-line-artifacts')).toBeNull()
     expect(annualTotal()).toBe(lineAmounts().reduce((a, b) => a + b, 0))
@@ -327,86 +353,82 @@ describe('the presets are the catalog\u2019s worked examples', () => {
 })
 
 describe('every place a price appears agrees', () => {
-  /** The price table's rows as [label, CodeIndex, Artifacts]. */
-  function tableRows(): number[][] {
-    return Array.from(document.querySelectorAll('.lp-table tbody tr')).map((tr) =>
+  /** The rate card's rows as per-seat euros: [CodeIndex, Artifacts, Fleet, Autopilot]. */
+  function rateRows(): number[][] {
+    return Array.from(document.querySelectorAll('.lp-ratecard tbody tr')).map((tr) =>
       Array.from(tr.querySelectorAll('td'))
         .slice(1)
         .map((td) => eurosIn(td.textContent ?? '')[0]),
     )
   }
 
-  test('each band button costs what the table says', async () => {
+  test('the rate card prints the per-seat rate the model computes', async () => {
     renderLanding()
-    const rows = tableRows()
-
-    for (const [name, col] of [
-      [/CodeIndex: developers/, 0],
-      [/Artifacts: people/, 1],
-      [/Fleet: people/, 2],
-      [/Autopilot.*people/, 3],
+    const rows = rateRows()
+    for (const [prices, col] of [
+      [CODEINDEX_PRICES, 0],
+      [ARTIFACTS_PRICES, 1],
+      [FLEET_PRICES, 2],
+      [AUTOPILOT_PRICES, 3],
     ] as const) {
-      const group = screen.getByRole('radiogroup', { name })
-      // Skip "Not now"; the rest are the bands in table order.
-      const buttons = within(group).getAllByRole('radio').slice(1)
-      expect(buttons.length).toBe(rows.length)
-      buttons.forEach((b, i) => {
-        const k = Number((b.querySelector('.lp-est-seg-unit')?.textContent ?? '').replace(/[^\d]/g, ''))
-        expect(k * 1000, `${String(name)} band ${i}`).toBe(rows[i][col])
+      const rates = marginalRates(prices)
+      rates.forEach((rate, i) => {
+        expect(rows[i][col], `column ${col} band ${i}`).toBe(Math.round(rate))
       })
+      // The unlimited row continues the top band's rate (the overage).
+      expect(rows.at(-1)![col], `column ${col} overage`).toBe(Math.round(rates[rates.length - 1]))
     }
   })
 
-  test('the unlimited tier is twice the 1,000 band, and replaces the per-1,000 line', async () => {
+  test('the per-seat rate falls as the team grows, and the cap replaces the per-1,000 line', async () => {
     renderLanding()
-    const rows = tableRows()
-    const top = rows.at(-1)!
-    const thousand = rows.at(-2)!
-    top.forEach((price, col) => expect(price, `column ${col}`).toBe(thousand[col] * 2))
-    expect(document.body.textContent).toMatch(/Unlimited people/)
-    expect(document.querySelector('.lp-pricelist .octicon-infinity')).not.toBeNull()
+    const rows = rateRows()
+    const finite = rows.slice(0, -1)
+    for (let i = 1; i < finite.length; i++) {
+      for (let col = 0; col < 4; col++) {
+        expect(finite[i][col], `column ${col} row ${i}`).toBeLessThan(finite[i - 1][col])
+      }
+    }
+    expect(document.getElementById('pricing')?.textContent).toMatch(/capped/)
     expect(document.body.textContent).not.toMatch(/Per extra 1,000/)
+  })
+
+  test('the licence is graduated, not a flat fee per band', async () => {
+    // 1,001 people on Fleet reads just over the €64k anchor, not €128k.
+    renderLanding()
+    expect(graduatedPrice(FLEET_PRICES, 1001)).toBeGreaterThan(64_000)
+    expect(graduatedPrice(FLEET_PRICES, 1001)).toBeLessThan(65_000)
+    expect(document.getElementById('pricing')?.textContent).toMatch(/64,048/)
   })
 
   test('Fleet includes as many apps as people', async () => {
     renderLanding()
-    expect(screen.getByRole('radiogroup', { name: /Fleet: people who use it \(each band includes as many apps\)/ })).toBeInTheDocument()
+    expect(screen.getByRole('spinbutton', { name: /Fleet: people who use it \(each includes as many apps\)/ })).toBeInTheDocument()
     expect(document.body.textContent).not.toMatch(/Apps are never counted/)
   })
 
-  test('the table rises with the band', async () => {
+  test('each module card\u2019s per-seat price is the rate card\u2019s first row', async () => {
     renderLanding()
-    const rows = tableRows().slice(0, -1)
-    for (let i = 1; i < rows.length; i++) {
-      expect(rows[i][0]).toBeGreaterThan(rows[i - 1][0])
-      expect(rows[i][1]).toBeGreaterThan(rows[i - 1][1])
-      expect(rows[i][2]).toBeGreaterThan(rows[i - 1][2])
-      expect(rows[i][3]).toBeGreaterThan(rows[i - 1][3])
-    }
-  })
-
-  test('each module card\u2019s "from" price is its smallest band', async () => {
-    renderLanding()
-    const [first] = tableRows()
+    const [first] = rateRows()
     const cards = Array.from(document.querySelectorAll('.lp-module'))
-    const fromOf = (name: string) =>
+    const perSeatOf = (name: string) =>
       eurosIn(
         cards
           .find((c) => c.querySelector('h4')?.textContent === name)
           ?.querySelector('.lp-module-foot strong')
-          ?.textContent?.replace('k', ',000') ?? '',
+          ?.textContent ?? '',
       )[0]
 
-    expect(fromOf('CodeIndex')).toBe(first[0])
-    expect(fromOf('Artifacts')).toBe(first[1])
-    expect(fromOf('Fleet')).toBe(first[2])
+    expect(perSeatOf('CodeIndex')).toBe(first[0])
+    expect(perSeatOf('Artifacts')).toBe(first[1])
+    expect(perSeatOf('Fleet')).toBe(first[2])
   })
 
-  test('the hero\u2019s entry price is the cheapest module', async () => {
+  test('the hero\u2019s entry price is the cheapest module\u2019s per-seat rate', async () => {
     renderLanding()
-    const [first] = tableRows()
+    const [first] = rateRows()
     const note = document.querySelector('.lp-hero-note')?.textContent ?? ''
-    expect(eurosIn(note.replace(/€(\d+)k/, '€$1,000'))[0]).toBe(Math.min(...first))
+    expect(eurosIn(note)[0]).toBe(Math.min(...first))
   })
 })
 
@@ -419,7 +441,7 @@ describe('nothing unbuilt is sold as built', () => {
       (c) => c.querySelector('h4')?.textContent === 'Fleet',
     )!
     expect(card.textContent).not.toMatch(/In build/i)
-    expect(card.textContent).toMatch(/€\d+k a year/)
+    expect(card.textContent).toMatch(/€\d+ a person a year/)
     expect(document.querySelector('.lp-arch-box--build')).toBeNull()
   })
 

@@ -1470,62 +1470,81 @@
   font-weight: 600;
 }
 
-.lp-est-seg {
-  display: grid;
-  /* Not now, then the six bands (the sixth is 1,000+, unlimited). */
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 6px;
+.lp-est-count {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  flex-wrap: wrap;
 }
 
-.lp-est-seg-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 8px 4px;
+.lp-est-count-off {
+  padding: var(--base-size-8) var(--base-size-12);
   border-radius: 10px;
   border: 1px solid var(--borderColor-default);
   background-color: var(--bgColor-default);
-  color: var(--fgColor-default);
+  color: var(--fgColor-muted);
   font: inherit;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: border-color 0.15s, background-color 0.15s;
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
 }
 
-.lp-est-seg-unit {
-  font-size: 12px;
-  font-weight: 500;
+.lp-est-count-off--on {
+  border-color: var(--borderColor-emphasis);
+  background-color: var(--bgColor-muted);
+  color: var(--fgColor-default);
+}
+
+.lp-est-count-input {
+  width: 7ch;
+  padding: var(--base-size-8) 10px;
+  border-radius: 10px;
+  border: 1px solid var(--borderColor-default);
+  background-color: var(--bgColor-default);
+  color: var(--fgColor-default);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.lp-est-count-input:focus-visible {
+  outline: 2px solid var(--lp-orange);
+  outline-offset: 1px;
+  border-color: var(--lp-orange);
+}
+
+.lp-est-count-unit {
+  font-size: 13px;
   color: var(--fgColor-muted);
 }
 
-.lp-est-seg-btn--on {
-  border-color: var(--lp-orange);
-  background-color: var(--lp-orange-soft);
-}
-
-.lp-est-seg-btn--on .lp-est-seg-unit {
+.lp-est-count-price {
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   color: var(--igni-orange-text);
 }
 
-/* Each picker in its module's colour, as on the cards above it. */
-.lp-est-field--fleet .lp-est-seg-btn--on {
+/* Each field in its module's colour, as on the cards above it. */
+.lp-est-field--fleet .lp-est-count-input:focus-visible {
+  outline-color: var(--lp-blue);
   border-color: var(--lp-blue);
-  background-color: color-mix(in srgb, var(--lp-blue) 10%, transparent);
 }
 
-.lp-est-field--fleet .lp-est-seg-btn--on .lp-est-seg-unit {
+.lp-est-field--fleet .lp-est-count-price {
   color: var(--lp-blue);
 }
 
-.lp-est-field--factory .lp-est-seg-btn--on {
+.lp-est-field--factory .lp-est-count-input:focus-visible {
+  outline-color: var(--lp-violet);
   border-color: var(--lp-violet);
-  background-color: color-mix(in srgb, var(--lp-violet) 10%, transparent);
 }
 
-.lp-est-field--factory .lp-est-seg-btn--on .lp-est-seg-unit {
+.lp-est-field--factory .lp-est-count-price {
   color: var(--lp-violet);
 }
 
@@ -1653,9 +1672,22 @@
     grid-template-columns: 1fr;
   }
 
-  .lp-est-seg {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .lp-est-count-price {
+    margin-left: 0;
+    flex-basis: 100%;
   }
+}
+
+/* Rate card: a per-seat rate per band, the unit under each product head. */
+.lp-ratecard th small {
+  display: block;
+  font-weight: 500;
+  font-size: 11px;
+  color: var(--fgColor-muted);
+}
+
+.lp-ratecard td {
+  font-variant-numeric: tabular-nums;
 }
 
 /* Price list table */

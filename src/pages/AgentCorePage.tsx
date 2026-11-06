@@ -201,7 +201,7 @@ export function AgentCorePage() {
             <VsCard
               label="How you pay"
               aws="Metered: vCPU-hours, GB-hours, calls, records, retrievals, and model tokens. Moves every month."
-              igni={`A fixed annual licence per band of people (${eurK(FLEET_200)} for up to 200). The hardware is yours, and tokens cost nothing extra.`}
+              igni={`A fixed annual licence, graduated per person (${eurK(FLEET_200)} at 200 people, less below). The hardware is yours, and tokens cost nothing extra.`}
             />
           </div>
 
@@ -578,13 +578,13 @@ export function AgentCorePage() {
                 total={[3, 5]}
                 rows={[
                   ['Harness, server, igni models (Apache-2.0)', '0'],
-                  ['Fleet licence, up to 200 people (includes 200 apps)', k(FLEET_200)],
+                  ['Fleet licence at 200 people (includes 200 apps), graduated per seat', k(FLEET_200)],
                   ['CPU servers: 2, bought (Dell R7625, 512 GB), over 4 years, + power and support', '13–15k'],
                   ['Runtime, comparable to AgentCore’s', '37–39k'],
                   ['GPU: 1 × GH200, bought, over 4 years, + power and support', '14–18k'],
                   ['Total with the model', '51–57k'],
                   [<><em>Optional:</em> the Factory — tunes igni&rsquo;s models on your own data, guided by its experts, with evaluation; any number of domain models. Training runs on your own GPU (a 27B tuning run measured at ~44 h on one H100).</>, `+${k(FACTORY_PER_YEAR)}`],
-                  [<><em>Optional, with the Factory:</em> Autopilot — improves the Factory&rsquo;s models from real users&rsquo; conversations, with no one in the loop. Up to 200 people.</>, `+${k(AUTOPILOT_200)}`],
+                  [<><em>Optional, with the Factory:</em> Autopilot — improves the Factory&rsquo;s models from real users&rsquo; conversations, with no one in the loop. At 200 people.</>, `+${k(AUTOPILOT_200)}`],
                 ]}
               />
               <p className="cmp-cap cmp-cap--after">
@@ -624,12 +624,12 @@ export function AgentCorePage() {
           <h4 className="lp-subhead">If the team is a different size</h4>
           <p className="landing-section-desc lp-desc cmp-desc">
             The same heavy per-person workload at different team sizes &mdash; and it is not
-            only people: the app agents a Fleet band includes and the parallel subagent runs an
+            only people: the app agents a Fleet licence includes and the parallel subagent runs an
             agent spawns load the same GPUs too. AgentCore bills every session, token and busy
-            vCPU; igni&rsquo;s figure &mdash; the Fleet licence plus the hardware the load takes
-            &mdash; rises in steps, not with every token. Open-weight model, € a year; figures
-            above 1,000 people are modelled. The chart zooms into 50&ndash;600; the table runs to
-            5,000.
+            vCPU; igni&rsquo;s figure &mdash; the graduated Fleet licence plus the hardware the
+            load takes &mdash; rises gently per seat and steps only as GPUs and servers are added,
+            never with a token. Open-weight model, € a year; figures above 1,000 people are
+            modelled. The chart zooms into 50&ndash;600; the table runs to 5,000.
           </p>
           <RTable
             className="cmp-numeric cmp-usage"
@@ -639,7 +639,7 @@ export function AgentCorePage() {
           />
           <Figure
             title="Cost as the team grows"
-            caption="€ a year, open-weight model, 50 to 600 people at the heavy per-person rate — with the apps and parallel runs that load the same GPUs (the table above runs to 5,000). AgentCore rises with every person; igni steps up as licence bands, GPUs and servers are added."
+            caption="€ a year, open-weight model, 50 to 600 people at the heavy per-person rate — with the apps and parallel runs that load the same GPUs (the table above runs to 5,000). AgentCore rises with every person; igni rises gently with its per-seat licence, stepping only as GPUs and servers are added."
           >
             <UsageChart />
           </Figure>
@@ -648,7 +648,8 @@ export function AgentCorePage() {
             widens with scale &mdash; more than twice as cheap at 600 people, and about three
             times at 5,000 (table above) &mdash; because
             AgentCore&rsquo;s bill grows with every person, app and parallel run, while
-            igni&rsquo;s grows only in steps as a licence band or a GPU is added. igni can also
+            igni&rsquo;s grows gently with its per-seat licence, stepping only as a GPU or server
+            is added. igni can also
             use Claude or GPT through their APIs where policy allows; the token bill is then the
             same as on AgentCore, and igni&rsquo;s fixed licence replaces AgentCore&rsquo;s
             runtime charges.
@@ -819,7 +820,7 @@ export function AgentCorePage() {
             <li>AgentCore Browser: list price as Code Interpreter; customer-provided proxies (AWS What&rsquo;s New, Feb 2026); session recording, live view and Web Bot Auth (AgentCore developer guide). Chromium in Fleet: igni&rsquo;s own measurement in a Fleet VM, Oct–Nov 2026.</li>
             <li>AgentCore features: AWS developer guide — runtime file system configurations, how Runtime works (platform versions by region), supported regions; checked 2 Nov 2026. Session storage is in preview.</li>
             <li>Heavy-use case, per person per working day, all 200 people: 8 h session of 2 vCPU / 4 GB, CPU busy 30%, memory held half the time; Code Interpreter 1 h (2 vCPU busy 30%, 4 GB held); 5 workspace rebuilds of 3 minutes; 300 tool calls; 30 long-term memory records, 100 retrievals; 10 web searches; 5 M input / 0.15 M output tokens. Sonnet includes cache writes.</li>
-            <li>igni prices: igni&rsquo;s <a href="/#pricing">price list</a>, up-to-200 band, list, excl. VAT. Servers: Dell PowerEdge R7625 at ~£17.9k each from a UK reseller. GPU ownership at ≈$15–20k a GPU-year is an estimate; get a quote.</li>
+            <li>igni prices: igni&rsquo;s <a href="/#pricing">price list</a>, the graduated Fleet licence (€24k at 200 people), list, excl. VAT. Servers: Dell PowerEdge R7625 at ~£17.9k each from a UK reseller. GPU ownership at ≈$15–20k a GPU-year is an estimate; get a quote.</li>
             <li>Staff and development are not included on either side.</li>
             <li>AgentCore cold start and idle behaviour: AWS blog &ldquo;The new AgentCore runtime: elastic, optimized, and consistently fast starts&rdquo; and the runtime lifecycle settings page, checked 2 Nov 2026.</li>
             <li>Fleet timings: igni&rsquo;s own measurements, bare-metal GCP server (c3-highcpu-192-metal) and nested GCP VM (n2-standard-8), Oct–Nov 2026; details are on the <a href="/fleet">Fleet page</a>. Security tests ran on cloud test VMs with OpenBao in dev mode and a test object store; a pilot repeats them on your hardware.</li>

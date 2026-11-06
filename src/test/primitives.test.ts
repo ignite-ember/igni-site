@@ -59,7 +59,11 @@ const CEILINGS: Record<string, number> = {
   // marketing visuals.
   // +1 on 2026-11-03: the breakpoint of the phone pass (tabs, switch,
   // code windows, product-page spacing).
-  'pages/LandingPage.css': 790,
+  // +4 on 2026-11-06: the deal estimator moved from band radios to a
+  // graduated per-seat headcount input, adding the number field, its
+  // "Not now" toggle, the inline price and the rate-card table — control
+  // sizes (field widths, font sizes, the 10px radius) with no primitive.
+  'pages/LandingPage.css': 794,
   // +3 on 2026-11-03: breakpoints for the stacked prev/next, the
   // narrow-screen table of contents and the phone pass.
   'pages/DocsPage.css': 100,

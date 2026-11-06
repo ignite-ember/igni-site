@@ -6,9 +6,9 @@
  * November 2026. Usage figures are assumptions, listed on the page under
  * "Assumptions and sources". Do not edit a number here without redoing
  * the sum it came from: the cost lines are AWS list prices in dollars at
- * €1 = $1.10, and igni's lines are the ≤ 200 band of the price list in
- * siteData.ts plus hardware. A test checks that the price list still
- * says what this page assumed.
+ * €1 = $1.10, and igni's lines are the graduated Fleet licence from
+ * siteData.ts (which at 200 people comes to €24k) plus hardware. A test
+ * checks that the price list still says what this page assumed.
  */
 
 /** When the AWS side was last checked. Shown on the page; keep it true. */
@@ -106,29 +106,33 @@ export const BREAKDOWN: { side: Side; name: string; total: number; parts: { labe
  *
  * AgentCore is at list and scales ~linearly with people (≈€0.52k a person
  * a year: open-weight model, heavy use, one session each). igni is the
- * Fleet licence for that band plus the hardware the load takes: 1 GH200
- * per ~200 people (€14–18k each) and a CPU server per ~150 (€6.5–7.5k
- * each, two minimum). Licence by band from FLEET_PRICES: ≤50 10k, ≤100
- * 15k, ≤200 24k, ≤500 40k, ≤1,000 64k, then unlimited 128k.
+ * graduated Fleet licence plus the hardware the load takes: 1 GH200 per
+ * ~200 people (€14–18k each) and a CPU server per ~150 (€6.5–7.5k each,
+ * two minimum). The licence is graduated (siteData.ts), so each team pays
+ * only for the people in each band: it comes to €10k at 50, €15k at 100,
+ * €24k at 200, €29k at 300, €35k at 400, €40k at 500, €45k at 600, €64k at
+ * 1,000, €112k at 2,000 and €128k (the capped ceiling) by ~2,330. The old
+ * stepped bands doubled at each edge; the graduated licence does not.
  *
  * The 200-person row is the measured/modelled anchor (BAND_200, 1 GH200);
  * the rows above 1,000 people scale that sizing linearly and are MODELLED,
  * not measured — the page says so. The table shows every row; the chart
  * (AgentCoreFigures) plots only the rows ≤600, where the two lines are
  * still legible side by side. Do not edit a number without redoing the
- * sum: licence from FLEET_PRICES, hardware from the per-unit rates above.
+ * sum: licence = graduatedPrice(FLEET_PRICES, people), hardware from the
+ * per-unit rates above (low = €14k GPU + €6.5k server; high = €18k + €7.5k).
  */
 export const USAGE: { people: number; aws: number; igni: [number, number]; hw: string }[] = [
-  { people: 50, aws: 29, igni: [37, 43], hw: '1 GH200, 2 servers · ≤50 licence' },
-  { people: 100, aws: 55, igni: [42, 48], hw: '1 GH200, 2 servers · ≤100 licence' },
-  { people: 200, aws: 107, igni: [51, 57], hw: '1 GH200, 2 servers · ≤200 licence' },
-  { people: 300, aws: 159, igni: [81, 91], hw: '2 GH200, 2 servers · ≤500 licence' },
-  { people: 400, aws: 211, igni: [88, 98], hw: '2 GH200, 3 servers · ≤500 licence' },
-  { people: 500, aws: 263, igni: [108, 124], hw: '3 GH200, 4 servers · ≤500 licence' },
-  { people: 600, aws: 315, igni: [132, 148], hw: '3 GH200, 4 servers · ≤1,000 licence' },
-  { people: 1000, aws: 523, igni: [180, 207], hw: '5 GH200, 7 servers · ≤1,000 licence' },
-  { people: 2000, aws: 1043, igni: [359, 413], hw: '10 GH200, 14 servers · unlimited licence' },
-  { people: 5000, aws: 2603, igni: [699, 833], hw: '25 GH200, 34 servers · unlimited licence' },
+  { people: 50, aws: 29, igni: [37, 43], hw: '1 GH200, 2 servers · €10k licence' },
+  { people: 100, aws: 55, igni: [42, 48], hw: '1 GH200, 2 servers · €15k licence' },
+  { people: 200, aws: 107, igni: [51, 57], hw: '1 GH200, 2 servers · €24k licence' },
+  { people: 300, aws: 159, igni: [70, 80], hw: '2 GH200, 2 servers · €29k licence' },
+  { people: 400, aws: 211, igni: [82, 93], hw: '2 GH200, 3 servers · €35k licence' },
+  { people: 500, aws: 263, igni: [108, 124], hw: '3 GH200, 4 servers · €40k licence' },
+  { people: 600, aws: 315, igni: [113, 129], hw: '3 GH200, 4 servers · €45k licence' },
+  { people: 1000, aws: 523, igni: [180, 207], hw: '5 GH200, 7 servers · €64k licence' },
+  { people: 2000, aws: 1043, igni: [343, 397], hw: '10 GH200, 14 servers · €112k licence' },
+  { people: 5000, aws: 2603, igni: [699, 833], hw: '25 GH200, 34 servers · €128k licence (capped)' },
 ]
 
 /* ── Speed ────────────────────────────────────────────────────────── */

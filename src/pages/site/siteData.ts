@@ -21,23 +21,33 @@ export function mailto(subject: string): string {
 /* ── The price list ───────────────────────────────────────────────
  *
  * From the product catalogue. Modules are sold separately and never
- * bundled; each is banded once on the people who use it, readers are
- * free, and apps and agents are never counted. Fixed annual fees, EUR,
- * list prices.
+ * bundled; each is priced once on the people who use it, readers are
+ * free, and apps and agents are never counted. Annual fees, EUR, list
+ * prices. Fleet is a shipped module on the same scale as the other two.
  *
- * Fleet is quoted as a shipped module at the catalogue's Fleet prices,
- * on the same bands as the other two.
+ * Decided 2026-11-06: the licence is GRADUATED, not stepped. Each band's
+ * per-seat rate applies only to the seats that fall inside it, and a
+ * team's fee is the sum across the bands it spans — so adding one person
+ * never reprices the whole base, and the old cliffs (200→201, 1,000→1,001)
+ * are gone. The six figures below are the price AT each band's ceiling and
+ * stay the published anchors; the price between two ceilings is linear.
+ * Because the rates are derived from these anchors, every total at 50, 100,
+ * 200, 500 and 1,000 people is unchanged — the change only ever lowers the
+ * in-between prices it used to round up to the next band.
  *
- * A sixth band, 1,000+, is unlimited at
- * twice the 1,000 band's price, replacing "per extra 1,000". Fleet's apps
- * are capped: each band includes as many app agents as people, at a time.
- * An app's end-user spaces count as apps; removing one frees its place,
- * and a new one past the cap is refused. The unlimited band has no cap.
+ * Above 1,000 people the top band's per-seat rate continues as an overage,
+ * capped at the unlimited price (what used to be "twice the 1,000 band").
+ * Fleet's apps are capped at as many app agents as people, at a time; an
+ * app's end-user spaces count as apps, removing one frees its place, and a
+ * new one past the cap is refused. Above 1,000 people there is no app cap.
  */
 export const BANDS = [50, 100, 200, 500, 1000, Infinity] as const
 
 /** Index of the unlimited band. */
 export const UNLIMITED = BANDS.length - 1
+
+/** The seat ceilings of the finite bands — BANDS without the unlimited tail. */
+export const SEAT_CEILINGS = BANDS.slice(0, UNLIMITED) as readonly number[]
 
 export const CODEINDEX_PRICES = [12_000, 18_000, 28_000, 45_000, 70_000, 140_000]
 export const ARTIFACTS_PRICES = [8_000, 13_000, 22_000, 36_000, 56_000, 112_000]
@@ -47,14 +57,61 @@ export const FLEET_PRICES = [10_000, 15_000, 24_000, 40_000, 64_000, 128_000]
 // is a flat yearly licence: your expert guides it through dataset,
 // tuning, evaluation and improvement, for any number of models.
 // Autopilot improves the models from real users' conversations with no
-// one in the loop, banded by the people whose conversations it uses,
-// at Fleet's prices. Autopilot sits on top of the Factory and is never
+// one in the loop, priced by the people whose conversations it uses,
+// at Fleet's rates. Autopilot sits on top of the Factory and is never
 // sold without it.
 export const FACTORY_PER_YEAR = 40_000
 export const AUTOPILOT_PRICES = [10_000, 15_000, 24_000, 40_000, 64_000, 128_000]
 
-/** The cheapest entry on the list: one module, smallest band. */
-export const MODULE_FROM = Math.min(CODEINDEX_PRICES[0], ARTIFACTS_PRICES[0])
+/* ── Graduated pricing ─────────────────────────────────────────────
+ *
+ * `marginalRates` turns a price list's ceiling anchors into the per-seat
+ * rate within each band; `graduatedPrice` sums those rates across the
+ * bands a team spans and caps the result at the unlimited price. Both are
+ * pure functions of the anchor arrays above, so the whole site — the
+ * estimator, the rate card, the comparison page — stays in step with one
+ * edit to a price list.
+ */
+
+/** The marginal €/seat within each finite band, derived from the anchors. */
+export function marginalRates(prices: readonly number[]): number[] {
+  return SEAT_CEILINGS.map((ceil, i) => {
+    const lowPrice = i === 0 ? 0 : prices[i - 1]
+    const lowSeat = i === 0 ? 0 : SEAT_CEILINGS[i - 1]
+    return (prices[i] - lowPrice) / (ceil - lowSeat)
+  })
+}
+
+/** The overage €/seat above the top finite band: the top band's own rate. */
+export function overageRate(prices: readonly number[]): number {
+  const rates = marginalRates(prices)
+  return rates[rates.length - 1]
+}
+
+/** The annual licence, in euros, for `people` under the graduated model. */
+export function graduatedPrice(prices: readonly number[], people: number): number {
+  if (people <= 0) return 0
+  const rates = marginalRates(prices)
+  let total = 0
+  let prev = 0
+  for (let i = 0; i < SEAT_CEILINGS.length; i++) {
+    const ceil = SEAT_CEILINGS[i]
+    const seats = Math.min(people, ceil) - prev
+    if (seats > 0) total += seats * rates[i]
+    prev = ceil
+    if (people <= ceil) return Math.round(total)
+  }
+  // Above the top finite band: overage at the top band's rate, capped at
+  // the unlimited price.
+  const overage = (people - prev) * rates[rates.length - 1]
+  return Math.round(Math.min(total + overage, prices[UNLIMITED]))
+}
+
+/** The cheapest way onto the platform: the lowest first-band per-seat rate. */
+export const MODULE_FROM_PER_SEAT = Math.min(
+  marginalRates(CODEINDEX_PRICES)[0],
+  marginalRates(ARTIFACTS_PRICES)[0],
+)
 
 export const eur = new Intl.NumberFormat('en-IE', {
   style: 'currency',
@@ -67,25 +124,16 @@ export function eurK(n: number): string {
   return `€${Math.round(n / 1000)}k`
 }
 
-/** A band's label: "≤ 50 people", "≤ 50 developers", or "Unlimited people". */
-export function bandLabel(i: number, unit = 'people'): string {
-  if (i === UNLIMITED) return `Unlimited ${unit}`
-  return `≤ ${BANDS[i].toLocaleString('en-US')} ${unit}`
+/** A per-seat rate as money: "€240". Rates are whole euros by construction. */
+export function eurSeat(n: number): string {
+  return eur.format(Math.round(n))
 }
 
-/** A band's short name for a picker: "≤ 50", or "" for the unlimited band, which shows the infinity icon. */
-export function bandShort(i: number): string {
-  return i === UNLIMITED ? '' : `≤ ${BANDS[i].toLocaleString('en-US')}`
-}
-
-/** What a screen reader says for a band's picker button. */
-export function bandSpoken(i: number): string {
-  return i === UNLIMITED ? 'Unlimited' : `Up to ${BANDS[i].toLocaleString('en-US')}`
-}
-
-/** What Fleet includes for apps in a band. */
-export function fleetApps(i: number): string {
-  return i === UNLIMITED ? 'apps unlimited' : `up to ${BANDS[i].toLocaleString('en-US')} apps at a time`
+/** A rate-card row's seat range: "1–50", "51–100", … "1,000+". */
+export function seatRange(i: number): string {
+  if (i === UNLIMITED) return `${SEAT_CEILINGS[UNLIMITED - 1].toLocaleString('en-US')}+`
+  const lo = i === 0 ? 1 : SEAT_CEILINGS[i - 1] + 1
+  return `${lo.toLocaleString('en-US')}–${SEAT_CEILINGS[i].toLocaleString('en-US')}`
 }
 
 /*

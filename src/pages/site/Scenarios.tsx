@@ -13,7 +13,7 @@ import {
   ServerIcon,
   SyncIcon,
 } from '@primer/octicons-react'
-import { BANDS, CODEINDEX_PRICES, ARTIFACTS_PRICES, FLEET_PRICES, FACTORY_PER_YEAR, AUTOPILOT_PRICES, eurK } from './siteData'
+import { CODEINDEX_PRICES, ARTIFACTS_PRICES, FLEET_PRICES, FACTORY_PER_YEAR, AUTOPILOT_PRICES, eurK, eurSeat, marginalRates } from './siteData'
 
 /* ── Fleet, drawn ─────────────────────────────────────────────────
  *
@@ -142,7 +142,7 @@ const SCENARIOS: Scenario[] = [
       label: 'of changes directly mergeable. Claude Code on Opus 4.7: 52%.',
       source: 'Ignite Ember benchmark: 12 tasks, 5 runs each, igni with CodeIndex on the open-weight MiniMax-M2.7, at about 1/80th the cost per run.',
     },
-    price: `${eurK(CODEINDEX_PRICES[0])} a year for up to ${BANDS[0]} developers`,
+    price: `${eurSeat(marginalRates(CODEINDEX_PRICES)[0])} a developer a year, less at scale`,
     mock: (
       <div className="lp-mock lp-mock-pr">
         <div className="lp-mock-bar">
@@ -186,7 +186,7 @@ const SCENARIOS: Scenario[] = [
       value: '1 change',
       label: 'flags every document built on it, furthest behind first.',
     },
-    price: `${eurK(ARTIFACTS_PRICES[0])} a year for up to ${BANDS[0]} people. Readers are free.`,
+    price: `${eurSeat(marginalRates(ARTIFACTS_PRICES)[0])} a person a year, less at scale. Readers are free.`,
     mock: (
       <div className="lp-mock lp-mock-doc">
         <div className="lp-mock-bar">
@@ -232,7 +232,7 @@ const SCENARIOS: Scenario[] = [
       label: 'for a paused agent to answer. Under 150 ms from disk.',
       source: 'Ignite Ember\u2019s tests on one bare-metal server running real igni agents: median first answer after waking.',
     },
-    price: `${eurK(FLEET_PRICES[0])} a year for up to ${BANDS[0]} people`,
+    price: `${eurSeat(marginalRates(FLEET_PRICES)[0])} a person a year, less at scale`,
     mock: <FleetGrid />,
   },
   {
@@ -247,7 +247,7 @@ const SCENARIOS: Scenario[] = [
       value: eurK(FACTORY_PER_YEAR),
       label: 'a year for the Factory, for as many domain models as you build.',
     },
-    price: `${eurK(FACTORY_PER_YEAR)} a year; Autopilot from ${eurK(AUTOPILOT_PRICES[0])} a year`,
+    price: `${eurK(FACTORY_PER_YEAR)} a year; Autopilot from ${eurSeat(marginalRates(AUTOPILOT_PRICES)[0])} a person a year`,
     mock: (
       <div className="lp-mock lp-mock-eval">
         <div className="lp-mock-bar">

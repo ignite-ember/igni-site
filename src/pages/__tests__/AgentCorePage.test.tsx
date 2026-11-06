@@ -20,7 +20,7 @@ import userEvent from '@testing-library/user-event'
 import { Route, Routes } from 'react-router-dom'
 import { renderWithProviders } from '../../test/render'
 import { AgentCorePage } from '../AgentCorePage'
-import { AUTOPILOT_PRICES, BANDS, FACTORY_EVAL, FACTORY_PER_YEAR, FLEET_PRICES } from '../site/siteData'
+import { AUTOPILOT_PRICES, FACTORY_EVAL, FACTORY_PER_YEAR, FLEET_PRICES, graduatedPrice } from '../site/siteData'
 import { BAND_200, COST_BARS, COST_SCALE, COVERAGE, USAGE, WAKE, WAKE_MAX_MS, countFull } from '../compare/agentcoreData'
 
 beforeEach(() => {
@@ -147,15 +147,17 @@ describe('igni’s side is the price list', () => {
   test('the page prints them', () => {
     renderPage()
     const t = text()
-    expect(t).toMatch(/€24k for up to 200/)
+    expect(t).toMatch(/€24k at 200/)
     expect(t).toMatch(/\+40k/)
     expect(t).toMatch(new RegExp(`passed ${FACTORY_EVAL.tuned} of ${FACTORY_EVAL.total}`))
   })
 
-  test('igni’s range includes the band licence at every team size', () => {
+  test('igni’s range includes the graduated licence at every team size', () => {
+    // The licence is now graduated: the fee at a given headcount is the sum
+    // across the bands the team spans, so igni's low end must clear it plus
+    // some hardware — never fall below the licence alone.
     for (const u of USAGE) {
-      const band = BANDS.findIndex((b) => u.people <= b)
-      expect(u.igni[0]).toBeGreaterThan(FLEET_PRICES[band] / 1000)
+      expect(u.igni[0]).toBeGreaterThan(graduatedPrice(FLEET_PRICES, u.people) / 1000)
     }
   })
 })

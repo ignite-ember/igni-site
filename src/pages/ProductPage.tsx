@@ -13,7 +13,6 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import {
   ARTIFACTS_PRICES,
   AUTOPILOT_PRICES,
-  BANDS,
   CALENDLY_URL,
   CONTACT_EMAIL,
   CODEINDEX_PRICES,
@@ -21,13 +20,17 @@ import {
   FACTORY_PER_YEAR,
   FLEET_PRICES,
   PRODUCTS,
+  UNLIMITED,
   eur,
   eurK,
+  eurSeat,
+  marginalRates,
+  overageRate,
+  seatRange,
   mailto,
 } from './site/siteData'
 import { SiteFooter, SiteNav } from './site/SiteChrome'
 import { ScenarioMock } from './site/Scenarios'
-import { BandName } from './site/BandName'
 import { CodeIndexEval, FactoryEval } from './site/Evals'
 import './landing-shared.css'
 import './LandingPage.css'
@@ -80,7 +83,7 @@ const PRODUCT_LIST: Product[] = [
     tone: 'orange',
     title: 'Answers and reviews from a map of your code',
     lead: 'CodeIndex reads your repositories and gives igni’s agent a graph of them: every file and function, what calls what, and a summary, quality and security note for each. The agent queries the graph instead of searching text, so it answers more questions correctly and spends fewer tokens doing it.',
-    price: `${eurK(CODEINDEX_PRICES[0])} a year for up to ${BANDS[0]} developers`,
+    price: `${eurSeat(marginalRates(CODEINDEX_PRICES)[0])} a developer a year, less at scale`,
     licensed: 'Licensed on the developers who use it.',
     points: [
       { title: 'Questions about the whole codebase', desc: 'Which files reach a dangerous sink, what swallows errors, what is depended on but untested. The agent answers from the graph, with file and line.' },
@@ -123,7 +126,7 @@ const PRODUCT_LIST: Product[] = [
     tone: 'orange',
     title: 'Documents that know what they were built on',
     lead: 'Artifacts keeps the documents igni’s agent writes — design notes, decision records, policies — with their versions, comments and drafts. It records which version of which source each one was built on, so when a source changes you can see every document that now stands on an old version.',
-    price: `${eurK(ARTIFACTS_PRICES[0])} a year for up to ${BANDS[0]} people`,
+    price: `${eurSeat(marginalRates(ARTIFACTS_PRICES)[0])} a person a year, less at scale`,
     licensed: 'Licensed on the people who change documents. Readers are free.',
     points: [
       { title: 'Shared, versioned documents', desc: 'Every version, comment and draft is kept. A document starts private, and its owner chooses who may open it.' },
@@ -189,7 +192,7 @@ const PRODUCT_LIST: Product[] = [
         always on, isolated per person or app, and reachable by your systems.
       </>
     ),
-    price: `${eurK(FLEET_PRICES[0])} a year for up to ${BANDS[0]} people`,
+    price: `${eurSeat(marginalRates(FLEET_PRICES)[0])} a person a year, less at scale`,
     licensed: 'Licensed on the people who use it, with as many app agents included.',
     points: [
       { title: 'One cloud VM per person or app', desc: 'Each agent works in its own Firecracker microVM, with its own workspace. The VM is the boundary between people.' },
@@ -247,7 +250,7 @@ const PRODUCT_LIST: Product[] = [
       'Hosts are registered by an operator rather than registering themselves.',
       'The organisation’s quota of awake time is recorded, not enforced.',
     ],
-    prices: { kind: 'bands', unit: 'people', values: FLEET_PRICES, note: 'Each band includes as many app agents as people, at a time. An app\u2019s end users count as apps. Remove one and its place is free for a new one; past the cap, a new one is refused until you do or move up a band. The unlimited tier has no limit on either.' },
+    prices: { kind: 'bands', unit: 'people', values: FLEET_PRICES, note: 'Fleet includes as many app agents as people licensed, at a time. An app\u2019s end users count as apps. Remove one and its place is free for a new one; past the cap, a new one is refused until you do or licence more people. Above 1,000 people there is no app cap.' },
     docs: [{ slug: 'fleet', title: 'Fleet: an agent in a microVM for every person and app' }],
     related: [{ href: COMPARE_AGENTCORE, title: 'igni + Fleet vs AWS Bedrock AgentCore' }],
   },
@@ -260,7 +263,7 @@ const PRODUCT_LIST: Product[] = [
     title: 'A model for your domain, accepted only if it passes your test',
     lead: 'The Factory turns your own data into a model for one area of work, such as engineering, legal or risk. Your expert guides it as it builds and scores a dataset, fine-tunes an open-weight base model, and evaluates the result against a test you froze before tuning began. It runs inside your network and makes no external calls.',
     price: `${eurK(FACTORY_PER_YEAR)} a year for any number of models`,
-    licensed: `Autopilot, on top: from ${eurK(AUTOPILOT_PRICES[0])} a year for up to ${BANDS[0]} people.`,
+    licensed: `Autopilot, on top: ${eurSeat(marginalRates(AUTOPILOT_PRICES)[0])} a person a year, less at scale.`,
     points: [
       { title: 'Your test decides', desc: 'You freeze an evaluation set before anything is built. A model is accepted only if it passes it.' },
       { title: 'Yours to keep', desc: 'The weights, the dataset and the evaluation set. A model has no licence key and no expiry, and keeps running if you stop paying.' },
@@ -289,7 +292,7 @@ const PRODUCT_LIST: Product[] = [
       'The Factory you run in your own network is being packaged. igni 1.0 4B was built with its pipeline at Ignite Ember.',
       'Autopilot is in build.',
     ],
-    prices: { kind: 'flat', note: `${eur.format(FACTORY_PER_YEAR)} a year for any number of models. Autopilot is banded like Fleet, from ${eur.format(AUTOPILOT_PRICES[0])} a year, and is sold only with the Factory.` },
+    prices: { kind: 'flat', note: `${eur.format(FACTORY_PER_YEAR)} a year for any number of models. Autopilot is priced like Fleet, from ${eurSeat(marginalRates(AUTOPILOT_PRICES)[0])} a person a year and graduated by headcount, and is sold only with the Factory.` },
     docs: [{ slug: 'models-and-the-factory', title: 'Models and the Factory' }],
   },
 ]
@@ -299,25 +302,37 @@ function PriceBlock({ p }: { p: Product }) {
     return <p className="lp-prod-flat">{p.prices.note}</p>
   }
   const { unit, values, note } = p.prices
+  const perUnit = unit === 'developers' ? 'a developer' : 'a person'
   return (
     <div className="lp-table-wrap lp-prod-table">
-      <table className="lp-table">
+      <table className="lp-table lp-ratecard">
         <thead>
           <tr>
-            <th>{unit[0].toUpperCase() + unit.slice(1)} who use it</th>
-            <th>Per year</th>
+            <th>Team size</th>
+            <th>Rate, {perUnit} a year</th>
+            <th>At the top of the band</th>
           </tr>
         </thead>
         <tbody>
-          {values.map((v, i) => (
-            <tr key={v}>
-              <td><BandName i={i} unit={unit} /></td>
-              <td>{eur.format(v)}</td>
-            </tr>
-          ))}
+          {values.map((v, i) => {
+            const last = i === UNLIMITED
+            const rate = last ? overageRate(values) : marginalRates(values)[i]
+            return (
+              <tr key={i}>
+                <td>{seatRange(i)}</td>
+                <td>{eurSeat(rate)}</td>
+                <td>{last ? `up to ${eur.format(v)}` : eur.format(v)}</td>
+              </tr>
+            )
+          })}
         </tbody>
       </table>
-      {note && <p className="lp-note">{note}</p>}
+      <p className="lp-note">
+        Graduated: each band&rsquo;s rate applies only to the people in it, so the fee is
+        the sum across the bands your team spans — adding people never reprices those
+        below them. Above 1,000 the top rate continues, capped at {eur.format(values[UNLIMITED])} a
+        year.{note ? ` ${note}` : ''}
+      </p>
     </div>
   )
 }
