@@ -228,6 +228,15 @@ function lineAmounts(): number[] {
   )
 }
 
+/**
+ * The yearly total on one quote line, read from its `<strong>`. The line's
+ * `<em>` also carries the blended per-person rate ("· €109 each"), so the
+ * whole-line text holds two euro amounts; the total is the one in `<strong>`.
+ */
+function lineTotal(cls: string): number {
+  return eurosIn(quote().querySelector(`${cls} strong`)?.textContent ?? '')[0]
+}
+
 async function pickPreset(user: ReturnType<typeof userEvent.setup>, label: RegExp) {
   await user.click(screen.getByRole('button', { name: label }))
 }
@@ -251,7 +260,7 @@ describe('the quote adds up', () => {
 
     await user.click(screen.getByRole('checkbox', { name: /Factory/ }))
 
-    const line = eurosIn(quote().querySelector('.lp-est-line-factory')?.textContent ?? '')[0]
+    const line = lineTotal('.lp-est-line-factory')
     expect(line).toBe(40_000)
     expect(annualTotal()).toBe(before + line)
   })
@@ -281,7 +290,7 @@ describe('the quote adds up', () => {
     await user.clear(autopilot)
     await user.type(autopilot, '50')
 
-    const line = eurosIn(quote().querySelector('.lp-est-line-autopilot')?.textContent ?? '')[0]
+    const line = lineTotal('.lp-est-line-autopilot')
     expect(line).toBe(graduatedPrice(AUTOPILOT_PRICES, 50))
     expect(annualTotal()).toBe(before + line)
   })
@@ -295,9 +304,30 @@ describe('the quote adds up', () => {
     await user.clear(fleet)
     await user.type(fleet, '240')
 
-    const fleetLine = eurosIn(quote().querySelector('.lp-est-line-fleet')?.textContent ?? '')[0]
+    const fleetLine = lineTotal('.lp-est-line-fleet')
     expect(fleetLine).toBe(graduatedPrice(FLEET_PRICES, 240))
     expect(annualTotal()).toBe(before + fleetLine)
+  })
+
+  test('the quote shows the blended per-person rate, and it falls as seats are added', async () => {
+    // "Price per 1": each line prints the yearly total and, beside the
+    // headcount, the effective rate per person — which drops as a larger
+    // team spans into the cheaper bands, so the discount is visible.
+    const user = userEvent.setup()
+    renderLanding()
+    const fleet = screen.getByRole('spinbutton', { name: /Fleet: people/ })
+
+    const perPersonAt = async (people: number) => {
+      await user.clear(fleet)
+      await user.type(fleet, String(people))
+      const em = quote().querySelector('.lp-est-line-fleet em')?.textContent ?? ''
+      const each = eurosIn(em)
+      expect(each, `€ each for ${people}`).toHaveLength(1)
+      expect(each[0]).toBe(Math.round(graduatedPrice(FLEET_PRICES, people) / people))
+      return each[0]
+    }
+
+    expect(await perPersonAt(1000)).toBeLessThan(await perPersonAt(50))
   })
 
   test('a mid-band headcount is cheaper than the band ceiling it used to round up to', async () => {
@@ -310,7 +340,7 @@ describe('the quote adds up', () => {
     await user.clear(fleet)
     await user.type(fleet, '240')
 
-    const line = eurosIn(quote().querySelector('.lp-est-line-fleet')?.textContent ?? '')[0]
+    const line = lineTotal('.lp-est-line-fleet')
     expect(line).toBeGreaterThan(24_000)
     expect(line).toBeLessThan(40_000)
   })

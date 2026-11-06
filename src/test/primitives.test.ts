@@ -63,7 +63,9 @@ const CEILINGS: Record<string, number> = {
   // graduated per-seat headcount input, adding the number field, its
   // "Not now" toggle, the inline price and the rate-card table — control
   // sizes (field widths, font sizes, the 10px radius) with no primitive.
-  'pages/LandingPage.css': 794,
+  // +1 on 2026-11-06: the blended per-person rate ("€109 each") under the
+  // estimator total — a 12px brand font-size, as the sizes beside it are.
+  'pages/LandingPage.css': 795,
   // +3 on 2026-11-03: breakpoints for the stacked prev/next, the
   // narrow-screen table of contents and the phone pass.
   'pages/DocsPage.css': 100,

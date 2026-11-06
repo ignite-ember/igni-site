@@ -146,6 +146,9 @@ function HeadcountField({
 }) {
   const on = value !== null
   const price = on ? graduatedPrice(prices, value) : 0
+  // The blended rate per person at this headcount: it falls as seats are
+  // added, which is the graduated discount made visible.
+  const each = on && value ? price / value : 0
   return (
     <div className={`lp-est-field${tone ? ` lp-est-field--${tone}` : ''}`}>
       <label className="lp-est-label" htmlFor={`${id}-input`}>
@@ -177,7 +180,14 @@ function HeadcountField({
         />
         <span className="lp-est-count-unit">{unit}</span>
         <span className="lp-est-count-price" id={`${id}-price`} aria-live="polite">
-          {on ? `${eur.format(price)}/yr` : ''}
+          {on ? (
+            <>
+              {eur.format(price)}/yr
+              <small className="lp-est-count-each">{eurSeat(each)} each</small>
+            </>
+          ) : (
+            ''
+          )}
         </span>
       </div>
     </div>
@@ -291,7 +301,10 @@ function DealEstimator() {
             <li className="lp-est-line-codeindex">
               <span>
                 CodeIndex
-                <em>{deal.codeindex.toLocaleString('en-US')} developers</em>
+                <em>
+                  {deal.codeindex.toLocaleString('en-US')} developers ·{' '}
+                  {eurSeat(annual.codeindex / deal.codeindex)} each
+                </em>
               </span>
               <strong>{eur.format(annual.codeindex)}</strong>
             </li>
@@ -300,7 +313,10 @@ function DealEstimator() {
             <li className="lp-est-line-artifacts">
               <span>
                 Artifacts
-                <em>{deal.artifacts.toLocaleString('en-US')} people</em>
+                <em>
+                  {deal.artifacts.toLocaleString('en-US')} people ·{' '}
+                  {eurSeat(annual.artifacts / deal.artifacts)} each
+                </em>
               </span>
               <strong>{eur.format(annual.artifacts)}</strong>
             </li>
@@ -309,7 +325,10 @@ function DealEstimator() {
             <li className="lp-est-line-fleet">
               <span>
                 Fleet
-                <em>{deal.fleet.toLocaleString('en-US')} people, as many apps</em>
+                <em>
+                  {deal.fleet.toLocaleString('en-US')} people, as many apps ·{' '}
+                  {eurSeat(annual.fleet / deal.fleet)} each
+                </em>
               </span>
               <strong>{eur.format(annual.fleet)}</strong>
             </li>
@@ -327,7 +346,10 @@ function DealEstimator() {
             <li className="lp-est-line-autopilot">
               <span>
                 Autopilot
-                <em>{deal.autopilot.toLocaleString('en-US')} people</em>
+                <em>
+                  {deal.autopilot.toLocaleString('en-US')} people ·{' '}
+                  {eurSeat(annual.autopilot / deal.autopilot)} each
+                </em>
               </span>
               <strong>{eur.format(annual.autopilot)}</strong>
             </li>

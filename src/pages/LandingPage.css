@@ -1523,10 +1523,22 @@
 
 .lp-est-count-price {
   margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.25;
   font-size: 14px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--igni-orange-text);
+}
+
+/* The blended per-person rate under the yearly total: the discount made
+   visible as seats are added. Muted, so the total stays the headline. */
+.lp-est-count-each {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fgColor-muted);
 }
 
 /* Each field in its module's colour, as on the cards above it. */
