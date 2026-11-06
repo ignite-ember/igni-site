@@ -139,6 +139,6 @@ test.describe('the deal estimator', () => {
     await expect(total).toHaveText('€40,000')
 
     await page.getByRole('button', { name: /Several departments/ }).click()
-    await expect(total).toHaveText('€141,000')
+    await expect(total).toHaveText('€143,000')
   })
 })

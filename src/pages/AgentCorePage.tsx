@@ -627,8 +627,9 @@ export function AgentCorePage() {
             only people: the app agents a Fleet licence includes and the parallel subagent runs an
             agent spawns load the same GPUs too. AgentCore bills every session, token and busy
             vCPU; igni&rsquo;s figure &mdash; the graduated Fleet licence plus the hardware the
-            load takes &mdash; rises gently per seat and steps only as GPUs and servers are added,
-            never with a token. Open-weight model, € a year; figures above 1,000 people are
+            load takes &mdash; rises gently per seat, reaching its €128k ceiling at 3,000
+            people and flat above that: past 3,000 only the hardware grows, never the licence
+            and never a token. Open-weight model, € a year; figures above 1,000 people are
             modelled. The chart zooms into 50&ndash;600; the table runs to 5,000.
           </p>
           <RTable
@@ -639,17 +640,17 @@ export function AgentCorePage() {
           />
           <Figure
             title="Cost as the team grows"
-            caption="€ a year, open-weight model, 50 to 600 people at the heavy per-person rate — with the apps and parallel runs that load the same GPUs (the table above runs to 5,000). AgentCore rises with every person; igni rises gently with its per-seat licence, stepping only as GPUs and servers are added."
+            caption="€ a year, open-weight model, 50 to 600 people at the heavy per-person rate — with the apps and parallel runs that load the same GPUs (the table above runs to 5,000). AgentCore rises with every person; igni rises gently with its per-seat licence to a €128k ceiling at 3,000 people, flat above that, with only the hardware growing."
           >
             <UsageChart />
           </Figure>
           <p className="cmp-note">
             Below about 70 people AgentCore is cheaper; above it igni costs less, and the gap
-            widens with scale &mdash; more than twice as cheap at 600 people, and about three
+            widens with scale &mdash; more than twice as cheap at 600 people, and more than three
             times at 5,000 (table above) &mdash; because
             AgentCore&rsquo;s bill grows with every person, app and parallel run, while
-            igni&rsquo;s grows gently with its per-seat licence, stepping only as a GPU or server
-            is added. igni can also
+            igni&rsquo;s per-seat licence rises gently to its €128k ceiling at 3,000 and is flat
+            above it, so past 3,000 only a GPU or server is ever added. igni can also
             use Claude or GPT through their APIs where policy allows; the token bill is then the
             same as on AgentCore, and igni&rsquo;s fixed licence replaces AgentCore&rsquo;s
             runtime charges.

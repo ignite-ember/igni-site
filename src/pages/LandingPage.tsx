@@ -21,7 +21,55 @@ import {
   WorkflowIcon,
 } from '@primer/octicons-react'
 import { IgniLogo } from '../components/IgniLogo'
-import { CALENDLY_URL, CONTACT_EMAIL, mailto, CODEINDEX_PRICES, ARTIFACTS_PRICES, FLEET_PRICES, FACTORY_PER_YEAR, AUTOPILOT_PRICES, MODULE_FROM_PER_SEAT, SEAT_MINIMUM, graduatedPrice, marginalRates, overageRate, UNLIMITED, eur, eurK, eurSeat, seatRange } from './site/siteData'
+import { CALENDLY_URL, CONTACT_EMAIL, mailto, CODEINDEX_PRICES, ARTIFACTS_PRICES, FLEET_PRICES, FACTORY_PER_YEAR, AUTOPILOT_PRICES, MODULE_FROM_PER_SEAT, SEAT_MINIMUM, SEAT_CEILINGS, graduatedPrice, marginalRates, UNLIMITED, eur, eurK, eurSeat, seatRange } from './site/siteData'
+
+/**
+ * The estimator shows the same priced band tiles the page has always had —
+ * ≤50 … ≤3,000 and a flat 3,000+ tile — and a slider that glides across
+ * them. The slider is split into one equal segment per tile, so the handle
+ * lines up with the tile boundaries; within a segment the headcount moves
+ * linearly between that band's edges. The last segment runs into the overage,
+ * up to where the price reaches each module's cap.
+ */
+const SLIDER_STEPS = 1000
+const OVERAGE_TOP = 10000 // past the 3,000 ceiling the licence is flat; this frames the flat tail
+const BAND_BOUNDS: readonly number[] = [SEAT_MINIMUM, ...SEAT_CEILINGS, OVERAGE_TOP]
+const SEGMENTS = BAND_BOUNDS.length - 1 // 6: one per tile
+
+/** A band tile's label: "≤ 200", or "1,000+" for the overage tile. */
+function bandTileLabel(i: number): string {
+  if (i === UNLIMITED) return `${SEAT_CEILINGS[UNLIMITED - 1].toLocaleString('en-US')}+`
+  return `≤ ${SEAT_CEILINGS[i].toLocaleString('en-US')}`
+}
+
+/** Which tile a headcount sits in (0…UNLIMITED). */
+function bandOf(people: number): number {
+  for (let i = 0; i < SEGMENTS; i++) if (people <= BAND_BOUNDS[i + 1]) return i
+  return UNLIMITED
+}
+
+/** A headcount's position along the slider, 0…1 (tile-aligned). */
+function sliderPosOf(people: number): number {
+  const p = Math.min(Math.max(people, SEAT_MINIMUM), OVERAGE_TOP)
+  const i = bandOf(p)
+  const within = (p - BAND_BOUNDS[i]) / (BAND_BOUNDS[i + 1] - BAND_BOUNDS[i])
+  return (i + within) / SEGMENTS
+}
+
+/** The headcount at a slider position, rounded to a tidy number for its size. */
+function seatsAtPos(pos: number): number {
+  const x = Math.min(0.999999, Math.max(0, pos)) * SEGMENTS
+  const i = Math.min(SEGMENTS - 1, Math.floor(x))
+  const raw = BAND_BOUNDS[i] + (x - i) * (BAND_BOUNDS[i + 1] - BAND_BOUNDS[i])
+  if (raw < 100) return Math.round(raw / 5) * 5
+  if (raw < 500) return Math.round(raw / 10) * 10
+  return Math.round(raw / 25) * 25
+}
+
+/** Clicking a tile jumps to it: the band's ceiling, or just into the overage. */
+function bandTarget(i: number): number {
+  return i === UNLIMITED ? SEAT_CEILINGS[UNLIMITED - 1] + 1 : SEAT_CEILINGS[i]
+}
 import { SiteFooter, SiteNav } from './site/SiteChrome'
 import { SectionHead, StatRow } from './site/Sections'
 import { Scenarios } from './site/Scenarios'
@@ -148,55 +196,95 @@ function HeadcountField({
   const price = on ? graduatedPrice(prices, value) : 0
   // The blended rate per person: it falls as seats are added, which is the
   // graduated discount made visible. Divided by the billed seats (never
-  // below the minimum), so a team under 10 shows the minimum's real rate
-  // rather than an inflated figure.
+  // below the minimum), so a team under 10 shows the minimum's real rate.
   const each = on && value ? price / Math.max(value, SEAT_MINIMUM) : 0
+  const sliderVal = on ? Math.round(sliderPosOf(value) * SLIDER_STEPS) : 0
+  const fillPct = (sliderVal / SLIDER_STEPS) * 100
+  const active = on ? bandOf(value) : -1
   return (
-    <div className={`lp-est-field${tone ? ` lp-est-field--${tone}` : ''}`}>
-      <label className="lp-est-label" htmlFor={`${id}-input`}>
-        {label}
-      </label>
-      <div className="lp-est-count">
-        <button
-          type="button"
-          className={`lp-est-count-off${on ? '' : ' lp-est-count-off--on'}`}
-          aria-pressed={!on}
-          onClick={() => onChange(null)}
-        >
-          Not now
-        </button>
-        <input
-          id={`${id}-input`}
-          className="lp-est-count-input"
-          type="number"
-          min={SEAT_MINIMUM}
-          step={1}
-          inputMode="numeric"
-          placeholder="—"
-          value={value ?? ''}
-          aria-describedby={`${id}-price`}
-          onChange={(e) => {
-            const n = e.target.value.trim()
-            onChange(n === '' ? null : Math.max(1, Math.floor(Number(n) || 0)))
-          }}
-          onBlur={() => {
-            // Licences start at the minimum; a smaller number snaps up to it
-            // when the field is left, so the quote never sits below its floor.
-            if (value !== null && value < SEAT_MINIMUM) onChange(SEAT_MINIMUM)
-          }}
-        />
-        <span className="lp-est-count-unit">{unit}</span>
-        <span className="lp-est-count-price" id={`${id}-price`} aria-live="polite">
-          {on ? (
-            <>
-              {eur.format(price)}/yr
-              <small className="lp-est-count-each">{eurSeat(each)} each</small>
-            </>
-          ) : (
-            ''
-          )}
+    <div className={`lp-est-field${tone ? ` lp-est-field--${tone}` : ''}${on ? '' : ' lp-est-field--off'}`}>
+      <div className="lp-est-topline">
+        <span className="lp-est-label" id={`${id}-label`}>
+          {label}
         </span>
+        <div className="lp-est-readout">
+          <input
+            id={`${id}-input`}
+            className="lp-est-num"
+            type="number"
+            min={SEAT_MINIMUM}
+            step={1}
+            inputMode="numeric"
+            placeholder="—"
+            value={value ?? ''}
+            aria-label={`${label} — exact ${unit}`}
+            onChange={(e) => {
+              const n = e.target.value.trim()
+              onChange(n === '' ? null : Math.max(1, Math.floor(Number(n) || 0)))
+            }}
+            onBlur={() => {
+              // Licences start at the minimum; a smaller number snaps up to it.
+              if (value !== null && value < SEAT_MINIMUM) onChange(SEAT_MINIMUM)
+            }}
+          />
+          <span className="lp-est-numunit">{unit}</span>
+          <span className="lp-est-pricegroup" aria-live="polite">
+            {on ? (
+              <>
+                <span className="lp-est-big">
+                  {eur.format(price)}
+                  <small>/yr</small>
+                </span>
+                <span className="lp-est-each">{eurSeat(each)} each</span>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="lp-est-add"
+                onClick={() => onChange(SEAT_CEILINGS[1])}
+              >
+                Add
+              </button>
+            )}
+          </span>
+          <button
+            type="button"
+            className={`lp-est-off${on ? '' : ' lp-est-off--on'}`}
+            aria-pressed={!on}
+            onClick={() => onChange(null)}
+          >
+            Not now
+          </button>
+        </div>
       </div>
+
+      <div className="lp-est-bands" role="group" aria-labelledby={`${id}-label`}>
+        {prices.map((_, i) => (
+          <button
+            type="button"
+            key={i}
+            className={`lp-est-seg-btn${active === i ? ' lp-est-seg-btn--on' : ''}`}
+            aria-pressed={active === i}
+            onClick={() => onChange(bandTarget(i))}
+          >
+            <span className="lp-est-seg-top">{bandTileLabel(i)}</span>
+            <span className="lp-est-seg-unit">{eurK(prices[i])}</span>
+          </button>
+        ))}
+      </div>
+
+      <input
+        type="range"
+        className="lp-est-range"
+        min={0}
+        max={SLIDER_STEPS}
+        step={1}
+        value={sliderVal}
+        disabled={!on}
+        aria-label={`${label} — headcount slider`}
+        style={{ ['--fill' as string]: `${fillPct}%` }}
+        onChange={(e) => onChange(seatsAtPos(Number(e.target.value) / SLIDER_STEPS))}
+      />
     </div>
   )
 }
@@ -1262,20 +1350,15 @@ export function LandingPage() {
               </tr>
             </thead>
             <tbody>
-              {CODEINDEX_PRICES.map((_, i) => {
-                const last = i === UNLIMITED
-                const rate = (prices: number[]) =>
-                  last ? overageRate(prices) : marginalRates(prices)[i]
-                return (
-                  <tr key={i}>
-                    <td>{seatRange(i)}</td>
-                    <td>{eurSeat(rate(CODEINDEX_PRICES))}</td>
-                    <td>{eurSeat(rate(ARTIFACTS_PRICES))}</td>
-                    <td>{eurSeat(rate(FLEET_PRICES))}</td>
-                    <td>{eurSeat(rate(AUTOPILOT_PRICES))}</td>
-                  </tr>
-                )
-              })}
+              {SEAT_CEILINGS.map((_, i) => (
+                <tr key={i}>
+                  <td>{seatRange(i)}</td>
+                  <td>{eurSeat(marginalRates(CODEINDEX_PRICES)[i])}</td>
+                  <td>{eurSeat(marginalRates(ARTIFACTS_PRICES)[i])}</td>
+                  <td>{eurSeat(marginalRates(FLEET_PRICES)[i])}</td>
+                  <td>{eurSeat(marginalRates(AUTOPILOT_PRICES)[i])}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -1287,14 +1370,12 @@ export function LandingPage() {
           smaller team is billed as {SEAT_MINIMUM}, so the smallest licence is{' '}
           {eur.format(graduatedPrice(FLEET_PRICES, SEAT_MINIMUM))} a year on Fleet,{' '}
           {eur.format(graduatedPrice(CODEINDEX_PRICES, SEAT_MINIMUM))} on CodeIndex and{' '}
-          {eur.format(graduatedPrice(ARTIFACTS_PRICES, SEAT_MINIMUM))} on Artifacts. Above
-          1,000 the top rate continues, capped at each
-          module&rsquo;s ceiling (CodeIndex {eurK(CODEINDEX_PRICES[UNLIMITED])}, Artifacts{' '}
+          {eur.format(graduatedPrice(ARTIFACTS_PRICES, SEAT_MINIMUM))} on Artifacts. The
+          per-seat rate keeps falling as a team grows, reaching each module&rsquo;s ceiling at
+          3,000 people (CodeIndex {eurK(CODEINDEX_PRICES[UNLIMITED])}, Artifacts{' '}
           {eurK(ARTIFACTS_PRICES[UNLIMITED])}, Fleet and Autopilot{' '}
-          {eurK(FLEET_PRICES[UNLIMITED])} a year). So 1,000 people on Fleet is{' '}
-          {eur.format(graduatedPrice(FLEET_PRICES, 1000))} a year and 1,001 is{' '}
-          {eur.format(graduatedPrice(FLEET_PRICES, 1001))} — not{' '}
-          {eur.format(FLEET_PRICES[UNLIMITED])}. List prices in EUR, excluding VAT.
+          {eurK(FLEET_PRICES[UNLIMITED])} a year); above 3,000 the licence is a flat fee, with
+          no further per-person charge. List prices in EUR, excluding VAT.
           Multi-year, multi-module and group-wide agreements are quoted; your integrator
           quotes the final price. No licence fee is due until a pilot meets the criteria
           you agree, as set out below.

@@ -34,6 +34,7 @@ import {
   CODEINDEX_PRICES,
   FLEET_PRICES,
   SEAT_MINIMUM,
+  UNLIMITED,
   graduatedPrice,
   marginalRates,
 } from '../site/siteData'
@@ -394,7 +395,7 @@ describe('the presets are the catalog\u2019s worked examples', () => {
   test.each([
     [/One team/, 12_000],
     [/One department/, 40_000],
-    [/Several departments/, 141_000],
+    [/Several departments/, 143_000],
   ])('%s', async (label, annual) => {
     const user = userEvent.setup()
     renderLanding()
@@ -435,30 +436,32 @@ describe('every place a price appears agrees', () => {
       rates.forEach((rate, i) => {
         expect(rows[i][col], `column ${col} band ${i}`).toBe(Math.round(rate))
       })
-      // The unlimited row continues the top band's rate (the overage).
-      expect(rows.at(-1)![col], `column ${col} overage`).toBe(Math.round(rates[rates.length - 1]))
+      // One row per finite band; the flat fee above the top band is in prose,
+      // not the table. The last row is the 1,001–3,000 band's per-seat rate.
+      expect(rows.length, 'rate-card rows').toBe(rates.length)
     }
   })
 
-  test('the per-seat rate falls as the team grows, and the cap replaces the per-1,000 line', async () => {
+  test('the per-seat rate only ever falls as the team grows, flat above the ceiling', async () => {
     renderLanding()
     const rows = rateRows()
-    const finite = rows.slice(0, -1)
-    for (let i = 1; i < finite.length; i++) {
+    for (let i = 1; i < rows.length; i++) {
       for (let col = 0; col < 4; col++) {
-        expect(finite[i][col], `column ${col} row ${i}`).toBeLessThan(finite[i - 1][col])
+        expect(rows[i][col], `column ${col} row ${i}`).toBeLessThan(rows[i - 1][col])
       }
     }
-    expect(document.getElementById('pricing')?.textContent).toMatch(/capped/)
+    expect(document.getElementById('pricing')?.textContent).toMatch(/flat fee/)
     expect(document.body.textContent).not.toMatch(/Per extra 1,000/)
   })
 
   test('the licence is graduated, not a flat fee per band', async () => {
-    // 1,001 people on Fleet reads just over the €64k anchor, not €128k.
+    // 1,001 people on Fleet reads just over the €66k (1,000) anchor, not a jump:
+    // the band above 1,000 keeps climbing gently to the €128k ceiling at 3,000.
     renderLanding()
-    expect(graduatedPrice(FLEET_PRICES, 1001)).toBeGreaterThan(64_000)
-    expect(graduatedPrice(FLEET_PRICES, 1001)).toBeLessThan(65_000)
-    expect(document.getElementById('pricing')?.textContent).toMatch(/64,048/)
+    expect(graduatedPrice(FLEET_PRICES, 1001)).toBeGreaterThan(66_000)
+    expect(graduatedPrice(FLEET_PRICES, 1001)).toBeLessThan(67_000)
+    expect(graduatedPrice(FLEET_PRICES, 3000)).toBe(FLEET_PRICES[UNLIMITED])
+    expect(graduatedPrice(FLEET_PRICES, 9000)).toBe(FLEET_PRICES[UNLIMITED])
   })
 
   test('Fleet includes as many apps as people', async () => {

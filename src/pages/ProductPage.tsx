@@ -20,6 +20,7 @@ import {
   FACTORY_PER_YEAR,
   FLEET_PRICES,
   PRODUCTS,
+  SEAT_CEILINGS,
   SEAT_MINIMUM,
   UNLIMITED,
   eur,
@@ -27,7 +28,6 @@ import {
   eurSeat,
   graduatedPrice,
   marginalRates,
-  overageRate,
   seatRange,
   mailto,
 } from './site/siteData'
@@ -316,17 +316,13 @@ function PriceBlock({ p }: { p: Product }) {
           </tr>
         </thead>
         <tbody>
-          {values.map((v, i) => {
-            const last = i === UNLIMITED
-            const rate = last ? overageRate(values) : marginalRates(values)[i]
-            return (
-              <tr key={i}>
-                <td>{seatRange(i)}</td>
-                <td>{eurSeat(rate)}</td>
-                <td>{last ? `up to ${eur.format(v)}` : eur.format(v)}</td>
-              </tr>
-            )
-          })}
+          {SEAT_CEILINGS.map((_, i) => (
+            <tr key={i}>
+              <td>{seatRange(i)}</td>
+              <td>{eurSeat(marginalRates(values)[i])}</td>
+              <td>{eur.format(values[i])}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
       <p className="lp-note">
@@ -334,8 +330,9 @@ function PriceBlock({ p }: { p: Product }) {
         the sum across the bands your team spans — adding people never reprices those
         below them. It starts at a {SEAT_MINIMUM}-seat minimum (a smaller team is billed
         as {SEAT_MINIMUM}), so the smallest licence is{' '}
-        {eur.format(graduatedPrice(values, SEAT_MINIMUM))} a year. Above 1,000 the top rate
-        continues, capped at {eur.format(values[UNLIMITED])} a year.{note ? ` ${note}` : ''}
+        {eur.format(graduatedPrice(values, SEAT_MINIMUM))} a year. The per-seat rate keeps
+        falling as the team grows, reaching the ceiling of {eur.format(values[UNLIMITED])} a
+        year at 3,000 people; above 3,000 the licence is a flat fee.{note ? ` ${note}` : ''}
       </p>
     </div>
   )

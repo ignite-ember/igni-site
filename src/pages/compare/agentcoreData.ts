@@ -110,8 +110,9 @@ export const BREAKDOWN: { side: Side; name: string; total: number; parts: { labe
  * ~200 people (€14–18k each) and a CPU server per ~150 (€6.5–7.5k each,
  * two minimum). The licence is graduated (siteData.ts), so each team pays
  * only for the people in each band: it comes to €10k at 50, €15k at 100,
- * €24k at 200, €29k at 300, €35k at 400, €40k at 500, €45k at 600, €64k at
- * 1,000, €112k at 2,000 and €128k (the capped ceiling) by ~2,330. The old
+ * €24k at 200, €29k at 300, €35k at 400, €40k at 500, €45k at 600, €66k at
+ * 1,000 and €97k at 2,000, reaching the €128k ceiling at 3,000. Above 3,000
+ * the licence is flat at €128k — no further per-person charge. The old
  * stepped bands doubled at each edge; the graduated licence does not.
  *
  * The 200-person row is the measured/modelled anchor (BAND_200, 1 GH200);
@@ -130,9 +131,9 @@ export const USAGE: { people: number; aws: number; igni: [number, number]; hw: s
   { people: 400, aws: 211, igni: [82, 93], hw: '2 GH200, 3 servers · €35k licence' },
   { people: 500, aws: 263, igni: [108, 124], hw: '3 GH200, 4 servers · €40k licence' },
   { people: 600, aws: 315, igni: [113, 129], hw: '3 GH200, 4 servers · €45k licence' },
-  { people: 1000, aws: 523, igni: [180, 207], hw: '5 GH200, 7 servers · €64k licence' },
-  { people: 2000, aws: 1043, igni: [343, 397], hw: '10 GH200, 14 servers · €112k licence' },
-  { people: 5000, aws: 2603, igni: [699, 833], hw: '25 GH200, 34 servers · €128k licence (capped)' },
+  { people: 1000, aws: 523, igni: [182, 209], hw: '5 GH200, 7 servers · €66k licence' },
+  { people: 2000, aws: 1043, igni: [328, 382], hw: '10 GH200, 14 servers · €97k licence' },
+  { people: 5000, aws: 2603, igni: [699, 833], hw: '25 GH200, 34 servers · €128k licence (flat)' },
 ]
 
 /* ── Speed ────────────────────────────────────────────────────────── */

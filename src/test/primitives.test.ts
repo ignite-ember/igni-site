@@ -65,7 +65,12 @@ const CEILINGS: Record<string, number> = {
   // sizes (field widths, font sizes, the 10px radius) with no primitive.
   // +1 on 2026-11-06: the blended per-person rate ("€109 each") under the
   // estimator total — a 12px brand font-size, as the sizes beside it are.
-  'pages/LandingPage.css': 795,
+  // Net +24 on 2026-11-06: the deal estimator was rebuilt as priced band
+  // tiles + a range slider (thumb, thin track, fill, readout and tile control
+  // sizes with no Primer token, plus a 40px touch target with a 10px visible
+  // track), replacing the old number-input field whose literals were removed.
+  // Brand marketing control, measured at its values.
+  'pages/LandingPage.css': 821,
   // +3 on 2026-11-03: breakpoints for the stacked prev/next, the
   // narrow-screen table of contents and the phone pass.
   'pages/DocsPage.css': 100,

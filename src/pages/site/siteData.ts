@@ -29,19 +29,24 @@ export function mailto(subject: string): string {
  * per-seat rate applies only to the seats that fall inside it, and a
  * team's fee is the sum across the bands it spans — so adding one person
  * never reprices the whole base, and the old cliffs (200→201, 1,000→1,001)
- * are gone. The six figures below are the price AT each band's ceiling and
+ * are gone. The figures below are the price AT each band's ceiling and
  * stay the published anchors; the price between two ceilings is linear.
  * Because the rates are derived from these anchors, every total at 50, 100,
  * 200, 500 and 1,000 people is unchanged — the change only ever lowers the
  * in-between prices it used to round up to the next band.
  *
- * Above 1,000 people the top band's per-seat rate continues as an overage,
- * capped at the unlimited price (what used to be "twice the 1,000 band").
+ * Above 1,000 people the per-seat rate keeps falling — a gentle final band
+ * from 1,000 to 3,000 — until the licence reaches its ceiling at 3,000
+ * people; above 3,000 it is a flat fee (no further per-person charge). The
+ * ceiling is the old "unlimited" figure (CodeIndex €140k, Artifacts €112k,
+ * Fleet/Autopilot €128k). Every band's per-seat rate is at or below the one
+ * before it, so a bigger team never pays more per head ("less at scale")
+ * right up to the flat ceiling.
  * Fleet's apps are capped at as many app agents as people, at a time; an
  * app's end-user spaces count as apps, removing one frees its place, and a
  * new one past the cap is refused. Above 1,000 people there is no app cap.
  */
-export const BANDS = [50, 100, 200, 500, 1000, Infinity] as const
+export const BANDS = [50, 100, 200, 500, 1000, 3000, Infinity] as const
 
 /** Index of the unlimited band. */
 export const UNLIMITED = BANDS.length - 1
@@ -49,9 +54,14 @@ export const UNLIMITED = BANDS.length - 1
 /** The seat ceilings of the finite bands — BANDS without the unlimited tail. */
 export const SEAT_CEILINGS = BANDS.slice(0, UNLIMITED) as readonly number[]
 
-export const CODEINDEX_PRICES = [12_000, 18_000, 28_000, 45_000, 70_000, 140_000]
-export const ARTIFACTS_PRICES = [8_000, 13_000, 22_000, 36_000, 56_000, 112_000]
-export const FLEET_PRICES = [10_000, 15_000, 24_000, 40_000, 64_000, 128_000]
+// Seven figures: the price at each band ceiling (50/100/200/500/1,000/3,000)
+// then the flat fee above 3,000, which equals the 3,000 ceiling. The 1,000
+// anchor (index 4) is the highest that keeps the 500→1,000 rate ≤ the 200→500
+// rate; the 3,000 ceiling (index 5) is the old unlimited price, reached by a
+// gentler 1,000→3,000 band. Above 3,000 the licence is flat (index 6 = 5).
+export const CODEINDEX_PRICES = [12_000, 18_000, 28_000, 45_000, 72_000, 140_000, 140_000]
+export const ARTIFACTS_PRICES = [8_000, 13_000, 22_000, 36_000, 58_000, 112_000, 112_000]
+export const FLEET_PRICES = [10_000, 15_000, 24_000, 40_000, 66_000, 128_000, 128_000]
 
 // Decided 2026-10-29: the factory is two products. The Factory
 // is a flat yearly licence: your expert guides it through dataset,
@@ -61,7 +71,7 @@ export const FLEET_PRICES = [10_000, 15_000, 24_000, 40_000, 64_000, 128_000]
 // at Fleet's rates. Autopilot sits on top of the Factory and is never
 // sold without it.
 export const FACTORY_PER_YEAR = 40_000
-export const AUTOPILOT_PRICES = [10_000, 15_000, 24_000, 40_000, 64_000, 128_000]
+export const AUTOPILOT_PRICES = [10_000, 15_000, 24_000, 40_000, 66_000, 128_000, 128_000]
 
 /* ── Graduated pricing ─────────────────────────────────────────────
  *

@@ -1463,6 +1463,17 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  /* The module's colour, exactly as on its card: CodeIndex and Artifacts
+     (the extensions) orange, Fleet blue, Factory and Autopilot violet. */
+  --est-accent: var(--lp-orange);
+}
+
+.lp-est-field--fleet {
+  --est-accent: var(--lp-blue);
+}
+
+.lp-est-field--factory {
+  --est-accent: var(--lp-violet);
 }
 
 .lp-est-label {
@@ -1470,23 +1481,97 @@
   font-weight: 600;
 }
 
-.lp-est-count {
+/* ── Priced band tiles + a slider that glides across them ───────── */
+
+.lp-est-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--base-size-12);
+  flex-wrap: wrap;
+}
+
+/* The exact headcount, the yearly price and the on/off control, on the
+   label's line. The tiles below carry the big band prices. */
+.lp-est-readout {
   display: flex;
   align-items: center;
   gap: var(--base-size-8);
   flex-wrap: wrap;
 }
 
-.lp-est-count-off {
+.lp-est-num {
   box-sizing: border-box;
-  /* A minimum tap target of base-size-40; the small label alone left the
-   * button under the phone-touch floor the mobile-layout test enforces. */
+  /* 40px (base-size-40) minimum: a phone-touch target the mobile-layout test enforces. */
+  min-height: var(--base-size-40);
+  /* Wide enough for five- and six-figure headcounts (10,000+), not just four. */
+  width: 7ch;
+  padding: var(--base-size-4) var(--base-size-8);
+  border: 1px solid var(--borderColor-default);
+  border-radius: 8px;
+  background-color: var(--bgColor-default);
+  color: var(--fgColor-default);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  /* No spinner arrows: they clipped the last digit of a 3–4 figure count. */
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.lp-est-num::-webkit-outer-spin-button,
+.lp-est-num::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.lp-est-num:focus-visible {
+  outline: 2px solid var(--est-accent);
+  outline-offset: 1px;
+  border-color: var(--est-accent);
+}
+
+.lp-est-numunit {
+  font-size: 13px;
+  color: var(--fgColor-muted);
+}
+
+.lp-est-pricegroup {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--base-size-8);
+  margin-left: var(--base-size-4);
+}
+
+.lp-est-big {
+  font-size: 18px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--est-accent);
+}
+
+.lp-est-big small {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--fgColor-muted);
+}
+
+.lp-est-each {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fgColor-muted);
+}
+
+.lp-est-add,
+.lp-est-off {
+  box-sizing: border-box;
   min-height: var(--base-size-40);
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: var(--base-size-8) var(--base-size-12);
-  border-radius: 10px;
+  padding: var(--base-size-4) var(--base-size-12);
+  border-radius: 8px;
   border: 1px solid var(--borderColor-default);
   background-color: var(--bgColor-default);
   color: var(--fgColor-muted);
@@ -1498,73 +1583,148 @@
   transition: border-color 0.15s, background-color 0.15s, color 0.15s;
 }
 
-.lp-est-count-off--on {
+.lp-est-add {
+  color: var(--est-accent);
+  border-color: var(--est-accent);
+}
+
+.lp-est-off--on {
   border-color: var(--borderColor-emphasis);
   background-color: var(--bgColor-muted);
   color: var(--fgColor-default);
 }
 
-.lp-est-count-input {
-  width: 7ch;
-  padding: var(--base-size-8) 10px;
+/* The band tiles: the page's long-standing priced grid, now with the price
+   as the prominent figure in each tile so the big numbers read at a glance. */
+.lp-est-bands {
+  display: grid;
+  /* Auto-fit so the tiles sit in one row on desktop and wrap on a phone
+     rather than shrinking below the 40px touch target. */
+  grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
+  gap: var(--base-size-6);
+}
+
+.lp-est-seg-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--base-size-8) var(--base-size-4);
   border-radius: 10px;
   border: 1px solid var(--borderColor-default);
   background-color: var(--bgColor-default);
-  color: var(--fgColor-default);
+  cursor: pointer;
   font: inherit;
-  font-size: 15px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  transition: border-color 0.15s, background-color 0.15s;
 }
 
-.lp-est-count-input:focus-visible {
-  outline: 2px solid var(--lp-orange);
-  outline-offset: 1px;
-  border-color: var(--lp-orange);
-}
-
-.lp-est-count-unit {
-  font-size: 13px;
-  color: var(--fgColor-muted);
-}
-
-.lp-est-count-price {
-  margin-left: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  line-height: 1.25;
-  font-size: 14px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--igni-orange-text);
-}
-
-/* The blended per-person rate under the yearly total: the discount made
-   visible as seats are added. Muted, so the total stays the headline. */
-.lp-est-count-each {
+.lp-est-seg-top {
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--fgColor-muted);
+  white-space: nowrap;
 }
 
-/* Each field in its module's colour, as on the cards above it. */
-.lp-est-field--fleet .lp-est-count-input:focus-visible {
-  outline-color: var(--lp-blue);
-  border-color: var(--lp-blue);
+.lp-est-seg-unit {
+  font-size: 17px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--fgColor-default);
 }
 
-.lp-est-field--fleet .lp-est-count-price {
-  color: var(--lp-blue);
+.lp-est-seg-btn:hover {
+  border-color: var(--borderColor-emphasis);
 }
 
-.lp-est-field--factory .lp-est-count-input:focus-visible {
-  outline-color: var(--lp-violet);
-  border-color: var(--lp-violet);
+.lp-est-seg-btn--on {
+  border-color: var(--est-accent);
+  background-color: color-mix(in srgb, var(--est-accent) 12%, transparent);
 }
 
-.lp-est-field--factory .lp-est-count-price {
-  color: var(--lp-violet);
+.lp-est-seg-btn--on .lp-est-seg-top {
+  color: var(--est-accent);
+}
+
+.lp-est-seg-btn--on .lp-est-seg-unit {
+  color: var(--est-accent);
+}
+
+/* The slider, under the tiles and aligned to their full width. The input is
+   a 40px-tall touch target (mobile-layout floor); the visible track is the
+   thin pseudo-element, with the fill painted up to the handle. */
+.lp-est-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: var(--base-size-40);
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.lp-est-range:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.lp-est-range::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--est-accent) var(--fill, 0%),
+    var(--borderColor-muted) var(--fill, 0%)
+  );
+}
+
+.lp-est-range::-moz-range-track {
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--est-accent) var(--fill, 0%),
+    var(--borderColor-muted) var(--fill, 0%)
+  );
+}
+
+.lp-est-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -7px; /* centre the 24px thumb on the 10px track */
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--est-accent);
+  border: 3px solid var(--bgColor-default);
+  box-shadow: 0 1px 5px rgba(27, 31, 36, 0.3);
+  cursor: pointer;
+}
+
+.lp-est-range::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--est-accent);
+  border: 3px solid var(--bgColor-default);
+  box-shadow: 0 1px 5px rgba(27, 31, 36, 0.3);
+  cursor: pointer;
+}
+
+.lp-est-range:disabled::-webkit-slider-thumb {
+  background: var(--fgColor-muted);
+}
+
+.lp-est-range:disabled::-moz-range-thumb {
+  background: var(--fgColor-muted);
+}
+
+.lp-est-range:focus-visible {
+  outline: 2px solid var(--est-accent);
+  outline-offset: 4px;
+}
+
+.lp-est-field--off .lp-est-bands {
+  opacity: 0.55;
 }
 
 .lp-est-check.lp-est-check--factory input {
@@ -1689,11 +1849,6 @@
 
   .lp-est-presets {
     grid-template-columns: 1fr;
-  }
-
-  .lp-est-count-price {
-    margin-left: 0;
-    flex-basis: 100%;
   }
 }
 
