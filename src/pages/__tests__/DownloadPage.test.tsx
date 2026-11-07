@@ -130,7 +130,7 @@ describe('when GitHub cannot be reached', () => {
 
     await waitFor(() => {
       const hrefs = [...container.querySelectorAll('a')].map((a) => a.getAttribute('href') ?? '')
-      expect(hrefs).toContain('https://github.com/ignite-ember/igni/releases')
+      expect(hrefs).toContain('https://github.com/ignite-ember/igni-app/releases')
     })
   })
 

@@ -147,7 +147,7 @@ describe('the links it hands out', () => {
   it('name the repository that exists', () => {
     // `ignite-ember/ember__code` was renamed; it 301s, which is
     // exactly the kind of thing that keeps working until it does not.
-    expect(RELEASES_URL).toBe('https://github.com/ignite-ember/igni/releases')
-    expect(LATEST_API_URL).toContain('/repos/ignite-ember/igni/releases/latest')
+    expect(RELEASES_URL).toBe('https://github.com/ignite-ember/igni-app/releases')
+    expect(LATEST_API_URL).toContain('/repos/ignite-ember/igni-app/releases/latest')
   })
 })

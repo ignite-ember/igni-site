@@ -3,7 +3,7 @@
 
 // The repository was renamed; `ember__code` still 301s, but the nav
 // link should name the place that exists.
-export const GITHUB_REPO = 'ignite-ember/igni'
+export const GITHUB_REPO = 'ignite-ember/igni-app'
 
 // Every "Schedule a call" on the page points here.
 export const CALENDLY_URL = 'https://calendly.com/dmytro-zezyk-ignite-ember/30min'
