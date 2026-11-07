@@ -442,8 +442,7 @@ describe('cost by usage', () => {
     expect(fleetYear(at(60)).serverBuy).toBeCloseTo(3 * 20_642.5, 6)
     renderPage()
     const buy = document.querySelector('.cmp-calc-buy')?.textContent ?? ''
-    expect(buy).toMatch(/Sized for 67 agents working at once: 348 GB and 40 busy threads, so 2 servers for RAM, 1 for CPU; the larger, plus 1 spare\./)
-    expect(buy).toMatch(/£17,950 \(≈€20\.6k at £1 = €1\.15\).*Power and support €1\.3–2\.3k a server a year; rack space and staff not included/)
+    expect(buy).toBe('Sized for 67 agents working at once, with 1 spare server; rack space and staff not included.')
     expect(document.querySelector('.cmp-calc-quote:not(.cmp-calc-quote--aws)')?.textContent).toMatch(/3 × Dell PowerEdge R7625bought once, in the first year€61\.9k/)
     const sec = document.querySelector('#cost-usage')?.textContent ?? ''
     expect(sec).toMatch(/Servers are bought once, in the first year.*only power and support, €1\.3–2\.3k a year\. Rack space and staff are not included\. Plan to replace them after about 4 years/)

@@ -15,13 +15,9 @@ import {
   COVERAGE,
   HAS_LABEL,
   USAGE,
-  HEADROOM,
   SCHEDULE_HOURS,
   SERVER,
-  SERVER_EUR,
-  SERVER_YEAR_PARTS,
   USD_PER_EUR,
-  EUR_PER_GBP,
   WAKE,
   WAKE_MAX_MS,
   WORKED,
@@ -887,12 +883,7 @@ export function UsageCalculator() {
             </div>
           </div>
           <p className="lp-est-fine cmp-calc-buy">
-            Sized for {Math.round(igni.active).toLocaleString('en-US')} agents working at once:{' '}
-            {Math.round(igni.ramGb).toLocaleString('en-US')} GB and {Math.round(igni.busyThreads).toLocaleString('en-US')} busy
-            threads, so {igni.byRam} server{igni.byRam === 1 ? '' : 's'} for RAM, {igni.byThreads} for CPU; the larger, plus 1 spare.
-            Each: {SERVER.cpus}, {SERVER.ramGb} GB, £{SERVER.priceGbp.toLocaleString('en-US')} (≈{eurShort(SERVER_EUR)} at £1 = €{EUR_PER_GBP.toFixed(2)}),
-            sized to {Math.round(HEADROOM.ram * 100)}% of its RAM and {Math.round(HEADROOM.threads * 100)}% of its threads. Power and support
-            €{(SERVER_YEAR_PARTS.running[0] / 1000).toFixed(1)}–{(SERVER_YEAR_PARTS.running[1] / 1000).toFixed(1)}k a server a year; rack space and staff not included.
+            Sized for {Math.round(igni.active).toLocaleString('en-US')} agents working at once, with 1 spare server; rack space and staff not included.
           </p>
         </div>
       </div>
