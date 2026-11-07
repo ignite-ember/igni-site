@@ -328,7 +328,9 @@ describe('cost by usage', () => {
       expect(k1(a.memIdle), `idle at ${w.workS}`).toBe(w.awsIdle)
       expect(Math.round(a.idleShare * 100)).toBe(w.idlePct)
       expect(f.servers, `servers at ${w.workS}`).toBe(w.servers)
-      expect(f.total.map(k1)).toEqual(w.igni)
+      expect(f.firstYear.map(k1), `first at ${w.workS}`).toEqual(w.first)
+      expect(f.yearAfter.map(k1), `after at ${w.workS}`).toEqual(w.after)
+      expect(f.fourYears.map(k1), `four at ${w.workS}`).toEqual(w.four)
     }
   })
 
@@ -336,9 +338,9 @@ describe('cost by usage', () => {
     renderPage()
     const rows = Array.from(document.querySelectorAll('.cmp-worked tbody tr')).map((r) => r.textContent ?? '')
     expect(rows).toHaveLength(3)
-    expect(rows[0]).toMatch(/€107\.9k.*€49\.3k \(46%\).*€85\.5–88\.5k.*€66k licence \+ €19\.5–22\.5k servers.*3$/)
-    expect(rows[1]).toMatch(/€337\.8k.*€44\.9k \(13%\).*€98\.5–103\.5k.*5$/)
-    expect(rows[2]).toMatch(/€878\.9k.*€0k \(0%\).*€137\.5–148\.5k.*11$/)
+    expect(rows[0]).toMatch(/€107\.9k€49\.3k \(46%\) while idle€131\.9–134\.9kwith €61\.9k for the servers, bought once.*€70–73k€66k licence \+ €4–7k running.*AgentCore €431\.8kigni €342–354k3$/)
+    expect(rows[1]).toMatch(/€337\.8k.*€44\.9k \(13%\).*€175\.9–180\.9k.*€72\.7–77\.7k.*AgentCore €1\.35Migni €394–414k5$/)
+    expect(rows[2]).toMatch(/€878\.9k.*€0k \(0%\).*€307\.8–318\.8k.*€80\.7–91\.7k.*AgentCore €3\.52Migni €550–594k11$/)
   })
 
   test('AgentCore: CPU only while working, memory reclaimed after 120 s down to 128 MB', () => {
@@ -372,7 +374,14 @@ describe('cost by usage', () => {
     expect(f.byRam).toBe(Math.ceil(f.ramGb / (256 * 0.85)))
     expect(f.byThreads).toBe(Math.ceil(f.busyThreads / (192 * 0.7)))
     expect(f.servers).toBe(Math.max(f.byRam, f.byThreads) + 1)
-    expect(f.serverCost).toEqual([f.servers * 6_500, f.servers * 7_500])
+    // The servers are bought once; each year after is the licence and running them.
+    expect(f.serverBuy).toBeCloseTo(f.servers * SERVER_EUR, 6)
+    expect(f.running[0]).toBeCloseTo(f.servers * SERVER_YEAR_PARTS.running[0], 6)
+    expect(f.firstYear[1]).toBeCloseTo(f.licence + f.serverBuy + f.running[1], 6)
+    expect(f.yearAfter[0]).toBeCloseTo(f.licence + f.running[0], 6)
+    expect(f.fourYears[0]).toBeCloseTo(4 * f.licence + f.serverBuy + 4 * f.running[0], 6)
+    // Over 4 years it comes to the 200-person case's €6.5–7.5k a server-year.
+    expect(f.fourYears[0]).toBeCloseTo(4 * (f.licence + f.servers * 6_500), 6)
     // CPU-bound: 100 agents always working at 8 vCPU fully busy need 800 threads.
     const cpu = fleetYear({ sessions: 100, workS: 900, vcpu: 8, busy: 1, memGb: 1, schedule: 'always' })
     expect(cpu.byThreads).toBe(Math.ceil(800 / 134.4))
@@ -389,11 +398,15 @@ describe('cost by usage', () => {
     renderPage()
     const total = (sel: string) => document.querySelector(sel)?.textContent
     expect(total('.cmp-calc-aws-total')).toBe('€107.9k')
-    expect(total('.cmp-calc-igni-total')).toBe('€85.5–88.5k')
+    expect(total('.cmp-calc-igni-total')).toBe('€70–73k')
+    expect(total('.cmp-calc-igni-first')).toBe('€131.9–134.9k')
+    expect(total('.cmp-calc-servers')).toBe('€61.9k')
+    expect(total('.cmp-calc-aws-four')).toMatch(/€431\.8k over 4 years/)
 
     await user.click(screen.getByRole('button', { name: /5 minutes in 15/ }))
     expect(total('.cmp-calc-aws-total')).toBe('€337.8k')
-    expect(total('.cmp-calc-igni-total')).toBe('€98.5–103.5k')
+    expect(total('.cmp-calc-igni-total')).toBe('€72.7–77.7k')
+    expect(total('.cmp-calc-igni-first')).toBe('€175.9–180.9k')
 
     fireEvent.change(screen.getByLabelText('Sessions running (N)'), { target: { value: '200' } })
     const inp: UsageInputs = { ...WORKED_BASE, sessions: 200, workS: 300 }
@@ -406,7 +419,7 @@ describe('cost by usage', () => {
     expect(fetch).not.toHaveBeenCalled()
   })
 
-  test('the servers are shown as bought up front and spread over 4 years', () => {
+  test('the servers are shown as paid for once', () => {
     expect(EUR_PER_GBP).toBe(1.15)
     expect(SERVER.years).toBe(4)
     expect(SERVER_EUR).toBeCloseTo(20_642.5, 6)
@@ -415,9 +428,11 @@ describe('cost by usage', () => {
     expect(fleetYear(at(60)).serverBuy).toBeCloseTo(3 * 20_642.5, 6)
     renderPage()
     const buy = document.querySelector('.cmp-calc-buy')?.textContent ?? ''
-    expect(buy).toMatch(/3 × £17,950 ≈ €61\.9k up front.*over 4 years \(≈€5\.2k a server\).*power and support \(€1\.3–2\.3k a server\)/)
+    expect(buy).toMatch(/paid for once: 3 × £17,950 ≈ €61\.9k at £1 = €1\.15\. After that a server costs power and support, €1\.3–2\.3k a year; rack space and staff are not included\. Over 4 years, the servers once: €342–354k/)
     expect(document.querySelector('.cmp-calc-quote:not(.cmp-calc-quote--aws)')?.textContent).toMatch(/RAM needs 2, CPU 1: the larger, plus 1 spare/)
-    expect(document.querySelector('#cost-usage')?.textContent).toMatch(/paid up front.*spread over 4 years plus power and support/)
+    const sec = document.querySelector('#cost-usage')?.textContent ?? ''
+    expect(sec).toMatch(/Servers are bought once, in the first year.*only power and support, €1\.3–2\.3k a year\. Rack space and staff are not included\. Plan to replace them after about 4 years/)
+    expect(sec).toMatch(/its first year costs more than AgentCore’s; from the second year it is the licence and running the servers/)
   })
 
   test('it says what is measured, what bursts do, and that it is all in euros', () => {

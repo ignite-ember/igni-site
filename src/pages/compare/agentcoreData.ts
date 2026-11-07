@@ -301,15 +301,19 @@ export type FleetYear = {
   byThreads: number
   /** Servers to buy: the larger of the two, plus one spare. */
   servers: number
-  /** € a year for the servers, low and high. */
-  serverCost: [number, number]
-  /** € paid up front to buy the servers. */
+  /** € paid once, in the first year, to buy the servers. */
   serverBuy: number
-  /** € a year, licence + servers, low and high. */
-  total: [number, number]
+  /** € a year to run the servers: power and support, low and high. */
+  running: [number, number]
+  /** € in the first year: licence + servers bought + running, low and high. */
+  firstYear: [number, number]
+  /** € each year after the first: licence + running, low and high. */
+  yearAfter: [number, number]
+  /** € over 4 years: the servers once, licence and running four times, low and high. */
+  fourYears: [number, number]
 }
 
-/** Fleet's bill for a year, in euros. The schedule does not change it: servers are sized for the working peak and owned all year. */
+/** Fleet's bill in euros: the servers are bought once, then each year is the licence and running them. The schedule does not change it: servers are sized for the working peak and owned all year. */
 export function fleetYear(i: UsageInputs): FleetYear {
   const w = Math.min(Math.max(i.workS, 0), CYCLE_S)
   const licence = graduatedPrice(FLEET_PRICES, i.sessions)
@@ -322,7 +326,9 @@ export function fleetYear(i: UsageInputs): FleetYear {
   const byRam = fit(ramGb, SERVER.ramGb * HEADROOM.ram)
   const byThreads = fit(busyThreads, SERVER.threads * HEADROOM.threads)
   const servers = Math.max(byRam, byThreads, 1) + 1
-  const serverCost: [number, number] = [servers * SERVER.perYear[0], servers * SERVER.perYear[1]]
+  const serverBuy = servers * SERVER_EUR
+  const running: [number, number] = [servers * SERVER_YEAR_PARTS.running[0], servers * SERVER_YEAR_PARTS.running[1]]
+  const span = (f: (run: number) => number): [number, number] => [f(running[0]), f(running[1])]
   return {
     licence,
     active,
@@ -331,9 +337,11 @@ export function fleetYear(i: UsageInputs): FleetYear {
     byRam,
     byThreads,
     servers,
-    serverCost,
-    serverBuy: servers * SERVER_EUR,
-    total: [licence + serverCost[0], licence + serverCost[1]],
+    serverBuy,
+    running,
+    firstYear: span((run) => licence + serverBuy + run),
+    yearAfter: span((run) => licence + run),
+    fourYears: span((run) => 4 * licence + serverBuy + 4 * run),
   }
 }
 
@@ -364,7 +372,7 @@ export const WORKED_BASE: Omit<UsageInputs, 'workS'> = { sessions: 1000, vcpu: 2
 
 /**
  * The three worked cases as the page states them, worked by hand from the
- * functions above, in € thousand a year on both sides.
+ * functions above, in € thousand on both sides.
  * The test recomputes them; edit only together with the functions.
  */
 export const WORKED: {
@@ -374,9 +382,14 @@ export const WORKED: {
   awsIdle: number
   idlePct: number
   servers: number
-  igni: [number, number]
+  /** igni's first year, with the servers bought. */
+  first: [number, number]
+  /** igni each year after. */
+  after: [number, number]
+  /** igni over 4 years. */
+  four: [number, number]
 }[] = [
-  { workS: 60, label: '1 minute in 15', aws: 107.9, awsIdle: 49.3, idlePct: 46, servers: 3, igni: [85.5, 88.5] },
-  { workS: 300, label: '5 minutes in 15', aws: 337.8, awsIdle: 44.9, idlePct: 13, servers: 5, igni: [98.5, 103.5] },
-  { workS: 900, label: 'All the time', aws: 878.9, awsIdle: 0, idlePct: 0, servers: 11, igni: [137.5, 148.5] },
+  { workS: 60, label: '1 minute in 15', aws: 107.9, awsIdle: 49.3, idlePct: 46, servers: 3, first: [131.9, 134.9], after: [70, 73], four: [342, 354] },
+  { workS: 300, label: '5 minutes in 15', aws: 337.8, awsIdle: 44.9, idlePct: 13, servers: 5, first: [175.9, 180.9], after: [72.7, 77.7], four: [394, 414] },
+  { workS: 900, label: 'All the time', aws: 878.9, awsIdle: 0, idlePct: 0, servers: 11, first: [307.8, 318.8], after: [80.7, 91.7], four: [550, 594] },
 ]

@@ -831,6 +831,9 @@ export function UsageCalculator() {
             </span>
             <strong className="cmp-calc-aws-total">{eurShort(aws.total)}</strong>
           </div>
+          <p className="lp-est-fine cmp-calc-aws-four">
+            The same every year: <b>{eurShort(4 * aws.total)} over 4 years</b>.
+          </p>
         </div>
 
         <div className="lp-est-quote cmp-calc-quote" aria-live="polite">
@@ -845,22 +848,36 @@ export function UsageCalculator() {
             </li>
             <li>
               <span>
-                {igni.servers} × {SERVER.name}
+                {igni.servers} × {SERVER.name}, bought once
                 <em>
-                  RAM needs {igni.byRam}, CPU {igni.byThreads}: the larger, plus 1 spare ·{' '}
+                  First year only · RAM needs {igni.byRam}, CPU {igni.byThreads}: the larger, plus 1 spare ·{' '}
                   {Math.round(igni.active).toLocaleString('en-US')} working at once need{' '}
                   {Math.round(igni.ramGb).toLocaleString('en-US')} GB and {Math.round(igni.busyThreads).toLocaleString('en-US')} busy threads
                 </em>
               </span>
-              <strong className="cmp-calc-servers">{eurRangeShort(igni.serverCost)}</strong>
+              <strong className="cmp-calc-servers">{eurShort(igni.serverBuy)}</strong>
+            </li>
+            <li>
+              <span>
+                Running the servers
+                <em>power and support, every year</em>
+              </span>
+              <strong className="cmp-calc-running">{eurRangeShort(igni.running)}</strong>
             </li>
           </ul>
           <div className="lp-est-total">
             <span>
-              Per year
-              <em>the same around the clock or in working hours</em>
+              First year
+              <em>licence + servers bought + running</em>
             </span>
-            <strong className="cmp-calc-igni-total">{eurRangeShort(igni.total)}</strong>
+            <strong className="cmp-calc-igni-first">{eurRangeShort(igni.firstYear)}</strong>
+          </div>
+          <div className="lp-est-total">
+            <span>
+              Each year after
+              <em>licence + running · the same around the clock or in working hours</em>
+            </span>
+            <strong className="cmp-calc-igni-total">{eurRangeShort(igni.yearAfter)}</strong>
           </div>
           <p className="lp-est-fine">
             Each server {SERVER.cpus} ({SERVER.cores} cores, {SERVER.threads} threads), {SERVER.ramGb} GB; sized
@@ -868,10 +885,10 @@ export function UsageCalculator() {
             threads. A paused agent holds {PAUSED_GB} GB.
           </p>
           <p className="lp-est-fine cmp-calc-buy">
-            The servers are bought: {igni.servers} × £{SERVER.priceGbp.toLocaleString('en-US')} ≈{' '}
-            <b>{eurShort(igni.serverBuy)} up front</b>. The yearly figure spreads that over {SERVER.years} years
-            (≈{eurShort(SERVER_YEAR_PARTS.purchase)} a server) and adds power and support
-            (€{(SERVER_YEAR_PARTS.running[0] / 1000).toFixed(1)}–{(SERVER_YEAR_PARTS.running[1] / 1000).toFixed(1)}k a server). £1 = €{EUR_PER_GBP.toFixed(2)}.
+            The servers are paid for once: {igni.servers} × £{SERVER.priceGbp.toLocaleString('en-US')} ≈{' '}
+            {eurShort(igni.serverBuy)} at £1 = €{EUR_PER_GBP.toFixed(2)}. After that a server costs power and support,
+            €{(SERVER_YEAR_PARTS.running[0] / 1000).toFixed(1)}–{(SERVER_YEAR_PARTS.running[1] / 1000).toFixed(1)}k a year; rack space and staff are not included. Over 4 years,
+            the servers once: <b>{eurRangeShort(igni.fourYears)}</b>.
           </p>
         </div>
       </div>

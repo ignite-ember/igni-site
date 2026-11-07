@@ -1390,6 +1390,11 @@
   white-space: normal;
 }
 
+/* The row label breaks between words, never inside one. */
+.cmp-worked td:first-child {
+  min-width: 9rem;
+}
+
 .cmp-calc .cmp-calc-quote {
   /* The landing pins its one quote while the controls scroll; two pinned
      quotes would overlap, so these stay in the flow. */
