@@ -902,13 +902,10 @@ export function UsageCalculator() {
 /* ── Cost by usage: the worked cases ───────────────────────────── */
 
 /** An amount with a thin bar under it, drawn against `max`. */
-function Amount({ shown, value, max, side, who }: { shown: string; value: number; max: number; side: 'aws' | 'igni'; who?: string }) {
+function Amount({ shown, value, max, side }: { shown: string; value: number; max: number; side: 'aws' | 'igni' }) {
   return (
     <span className="cmp-amount">
-      <span className="cmp-amount-text">
-        {who && <span className="cmp-amount-who">{who}</span>}
-        {shown}
-      </span>
+      <span className="cmp-amount-text">{shown}</span>
       <span className="cmp-amount-track">
         <span className={`cmp-amount-bar cmp-bar-fill--${side}`} style={{ width: `${(value / max) * 100}%` }} />
       </span>
@@ -916,33 +913,74 @@ function Amount({ shown, value, max, side, who }: { shown: string; value: number
   )
 }
 
+/** Fleet against AgentCore as words: "€24–27k more", "€34.9–37.9k less". */
+const difference = ([lo, hi]: [number, number]) => {
+  if (lo >= 0) return `${eurRangeShort([lo, hi])} more`
+  if (hi <= 0) return `${eurRangeShort([-hi, -lo])} less`
+  return `${eurShort(-lo)} less to ${eurShort(hi)} more`
+}
+
 /**
- * The three worked cases as one table, each amount with a bar under it.
- * The three yearly columns share one scale and the 4-year column has its
- * own, so a bar compares across cases as well as across sides.
+ * The worked cases, one at a time: what each side costs in the first year
+ * and in the second, what each bill is made of, and the difference.
+ * Every later year is the same as the second.
  */
 export function WorkedTable() {
-  const cases = WORKED.map((w) => {
-    const inp = { ...WORKED_BASE, workS: w.workS }
-    return { w, aws: agentCoreYear(inp).total, igni: fleetYear(inp) }
-  })
-  const yearMax = Math.max(...cases.flatMap((c) => [c.aws, c.igni.firstYear[1], c.igni.yearAfter[1]]))
-  const fourMax = Math.max(...cases.flatMap((c) => [4 * c.aws, c.igni.fourYears[1]]))
+  const [active, setActive] = useState(`${WORKED[0].workS}`)
+  const w = WORKED.find((x) => `${x.workS}` === active) ?? WORKED[0]
+  const inp = { ...WORKED_BASE, workS: w.workS }
+  const aws = agentCoreYear(inp)
+  const igni = fleetYear(inp)
+  const max = Math.max(aws.total, igni.firstYear[1])
+  const part = (label: string, first: string, second: string) => [
+    <span className="cmp-worked-part">{label}</span>,
+    <span className="cmp-worked-part">{first}</span>,
+    <span className="cmp-worked-part">{second}</span>,
+  ]
   return (
-    <RTable
-      className="cmp-worked"
-      head={['The agent works', 'AgentCore, every year', 'Fleet, first year', 'Fleet, each year after', 'Over 4 years']}
-      rows={cases.map(({ w, aws, igni }) => [
-        <>{w.label}<span className="cmp-cell-sub">{duration(w.workS)} of every 15 min</span></>,
-        <Amount shown={eurShort(aws)} value={aws} max={yearMax} side="aws" />,
-        <Amount shown={eurRangeShort(igni.firstYear)} value={igni.firstYear[1]} max={yearMax} side="igni" />,
-        <Amount shown={eurRangeShort(igni.yearAfter)} value={igni.yearAfter[1]} max={yearMax} side="igni" />,
-        <span className="cmp-amount-pair">
-          <Amount who="AgentCore" shown={eurShort(4 * aws)} value={4 * aws} max={fourMax} side="aws" />
-          <Amount who="Fleet" shown={eurRangeShort(igni.fourYears)} value={igni.fourYears[1]} max={fourMax} side="igni" />
-        </span>,
-      ])}
-    />
+    <div className="cmp-worked-case">
+      <PillTabs
+        label="Worked case"
+        tabs={WORKED.map((x) => ({ id: `${x.workS}`, label: x.label }))}
+        active={active}
+        onSelect={setActive}
+        idPrefix="cmp-worked-tab"
+        panelId="cmp-worked-panel"
+      />
+      <div role="tabpanel" id="cmp-worked-panel" aria-labelledby={`cmp-worked-tab-${active}`}>
+        <p className="cmp-worked-what">
+          The agent works {duration(w.workS)} of every 15 minutes. Fleet needs {igni.servers} servers (1 of them spare).
+        </p>
+        <RTable
+          className="cmp-worked"
+          head={['', 'First year', 'Second year, and every year after']}
+          rows={[
+            [
+              <b className="cmp-bar-label--aws">AgentCore</b>,
+              <Amount shown={eurShort(aws.total)} value={aws.total} max={max} side="aws" />,
+              <Amount shown={eurShort(aws.total)} value={aws.total} max={max} side="aws" />,
+            ],
+            part('CPU while working', eurShort(aws.cpu), eurShort(aws.cpu)),
+            part('Memory while working', eurShort(aws.memWorking), eurShort(aws.memWorking)),
+            part(`Memory while idle (${Math.round(aws.idleShare * 100)}% of the bill)`, eurShort(aws.memIdle), eurShort(aws.memIdle)),
+            [
+              <b className="cmp-bar-label--igni">Fleet</b>,
+              <Amount shown={eurRangeShort(igni.firstYear)} value={igni.firstYear[1]} max={max} side="igni" />,
+              <Amount shown={eurRangeShort(igni.yearAfter)} value={igni.yearAfter[1]} max={max} side="igni" />,
+            ],
+            part('Licence', eurShort(igni.licence), eurShort(igni.licence)),
+            part(`${igni.servers} servers, bought once`, eurShort(igni.serverBuy), '–'),
+            part('Power and support', eurRangeShort(igni.running), eurRangeShort(igni.running)),
+            [
+              <b>Fleet against AgentCore</b>,
+              <b className="cmp-worked-diff">{difference([igni.firstYear[0] - aws.total, igni.firstYear[1] - aws.total])}</b>,
+              <b className="cmp-worked-diff">{difference([igni.yearAfter[0] - aws.total, igni.yearAfter[1] - aws.total])}</b>,
+            ],
+          ]}
+          total={[8]}
+        />
+      </div>
+    </div>
   )
 }
 

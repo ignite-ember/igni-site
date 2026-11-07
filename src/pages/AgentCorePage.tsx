@@ -722,8 +722,8 @@ export function AgentCorePage() {
         >
           <Figure
             title="Three worked cases"
-            caption={<>{WORKED_BASE.sessions.toLocaleString('en-US')} sessions, each {WORKED_BASE.vcpu} vCPU busy {Math.round(WORKED_BASE.busy * 100)}% while working and holding {WORKED_BASE.memGb} GB, around the clock. Only the work in each 15 minutes changes.</>}
-            after={<>Fleet&rsquo;s first year includes buying the servers, so at one minute in fifteen it costs more than AgentCore that year; every year after, it is the licence and power and support. Fleet&rsquo;s sizing is arithmetic from measured per-agent figures: 1,000 agents on these servers have not been measured.</>}
+            caption={<>{WORKED_BASE.sessions.toLocaleString('en-US')} sessions, each {WORKED_BASE.vcpu} vCPU busy {Math.round(WORKED_BASE.busy * 100)}% while working and holding {WORKED_BASE.memGb} GB, around the clock. Pick a case: only the work in each 15 minutes changes.</>}
+            after={<>Fleet&rsquo;s first year includes buying the servers; from the second year it is the licence and power and support. Fleet&rsquo;s sizing is arithmetic from measured per-agent figures: 1,000 agents on these servers have not been measured.</>}
           >
             <WorkedTable />
           </Figure>

@@ -1390,11 +1390,6 @@
   white-space: normal;
 }
 
-/* The row label breaks between words, never inside one. */
-.cmp-worked td:first-child {
-  min-width: 9rem;
-}
-
 .cmp-calc .cmp-calc-quote {
   /* The landing pins its one quote while the controls scroll; two pinned
      quotes would overlap, so these stay in the flow. */
@@ -1425,11 +1420,6 @@
   white-space: nowrap;
 }
 
-.cmp-amount-who {
-  font-weight: var(--base-text-weight-normal);
-  color: var(--fgColor-muted);
-}
-
 .cmp-amount-track {
   display: block;
   height: var(--base-size-8);
@@ -1444,10 +1434,33 @@
   border-radius: var(--borderRadius-full);
 }
 
-.cmp-amount-pair {
-  display: flex;
-  flex-direction: column;
-  gap: var(--base-size-8);
+/* Fixed columns, so switching cases does not move them. */
+.cmp-worked .cmp-table {
+  table-layout: fixed;
+}
+
+.cmp-worked th:first-child {
+  width: 40%;
+}
+
+.cmp-worked-what {
+  margin: var(--base-size-12) 0;
+  color: var(--fgColor-muted);
+}
+
+/* What each bill is made of: indented, muted, under its total. */
+.cmp-worked-part {
+  padding-left: var(--base-size-16);
+  font-size: var(--text-body-size-small);
+  color: var(--fgColor-muted);
+}
+
+.cmp-worked td:not(:first-child) .cmp-worked-part {
+  padding-left: 0;
+}
+
+.cmp-worked-diff {
+  color: var(--cmp-igni);
 }
 
 .cmp-calc-owned-row label {

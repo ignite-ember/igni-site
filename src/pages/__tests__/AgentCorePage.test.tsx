@@ -334,23 +334,40 @@ describe('cost by usage', () => {
     }
   })
 
-  test('the page prints them, each amount with a bar under it', () => {
+  test('the worked cases are one table, a case at a time: first year, second year, and the difference', async () => {
+    const user = userEvent.setup()
     renderPage()
-    const rows = Array.from(document.querySelectorAll('.cmp-worked tbody tr')).map((r) =>
-      Array.from(r.querySelectorAll('td')).map((td) => td.textContent),
-    )
-    expect(rows).toEqual([
-      ['1 minute in 151 min of every 15 min', '€107.9k', '€131.9–134.9k', '€70–73k', 'AgentCore€431.8kFleet€342–354k'],
-      ['5 minutes in 155 min of every 15 min', '€337.8k', '€175.9–180.9k', '€72.7–77.7k', 'AgentCore€1.35MFleet€394–414k'],
-      ['All the time15 min of every 15 min', '€878.9k', '€307.8–318.8k', '€80.7–91.7k', 'AgentCore€3.52MFleet€550–594k'],
+    const rows = () =>
+      Array.from(document.querySelectorAll('.cmp-worked tbody tr')).map((r) =>
+        Array.from(r.querySelectorAll('td')).map((td) => td.textContent),
+      )
+    expect(document.querySelector('.cmp-worked-what')?.textContent).toBe('The agent works 1 min of every 15 minutes. Fleet needs 3 servers (1 of them spare).')
+    expect(rows()).toEqual([
+      ['AgentCore', '€107.9k', '€107.9k'],
+      ['CPU while working', '€40.6k', '€40.6k'],
+      ['Memory while working', '€17.9k', '€17.9k'],
+      ['Memory while idle (46% of the bill)', '€49.3k', '€49.3k'],
+      ['Fleet', '€131.9–134.9k', '€70–73k'],
+      ['Licence', '€66k', '€66k'],
+      ['3 servers, bought once', '€61.9k', '–'],
+      ['Power and support', '€4–7k', '€4–7k'],
+      ['Fleet against AgentCore', '€24–27k more', '€34.9–37.9k less'],
     ])
-    // The yearly columns share a scale; the 4-year column has its own.
-    const width = (r: number, c: number, n = 0) =>
-      parseFloat((document.querySelectorAll('.cmp-worked tbody tr')[r].querySelectorAll('td')[c].querySelectorAll('.cmp-amount-bar')[n] as HTMLElement).style.width)
-    expect(width(2, 1)).toBeCloseTo(100, 6)
-    expect(width(0, 1)).toBeCloseTo((107_939 / 878_867) * 100, 1)
-    expect(width(2, 4, 0)).toBeCloseTo(100, 6)
-    expect(width(2, 4, 1)).toBeCloseTo((594_000 / (4 * 878_867)) * 100, 1)
+    // The bars are drawn against the larger first-year bill.
+    const bar = (r: number, c: number) =>
+      parseFloat((document.querySelectorAll('.cmp-worked tbody tr')[r].querySelectorAll('td')[c].querySelector('.cmp-amount-bar') as HTMLElement).style.width)
+    expect(bar(4, 1)).toBeCloseTo(100, 6)
+    expect(bar(4, 2)).toBeCloseTo((73_018 / 134_946) * 100, 1)
+
+    await user.click(screen.getByRole('tab', { name: '5 minutes in 15' }))
+    expect(rows()[0]).toEqual(['AgentCore', '€337.8k', '€337.8k'])
+    expect(rows()[4]).toEqual(['Fleet', '€175.9–180.9k', '€72.7–77.7k'])
+    expect(rows()[8]).toEqual(['Fleet against AgentCore', '€156.9–161.9k less', '€260.1–265.1k less'])
+
+    await user.click(screen.getByRole('tab', { name: 'All the time' }))
+    expect(rows()[3]).toEqual(['Memory while idle (0% of the bill)', '€0k', '€0k'])
+    expect(rows()[6]).toEqual(['11 servers, bought once', '€227.1k', '–'])
+    expect(rows()[8]).toEqual(['Fleet against AgentCore', '€560.1–571.1k less', '€787.1–798.1k less'])
   })
 
   test('AgentCore: CPU only while working, memory reclaimed after 120 s down to 128 MB', () => {
@@ -442,7 +459,7 @@ describe('cost by usage', () => {
     expect(document.querySelector('.cmp-calc-quote:not(.cmp-calc-quote--aws)')?.textContent).toMatch(/3 × Dell PowerEdge R7625bought once, in the first year€61\.9k/)
     const sec = document.querySelector('#cost-usage')?.textContent ?? ''
     expect(sec).toMatch(/Servers are bought once, in the first year.*only power and support, €1\.3–2\.3k a year\. Rack space and staff are not included\. Plan to replace them after about 4 years/)
-    expect(sec).toMatch(/Fleet’s first year includes buying the servers, so at one minute in fifteen it costs more than AgentCore that year; every year after, it is the licence and power and support/)
+    expect(sec).toMatch(/Fleet’s first year includes buying the servers; from the second year it is the licence and power and support/)
     // The method sits behind a disclosure, closed at first.
     expect(screen.getByRole('button', { name: 'How these are worked out' })).toHaveAttribute('aria-expanded', 'false')
   })
