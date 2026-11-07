@@ -438,6 +438,11 @@ describe('cost by usage', () => {
     expect(sec).not.toMatch(/×\s*cheaper|times (cheaper|as much)/)
   })
 
+  test('the 200-person case says its two servers have no spare', () => {
+    renderPage()
+    expect(text()).toMatch(/CPU servers: 2, bought .*No spare: 200 agents fill about 97% of their usable RAM/)
+  })
+
   test('the server is the 256 GB R7625 everywhere, with its CPUs and its source', () => {
     renderPage()
     const t = text()

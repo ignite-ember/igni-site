@@ -603,7 +603,7 @@ export function AgentCorePage() {
                 rows={[
                   ['Harness, server, igni models (Apache-2.0)', '0'],
                   ['Fleet licence at 200 people (includes 200 apps), graduated per seat', k(FLEET_200)],
-                  ['CPU servers: 2, bought (Dell R7625, 2 × EPYC 9474F, 256 GB), over 4 years, + power and support', '13–15k'],
+                  ['CPU servers: 2, bought (Dell R7625, 2 × EPYC 9474F, 256 GB), over 4 years, + power and support. No spare: 200 agents fill about 97% of their usable RAM, so a lost server leaves too little room until it is back', '13–15k'],
                   ['Runtime, comparable to AgentCore’s', '37–39k'],
                   ['GPU: 1 × GH200, bought, over 4 years, + power and support', '14–18k'],
                   ['Total with the model', '51–57k'],
