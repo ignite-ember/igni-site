@@ -1174,6 +1174,17 @@
   overflow-wrap: anywhere;
 }
 
+/* Where AgentCore is ahead: each area's name stays on one line; the long
+   third column gives up the room. */
+.cmp-wins .cmp-table td:first-child {
+  white-space: nowrap;
+  overflow-wrap: normal;
+}
+
+.cmp-wins .cmp-table th:nth-child(2) {
+  width: 24%;
+}
+
 /* ── Narrower screens ─────────────────────────────────────────── */
 
 @media (max-width: 960px) {
@@ -1284,6 +1295,11 @@
 
   .cmp-table-wrap:not(.cmp-numeric):not(.cmp-cov) td:last-child {
     padding-bottom: var(--base-size-12);
+  }
+
+  /* As a card, the area is the card's heading and may wrap like any other. */
+  .cmp-wins .cmp-table td:first-child {
+    white-space: normal;
   }
 
   .cmp-table-wrap:not(.cmp-numeric):not(.cmp-cov) td:not(:first-child)::before {

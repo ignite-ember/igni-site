@@ -868,6 +868,7 @@ export function AgentCorePage() {
         {/* ── Where AgentCore is ahead ───────────────────── */}
         <Section id="aws-wins" band label="Honestly" title="Where AgentCore is ahead">
           <RTable
+            className="cmp-wins"
             head={['Area', 'Gap', 'How igni addresses it']}
             rows={[
               ['Certification', 'AWS’s hosted service is certified (SOC 2, ISO 27001). igni holds no certificate.', 'igni hosts nothing, so there is no service to certify: it runs inside your own certified estate and your certificates cover it, as they do PostgreSQL. It is assessed as a product, under the EU Cyber Resilience Act. Available today: SBOM, vulnerability scanning, network diagram, exit runbook, self-assessment and policies. In build: signed images and build provenance. Planned: ISO 27001 for the build and release process.'],
