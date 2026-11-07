@@ -31,7 +31,6 @@ import {
   eurShort,
   eurRangeShort,
   fleetYear,
-  type FleetYear,
   type Has,
   type Schedule,
   type UsageInputs,
@@ -737,7 +736,7 @@ const SCHEDULES: { id: Schedule; label: string; note: string }[] = [
 /**
  * The cost-by-usage calculator: the landing estimator's controls, and two
  * quotes computed by the same functions as the worked cases, both in
- * euros, and the years chart under them.
+ * euros.
  */
 export function UsageCalculator() {
   const [inp, setInp] = useState<UsageInputs>({ ...WORKED_BASE, workS: WORKED[0].workS })
@@ -758,7 +757,6 @@ export function UsageCalculator() {
   const idle = inp.workS < 900
 
   return (
-    <div className="cmp-calc-wrap">
     <div className="lp-est cmp-calc">
       <div className="lp-est-controls">
         <div className="lp-est-presets" role="group" aria-label="The worked cases">
@@ -837,7 +835,7 @@ export function UsageCalculator() {
         </div>
 
         <div className="lp-est-quote cmp-calc-quote" aria-live="polite">
-          <span className="lp-est-quote-kicker">igni + Fleet, euros</span>
+          <span className="lp-est-quote-kicker">Fleet, euros</span>
           <ul className="lp-est-lines">
             <li>
               <span>
@@ -898,82 +896,53 @@ export function UsageCalculator() {
         </div>
       </div>
     </div>
-    <YearsChart aws={aws.total} igni={igni} />
-    </div>
   )
 }
 
-/* ── Cost by usage: a year, and over 4 years ──────────────────── */
+/* ── Cost by usage: the worked cases ───────────────────────────── */
 
-type CostRow = { label: string; side: 'aws' | 'igni'; high: number; shown: string; note?: string }
-type CostSection = { heading?: string; rows: CostRow[] }
-
-/** Labelled bars in the style of the page's other cost bars, every section on one scale. */
-function CostGroup({ title, sections }: { title: string; sections: CostSection[] }) {
-  const max = Math.max(...sections.flatMap((x) => x.rows.map((r) => r.high)), 1)
+/** An amount with a thin bar under it, drawn against `max`. */
+function Amount({ shown, value, max, side, who }: { shown: string; value: number; max: number; side: 'aws' | 'igni'; who?: string }) {
   return (
-    <div className="cmp-bars cmp-years-group" data-group={title}>
-      <h5 className="cmp-bars-title">{title}</h5>
-      {sections.map((x, n) => (
-        <div key={x.heading ?? n} className="cmp-bars cmp-years-section" data-case={x.heading}>
-          {x.heading && <h6 className="cmp-years-case">{x.heading}</h6>}
-          {x.rows.map((r) => (
-            <div key={r.label} className="cmp-bar cmp-bar--wrap cmp-cost-bar">
-              <span className={`cmp-bar-label cmp-bar-label--${r.side}`}>
-                {r.label}
-                {r.note && <span className="cmp-cell-sub">{r.note}</span>}
-              </span>
-              <span className="cmp-bar-track cmp-bar-track--bare cmp-wake-track">
-                <span className={`cmp-bar-fill cmp-bar-fill--${r.side}`} style={{ width: `${(r.high / max) * COST_SCALE}%` }} />
-                <span className="cmp-bar-value">{r.shown}</span>
-              </span>
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
+    <span className="cmp-amount">
+      <span className="cmp-amount-text">
+        {who && <span className="cmp-amount-who">{who}</span>}
+        {shown}
+      </span>
+      <span className="cmp-amount-track">
+        <span className={`cmp-amount-bar cmp-bar-fill--${side}`} style={{ width: `${(value / max) * 100}%` }} />
+      </span>
+    </span>
   )
 }
 
-/** A year: AgentCore every year; Fleet's first year with the servers (if bought), then each year after. */
-const yearRows = (aws: number, igni: FleetYear): CostRow[] => {
-  const bought = igni.serverBuy > 0
-  return [
-    { label: 'AgentCore, every year', side: 'aws', high: aws, shown: eurShort(aws) },
-    ...(bought
-      ? [{ label: 'Fleet, first year', side: 'igni' as const, high: igni.firstYear[1], shown: eurRangeShort(igni.firstYear), note: `with ${eurShort(igni.serverBuy)} for the servers, bought once` }]
-      : []),
-    { label: bought ? 'Fleet, each year after' : 'Fleet, every year', side: 'igni', high: igni.yearAfter[1], shown: eurRangeShort(igni.yearAfter), note: 'licence + power and support' },
-  ]
-}
-
-/** Over 4 years: AgentCore against Fleet with the servers once. */
-const fourRows = (aws: number, igni: FleetYear): CostRow[] => [
-  { label: 'AgentCore', side: 'aws', high: 4 * aws, shown: eurShort(4 * aws) },
-  { label: 'Fleet', side: 'igni', high: igni.fourYears[1], shown: eurRangeShort(igni.fourYears), note: igni.serverBuy > 0 ? 'servers included, once' : 'servers already yours' },
-]
-
-/** The calculator's two bills as bars: a year, and over 4 years. */
-export function YearsChart({ aws, igni }: { aws: number; igni: FleetYear }) {
-  return (
-    <div className="cmp-years">
-      <CostGroup title="A year" sections={[{ rows: yearRows(aws, igni) }]} />
-      <CostGroup title="Over 4 years" sections={[{ rows: fourRows(aws, igni) }]} />
-    </div>
-  )
-}
-
-/** The worked-cases table as bars: all three cases, a year and over 4 years, each on one scale. */
-export function WorkedYears() {
+/**
+ * The three worked cases as one table, each amount with a bar under it.
+ * The three yearly columns share one scale and the 4-year column has its
+ * own, so a bar compares across cases as well as across sides.
+ */
+export function WorkedTable() {
   const cases = WORKED.map((w) => {
     const inp = { ...WORKED_BASE, workS: w.workS }
-    return { heading: w.label, aws: agentCoreYear(inp).total, igni: fleetYear(inp) }
+    return { w, aws: agentCoreYear(inp).total, igni: fleetYear(inp) }
   })
+  const yearMax = Math.max(...cases.flatMap((c) => [c.aws, c.igni.firstYear[1], c.igni.yearAfter[1]]))
+  const fourMax = Math.max(...cases.flatMap((c) => [4 * c.aws, c.igni.fourYears[1]]))
   return (
-    <div className="cmp-years cmp-worked-years">
-      <CostGroup title="A year" sections={cases.map((c) => ({ heading: c.heading, rows: yearRows(c.aws, c.igni) }))} />
-      <CostGroup title="Over 4 years" sections={cases.map((c) => ({ heading: c.heading, rows: fourRows(c.aws, c.igni) }))} />
-    </div>
+    <RTable
+      className="cmp-worked"
+      head={['The agent works', 'AgentCore, every year', 'Fleet, first year', 'Fleet, each year after', 'Over 4 years']}
+      rows={cases.map(({ w, aws, igni }) => [
+        <>{w.label}<span className="cmp-cell-sub">{duration(w.workS)} of every 15 min</span></>,
+        <Amount shown={eurShort(aws)} value={aws} max={yearMax} side="aws" />,
+        <Amount shown={eurRangeShort(igni.firstYear)} value={igni.firstYear[1]} max={yearMax} side="igni" />,
+        <Amount shown={eurRangeShort(igni.yearAfter)} value={igni.yearAfter[1]} max={yearMax} side="igni" />,
+        <span className="cmp-amount-pair">
+          <Amount who="AgentCore" shown={eurShort(4 * aws)} value={4 * aws} max={fourMax} side="aws" />
+          <Amount who="Fleet" shown={eurRangeShort(igni.fourYears)} value={igni.fourYears[1]} max={fourMax} side="igni" />
+        </span>,
+      ])}
+    />
   )
 }
 

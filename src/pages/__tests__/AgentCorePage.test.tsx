@@ -84,7 +84,7 @@ describe('the page renders', () => {
       'Extensions and the UI',
       'Models and GPU capacity',
       'Cost for 200 people, per year',
-      'Cost by usage, per year',
+      'Cost by usage',
       'Speed',
       'Security and where data lives',
       'What erasure covers',
@@ -201,8 +201,7 @@ describe('every figure is drawn to its number', () => {
   test('each cost bar is its upper figure against the largest, amount beside it', () => {
     renderPage()
     const max = Math.max(...COST_BARS.map((b) => b.high))
-    // The 200-person bars; the usage section's bars are tested with it.
-    const bars = Array.from(document.querySelectorAll('.cmp-cost-bar')).filter((b) => !b.closest('.cmp-years'))
+    const bars = Array.from(document.querySelectorAll('.cmp-cost-bar'))
     expect(bars).toHaveLength(COST_BARS.length)
     for (const bar of bars) {
       const high = Number(bar.querySelector('.cmp-bar-value')?.getAttribute('data-high'))
@@ -335,13 +334,23 @@ describe('cost by usage', () => {
     }
   })
 
-  test('the page prints them', () => {
+  test('the page prints them, each amount with a bar under it', () => {
     renderPage()
-    const rows = Array.from(document.querySelectorAll('.cmp-worked tbody tr')).map((r) => r.textContent ?? '')
-    expect(rows).toHaveLength(3)
-    expect(rows[0]).toMatch(/€107\.9k€49\.3k \(46%\) while idle€131\.9–134\.9kwith €61\.9k for the servers, bought once.*€70–73k€66k licence \+ €4–7k running.*AgentCore €431\.8kigni €342–354k3$/)
-    expect(rows[1]).toMatch(/€337\.8k.*€44\.9k \(13%\).*€175\.9–180\.9k.*€72\.7–77\.7k.*AgentCore €1\.35Migni €394–414k5$/)
-    expect(rows[2]).toMatch(/€878\.9k.*€0k \(0%\).*€307\.8–318\.8k.*€80\.7–91\.7k.*AgentCore €3\.52Migni €550–594k11$/)
+    const rows = Array.from(document.querySelectorAll('.cmp-worked tbody tr')).map((r) =>
+      Array.from(r.querySelectorAll('td')).map((td) => td.textContent),
+    )
+    expect(rows).toEqual([
+      ['1 minute in 151 min of every 15 min', '€107.9k', '€131.9–134.9k', '€70–73k', 'AgentCore€431.8kFleet€342–354k'],
+      ['5 minutes in 155 min of every 15 min', '€337.8k', '€175.9–180.9k', '€72.7–77.7k', 'AgentCore€1.35MFleet€394–414k'],
+      ['All the time15 min of every 15 min', '€878.9k', '€307.8–318.8k', '€80.7–91.7k', 'AgentCore€3.52MFleet€550–594k'],
+    ])
+    // The yearly columns share a scale; the 4-year column has its own.
+    const width = (r: number, c: number, n = 0) =>
+      parseFloat((document.querySelectorAll('.cmp-worked tbody tr')[r].querySelectorAll('td')[c].querySelectorAll('.cmp-amount-bar')[n] as HTMLElement).style.width)
+    expect(width(2, 1)).toBeCloseTo(100, 6)
+    expect(width(0, 1)).toBeCloseTo((107_939 / 878_867) * 100, 1)
+    expect(width(2, 4, 0)).toBeCloseTo(100, 6)
+    expect(width(2, 4, 1)).toBeCloseTo((594_000 / (4 * 878_867)) * 100, 1)
   })
 
   test('AgentCore: CPU only while working, memory reclaimed after 120 s down to 128 MB', () => {
@@ -433,27 +442,9 @@ describe('cost by usage', () => {
     expect(document.querySelector('.cmp-calc-quote:not(.cmp-calc-quote--aws)')?.textContent).toMatch(/3 × Dell PowerEdge R7625bought once, in the first year€61\.9k/)
     const sec = document.querySelector('#cost-usage')?.textContent ?? ''
     expect(sec).toMatch(/Servers are bought once, in the first year.*only power and support, €1\.3–2\.3k a year\. Rack space and staff are not included\. Plan to replace them after about 4 years/)
-    expect(sec).toMatch(/its first year costs more than AgentCore’s; from the second year it is the licence and running the servers/)
-  })
-
-  test('the worked cases are charted all at once: a year, and over 4 years', () => {
-    renderPage()
-    const worked = document.querySelector('.cmp-worked-years') as HTMLElement
-    const bars = (group: string, kase: string) =>
-      Array.from(worked.querySelectorAll(`[data-group="${group}"] [data-case="${kase}"] .cmp-cost-bar`)).map((b) => b.textContent)
-    expect(bars('A year', '1 minute in 15')).toEqual([
-      'AgentCore, every year€107.9k',
-      'Fleet, first yearwith €61.9k for the servers, bought once€131.9–134.9k',
-      'Fleet, each year afterlicence + power and support€70–73k',
-    ])
-    expect(bars('A year', 'All the time')[2]).toMatch(/€80\.7–91\.7k$/)
-    expect(bars('Over 4 years', '5 minutes in 15')).toEqual(['AgentCore€1.35M', 'Fleetservers included, once€394–414k'])
-    expect(bars('Over 4 years', 'All the time')).toEqual(['AgentCore€3.52M', 'Fleetservers included, once€550–594k'])
-    // One scale per chart: the largest bar of each is the full bar length.
-    const widths = (group: string) =>
-      Array.from(worked.querySelectorAll(`[data-group="${group}"] .cmp-bar-fill`)).map((f) => parseFloat((f as HTMLElement).style.width))
-    expect(Math.max(...widths('A year'))).toBeCloseTo(80, 6)
-    expect(Math.max(...widths('Over 4 years'))).toBeCloseTo(80, 6)
+    expect(sec).toMatch(/Fleet’s first year includes buying the servers, so at one minute in fifteen it costs more than AgentCore that year; every year after, it is the licence and power and support/)
+    // The method sits behind a disclosure, closed at first.
+    expect(screen.getByRole('button', { name: 'How these are worked out' })).toHaveAttribute('aria-expanded', 'false')
   })
 
   test('the calculator can leave out servers already bought', async () => {
@@ -467,14 +458,6 @@ describe('cost by usage', () => {
     expect(q('.cmp-calc-servers')).toBe('€0')
     expect(q('.cmp-calc-igni-first')).toBe('€70–73k')
     expect(q('.cmp-calc-igni-total')).toBe('€70–73k')
-    const chart = document.querySelector('.cmp-calc-wrap .cmp-years') as HTMLElement
-    const rows = Array.from(chart.querySelectorAll('.cmp-cost-bar')).map((r) => r.textContent)
-    expect(rows).toEqual([
-      'AgentCore, every year€107.9k',
-      'Fleet, every yearlicence + power and support€70–73k',
-      'AgentCore€431.8k',
-      'Fleetservers already yours€280.1–292.1k',
-    ])
     expect(fleetYear(at(60), true).serverBuy).toBe(0)
   })
 

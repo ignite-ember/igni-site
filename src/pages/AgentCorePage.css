@@ -1408,41 +1408,46 @@
   white-space: nowrap;
 }
 
-/* Cost by usage: the calculator, then the bill a year and over 4 years. */
-.cmp-calc-wrap {
+/* Cost by usage: each amount in the worked cases has a thin bar under it. */
+.cmp-amount {
   display: flex;
   flex-direction: column;
-  gap: var(--base-size-24);
+  gap: var(--base-size-4);
+  min-width: var(--base-size-112);
 }
 
-.cmp-worked-years {
-  margin-top: var(--base-size-20);
-}
-
-.cmp-years {
+.cmp-amount-text {
   display: flex;
-  flex-direction: column;
-  gap: var(--base-size-24);
-  margin-top: var(--base-size-16);
-}
-
-.cmp-years-section {
+  justify-content: space-between;
   gap: var(--base-size-8);
-}
-
-.cmp-years-case {
-  margin: var(--base-size-8) 0 0;
-  font-size: var(--text-body-size-small);
   font-weight: var(--base-text-weight-semibold);
-  color: var(--fgColor-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
-.cmp-years .cmp-bar-label .cmp-cell-sub {
-  display: block;
+.cmp-amount-who {
   font-weight: var(--base-text-weight-normal);
   color: var(--fgColor-muted);
+}
+
+.cmp-amount-track {
+  display: block;
+  height: var(--base-size-8);
+  border-radius: var(--borderRadius-full);
+  background-color: var(--bgColor-muted);
+  overflow: hidden;
+}
+
+.cmp-amount-bar {
+  display: block;
+  height: 100%;
+  border-radius: var(--borderRadius-full);
+}
+
+.cmp-amount-pair {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-8);
 }
 
 .cmp-calc-owned-row label {

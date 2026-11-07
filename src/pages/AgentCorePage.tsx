@@ -25,16 +25,11 @@ import {
   EUR_PER_GBP,
   USAGE_CHECKED,
   USD_PER_EUR,
-  WORKED,
   WORKED_BASE,
   WRITTEN,
-  agentCoreYear,
   countFull,
   COVERAGE,
-  duration,
   eurShort,
-  eurRangeShort,
-  fleetYear,
   USAGE,
 } from './compare/agentcoreData'
 import {
@@ -48,7 +43,7 @@ import {
   GpuCapacity,
   RTable,
   UsageCalculator,
-  WorkedYears,
+  WorkedTable,
   UsageChart,
   VsCard,
   Disclosure,
@@ -722,74 +717,56 @@ export function AgentCorePage() {
           id="cost-usage"
           band
           label="Cost by usage"
-          title="Cost by usage, per year"
-          sub="The 200-person case prices people. This prices use: how many agent sessions run, and how much of every 15 minutes each spends working. AgentCore bills each second an agent computes or holds memory; igni costs the Fleet licence plus the servers that hold what is working at once. Both in euros, AgentCore at €1 = $1.10 as above. Model tokens are left out on both sides."
+          title="Cost by usage"
+          sub="The 200-person case prices people. This prices use: how many agent sessions run, and how much of every 15 minutes each spends working. AgentCore bills each second an agent computes or holds memory; Fleet costs its licence plus servers, bought once. Both in euros, AgentCore at €1 = $1.10 as above. Model tokens are left out on both sides."
         >
           <Figure
             title="Three worked cases"
-            caption={<>{WORKED_BASE.sessions.toLocaleString('en-US')} sessions, each {WORKED_BASE.vcpu} vCPU busy {Math.round(WORKED_BASE.busy * 100)}% while working and holding {WORKED_BASE.memGb} GB, running around the clock. Only the work in each 15 minutes changes. AgentCore at list; igni with the licence and the servers bought.</>}
-            after={<>The share of AgentCore&rsquo;s bill paid while the agent waits falls as it works more: at one minute in fifteen nearly half of it is memory held while idle. igni&rsquo;s servers are paid for once, in the first year, so at one minute in fifteen its first year costs more than AgentCore&rsquo;s; from the second year it is the licence and running the servers. AgentCore&rsquo;s bill is the same every year.</>}
+            caption={<>{WORKED_BASE.sessions.toLocaleString('en-US')} sessions, each {WORKED_BASE.vcpu} vCPU busy {Math.round(WORKED_BASE.busy * 100)}% while working and holding {WORKED_BASE.memGb} GB, around the clock. Only the work in each 15 minutes changes.</>}
+            after={<>Fleet&rsquo;s first year includes buying the servers, so at one minute in fifteen it costs more than AgentCore that year; every year after, it is the licence and power and support. Fleet&rsquo;s sizing is arithmetic from measured per-agent figures: 1,000 agents on these servers have not been measured.</>}
           >
-            <RTable
-              className="cmp-worked"
-              head={['The agent works', 'AgentCore, € a year', 'igni + Fleet, first year', 'igni + Fleet, each year after', 'Over 4 years', 'Servers (incl. 1 spare)']}
-              num={[1, 2, 3, 4, 5]}
-              rows={WORKED.map((w) => {
-                const inp = { ...WORKED_BASE, workS: w.workS }
-                const a = agentCoreYear(inp)
-                const f = fleetYear(inp)
-                return [
-                  <>{w.label}<span className="cmp-cell-sub">{duration(w.workS)} of every 15 min</span></>,
-                  <>{eurShort(a.total)}<span className="cmp-cell-sub">{eurShort(a.memIdle)} ({Math.round(a.idleShare * 100)}%) while idle</span></>,
-                  <>{eurRangeShort(f.firstYear)}<span className="cmp-cell-sub">with {eurShort(f.serverBuy)} for the servers, bought once</span></>,
-                  <>{eurRangeShort(f.yearAfter)}<span className="cmp-cell-sub">{eurShort(f.licence)} licence + {eurRangeShort(f.running)} running</span></>,
-                  <>AgentCore {eurShort(4 * a.total)}<span className="cmp-cell-sub">igni {eurRangeShort(f.fourYears)}</span></>,
-                  `${f.servers}`,
-                ]
-              })}
-            />
-            <WorkedYears />
+            <WorkedTable />
           </Figure>
 
           <h4 className="lp-subhead">Work it out for your own load</h4>
           <p className="landing-section-desc lp-desc cmp-desc">
-            Move the sliders, or start from a worked case. Both sides are worked out from the
-            same inputs with the formulas below.
+            Move the sliders, or start from a worked case.
           </p>
           <UsageCalculator />
 
-          <div className="cmp-grid cmp-grid--2 cmp-gap">
-            <div className="lp-sec-card cmp-card cmp-card--aws">
-              <h4>How AgentCore is priced here</h4>
-              <ul>
-                <li>Runtime v2 at us-east-1 list, checked {USAGE_CHECKED}: <b>${AC_RUNTIME.vcpuHour} a vCPU-hour</b> and <b>${AC_RUNTIME.gbHour} a GB-hour</b>, billed per second, converted at €1 = ${USD_PER_EUR.toFixed(2)}.</li>
-                <li>CPU is not billed while the agent waits. Each 15 minutes: CPU = W × C × B vCPU-seconds.</li>
-                <li>Memory: M GB while working; while idle, M GB for up to {AC_RUNTIME.reclaimS} s until it is reclaimed, then the 128 MB minimum for the rest of the 15 minutes.</li>
-                <li>A session ends after {AC_RUNTIME.maxLifetimeH} hours at most (maxLifetime): a busy agent is restarted, with a ~2 s cold start, and loses what it held in memory.</li>
-                <li>Working hours: only those hours are billed. Overnight the idle timeout ({AC_RUNTIME.idleTimeoutS / 60} min by default) ends the session, so each morning starts cold.</li>
-              </ul>
+          <Disclosure id="usage-method" show="How these are worked out" hide="Hide how these are worked out">
+            <div className="cmp-grid cmp-grid--2 cmp-gap">
+              <div className="lp-sec-card cmp-card cmp-card--aws">
+                <h4>How AgentCore is priced here</h4>
+                <ul>
+                  <li>Runtime v2 at us-east-1 list, checked {USAGE_CHECKED}: <b>${AC_RUNTIME.vcpuHour} a vCPU-hour</b> and <b>${AC_RUNTIME.gbHour} a GB-hour</b>, billed per second, converted at €1 = ${USD_PER_EUR.toFixed(2)}.</li>
+                  <li>CPU is not billed while the agent waits. Each 15 minutes: CPU = W × C × B vCPU-seconds.</li>
+                  <li>Memory: M GB while working; while idle, M GB for up to {AC_RUNTIME.reclaimS} s until it is reclaimed, then the 128 MB minimum for the rest of the 15 minutes. At one minute in fifteen, nearly half of the bill is memory held while idle.</li>
+                  <li>A session ends after {AC_RUNTIME.maxLifetimeH} hours at most (maxLifetime): a busy agent is restarted, with a ~2 s cold start, and loses what it held in memory.</li>
+                  <li>Working hours: only those hours are billed. Overnight the idle timeout ({AC_RUNTIME.idleTimeoutS / 60} min by default) ends the session, so each morning starts cold.</li>
+                </ul>
+              </div>
+              <div className="lp-sec-card cmp-card cmp-card--igni">
+                <h4>How Fleet is sized here</h4>
+                <ul>
+                  <li>Licence: the graduated <a href="/#pricing">price list</a> at N people. App agents count separately, up to as many as there are people, so N can be fewer people plus their apps.</li>
+                  <li>Working at once: A = N × W / 900, assuming the work is spread evenly. RAM = A × M + (N − A) × {PAUSED_GB} GB for each paused agent (measured). Busy threads = A × C × B.</li>
+                  <li>Servers: {SERVER.name}, {SERVER.cpus} ({SERVER.cores} cores, {SERVER.threads} threads), {SERVER.ramGb} GB. Sizing uses {Math.round(HEADROOM.ram * 100)}% of its RAM and {Math.round(HEADROOM.threads * 100)}% of its threads; the count is whichever needs more, plus 1 spare.</li>
+                  <li>Servers are bought once, in the first year, at £{SERVER.priceGbp.toLocaleString('en-US')} each (≈{eurShort(SERVER_EUR)} at £1 = €{EUR_PER_GBP.toFixed(2)}). After that each costs only power and support, €{(SERVER_YEAR_PARTS.running[0] / 1000).toFixed(1)}–{(SERVER_YEAR_PARTS.running[1] / 1000).toFixed(1)}k a year. Rack space and staff are not included. Plan to replace them after about {SERVER.years} years; the 4-year figures include buying them once. Servers are bought for the working peak, so working hours cost the same.</li>
+                </ul>
+              </div>
             </div>
-            <div className="lp-sec-card cmp-card cmp-card--igni">
-              <h4>How Fleet is sized here</h4>
-              <ul>
-                <li>Licence: the graduated <a href="/#pricing">price list</a> at N people. App agents count separately, up to as many as there are people, so N can be fewer people plus their apps.</li>
-                <li>Working at once: A = N × W / 900, assuming the work is spread evenly. RAM = A × M + (N − A) × {PAUSED_GB} GB for each paused agent (measured). Busy threads = A × C × B.</li>
-                <li>Servers: {SERVER.name}, {SERVER.cpus} ({SERVER.cores} cores, {SERVER.threads} threads), {SERVER.ramGb} GB. Sizing uses {Math.round(HEADROOM.ram * 100)}% of its RAM and {Math.round(HEADROOM.threads * 100)}% of its threads; the count is whichever needs more, plus 1 spare.</li>
-                <li>Servers are bought once, in the first year, at £{SERVER.priceGbp.toLocaleString('en-US')} each (≈{eurShort(SERVER_EUR)} at £1 = €{EUR_PER_GBP.toFixed(2)}). After that each costs only power and support, €{(SERVER_YEAR_PARTS.running[0] / 1000).toFixed(1)}–{(SERVER_YEAR_PARTS.running[1] / 1000).toFixed(1)}k a year. Rack space and staff are not included. Plan to replace them after about {SERVER.years} years; the 4-year figures include buying them once. Servers are bought for the working peak, so working hours cost the same.</li>
-              </ul>
-            </div>
-          </div>
-
-          <p className="cmp-note">
-            <b>Measured so far:</b> up to 400 agents on one server (c3-highcpu-192-metal, 192
-            vCPU, 512 GiB). 1,000 agents, and hundreds working at once, have not been measured;
-            the sizing here is arithmetic from measured per-agent figures, not a benchmark. The
-            one-minute case puts 500 agents on each working server, more than were measured.
-          </p>
-          <p className="cmp-note">
-            <b>Bursts:</b> if every agent works at the same moment, Fleet needs servers for that
-            peak, while AgentCore charges the same per second whenever the work happens.
-          </p>
+            <p className="cmp-note">
+              <b>Measured so far:</b> up to 400 agents on one server (c3-highcpu-192-metal, 192
+              vCPU, 512 GiB). 1,000 agents, and hundreds working at once, have not been measured;
+              the sizing here is arithmetic from measured per-agent figures, not a benchmark. The
+              one-minute case puts 500 agents on each working server, more than were measured.
+            </p>
+            <p className="cmp-note">
+              <b>Bursts:</b> if every agent works at the same moment, Fleet needs servers for that
+              peak, while AgentCore charges the same per second whenever the work happens.
+            </p>
+          </Disclosure>
         </Section>
 
         {/* ── Speed ──────────────────────────────────────── */}
