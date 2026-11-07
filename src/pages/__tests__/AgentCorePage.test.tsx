@@ -15,7 +15,7 @@
  *   private repositories and documents as sources.
  */
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, screen } from '@testing-library/react'
+import { cleanup, fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route, Routes } from 'react-router-dom'
 import { renderWithProviders } from '../../test/render'
@@ -433,6 +433,45 @@ describe('cost by usage', () => {
     const sec = document.querySelector('#cost-usage')?.textContent ?? ''
     expect(sec).toMatch(/Servers are bought once, in the first year.*only power and support, €1\.3–2\.3k a year\. Rack space and staff are not included\. Plan to replace them after about 4 years/)
     expect(sec).toMatch(/its first year costs more than AgentCore’s; from the second year it is the licence and running the servers/)
+  })
+
+  test('a years chart shows what each side has paid by the end of years 1 to 4', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    const worked = document.querySelector('.cmp-worked-years') as HTMLElement
+    const values = (root: Element) =>
+      Array.from(root.querySelectorAll('.cmp-years-group')).map((g) => [
+        g.querySelector('.cmp-years-value--aws')?.textContent,
+        g.querySelector('.cmp-years-value--igni')?.textContent,
+      ])
+    expect(values(worked)).toEqual([
+      ['€107.9k', '€131.9–134.9k'],
+      ['€215.9k', '€202–208k'],
+      ['€323.8k', '€272–281k'],
+      ['€431.8k', '€342–354k'],
+    ])
+    // The servers are one slice, the same height in every year.
+    expect(worked.querySelectorAll('.cmp-years-servers')).toHaveLength(4)
+    expect(worked.querySelector('[role="img"]')?.getAttribute('aria-label')).toMatch(/€61\.9k is the servers, paid once in the first year/)
+    await user.click(within(worked).getByRole('tab', { name: 'All the time' }))
+    expect(values(worked)[3]).toEqual(['€3.52M', '€550–594k'])
+  })
+
+  test('the calculator can leave out servers already bought', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    const q = (sel: string) => document.querySelector(sel)?.textContent
+    const toggle = screen.getByRole('button', { name: 'Servers already bought' })
+    expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    await user.click(toggle)
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    expect(q('.cmp-calc-servers')).toBe('€0')
+    expect(q('.cmp-calc-igni-first')).toBe('€70–73k')
+    expect(q('.cmp-calc-igni-total')).toBe('€70–73k')
+    const chart = document.querySelector('.cmp-calc-wrap .cmp-years') as HTMLElement
+    expect(chart.querySelectorAll('.cmp-years-servers')).toHaveLength(0)
+    expect(chart.querySelector('.cmp-years-group[data-year="4"] .cmp-years-value--igni')?.textContent).toBe('€280.1–292.1k')
+    expect(fleetYear(at(60), true).serverBuy).toBe(0)
   })
 
   test('it says what is measured, what bursts do, and that it is all in euros', () => {

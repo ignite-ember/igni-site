@@ -31,6 +31,7 @@ import {
   eurShort,
   eurRangeShort,
   fleetYear,
+  type FleetYear,
   type Has,
   type Schedule,
   type UsageInputs,
@@ -735,14 +736,15 @@ const SCHEDULES: { id: Schedule; label: string; note: string }[] = [
 
 /**
  * The cost-by-usage calculator: the landing estimator's controls, and two
- * quotes computed by the same functions as the worked cases. Each side in
- * its own currency; nothing is converted.
+ * quotes computed by the same functions as the worked cases, both in
+ * euros, and the years chart under them.
  */
 export function UsageCalculator() {
   const [inp, setInp] = useState<UsageInputs>({ ...WORKED_BASE, workS: WORKED[0].workS })
+  const [owned, setOwned] = useState(false)
   const set = (patch: Partial<UsageInputs>) => setInp((v) => ({ ...v, ...patch }))
   const aws = agentCoreYear(inp)
-  const igni = fleetYear(inp)
+  const igni = fleetYear(inp, owned)
   const preset = WORKED.find(
     (w) =>
       w.workS === inp.workS &&
@@ -756,6 +758,7 @@ export function UsageCalculator() {
   const idle = inp.workS < 900
 
   return (
+    <div className="cmp-calc-wrap">
     <div className="lp-est cmp-calc">
       <div className="lp-est-controls">
         <div className="lp-est-presets" role="group" aria-label="The worked cases">
@@ -848,14 +851,22 @@ export function UsageCalculator() {
             </li>
             <li>
               <span>
-                {igni.servers} × {SERVER.name}, bought once
+                {igni.servers} × {SERVER.name}, {owned ? 'already yours' : 'bought once'}
                 <em>
-                  First year only · RAM needs {igni.byRam}, CPU {igni.byThreads}: the larger, plus 1 spare ·{' '}
+                  {owned ? 'Nothing to buy' : 'First year only'} · RAM needs {igni.byRam}, CPU {igni.byThreads}: the larger, plus 1 spare ·{' '}
                   {Math.round(igni.active).toLocaleString('en-US')} working at once need{' '}
                   {Math.round(igni.ramGb).toLocaleString('en-US')} GB and {Math.round(igni.busyThreads).toLocaleString('en-US')} busy threads
                 </em>
+                <button
+                  type="button"
+                  className={`cmp-calc-owned${owned ? ' cmp-calc-owned--on' : ''}`}
+                  aria-pressed={owned}
+                  onClick={() => setOwned((v) => !v)}
+                >
+                  Servers already bought
+                </button>
               </span>
-              <strong className="cmp-calc-servers">{eurShort(igni.serverBuy)}</strong>
+              <strong className="cmp-calc-servers">{owned ? '€0' : eurShort(igni.serverBuy)}</strong>
             </li>
             <li>
               <span>
@@ -884,13 +895,93 @@ export function UsageCalculator() {
             to {Math.round(HEADROOM.ram * 100)}% of its RAM and {Math.round(HEADROOM.threads * 100)}% of its
             threads. A paused agent holds {PAUSED_GB} GB.
           </p>
-          <p className="lp-est-fine cmp-calc-buy">
+          <p className="lp-est-fine cmp-calc-buy" hidden={owned}>
             The servers are paid for once: {igni.servers} × £{SERVER.priceGbp.toLocaleString('en-US')} ≈{' '}
             {eurShort(igni.serverBuy)} at £1 = €{EUR_PER_GBP.toFixed(2)}. After that a server costs power and support,
             €{(SERVER_YEAR_PARTS.running[0] / 1000).toFixed(1)}–{(SERVER_YEAR_PARTS.running[1] / 1000).toFixed(1)}k a year; rack space and staff are not included. Over 4 years,
             the servers once: <b>{eurRangeShort(igni.fourYears)}</b>.
           </p>
         </div>
+      </div>
+    </div>
+    <YearsChart aws={aws.total} igni={igni} />
+    </div>
+  )
+}
+
+/* ── Cost by usage over the years ─────────────────────────────── */
+
+const YEARS = [1, 2, 3, 4] as const
+
+/** What igni has paid by the end of year `n`, low and high: the servers once, then the licence and running them each year. */
+const igniBy = (f: FleetYear, n: number): [number, number] => [
+  f.serverBuy + n * (f.licence + f.running[0]),
+  f.serverBuy + n * (f.licence + f.running[1]),
+]
+
+/**
+ * Vertical bars of what each side has paid by the end of each of 4 years.
+ * AgentCore's bar grows by the same bill every year. igni's is stacked:
+ * the servers at the bottom, the same height every year because they are
+ * paid for once, then the licence and running them.
+ */
+export function YearsChart({ aws, igni }: { aws: number; igni: FleetYear }) {
+  const max = Math.max(4 * aws, igniBy(igni, 4)[1], 1)
+  const pct = (v: number) => `${(v / max) * 100}%`
+  const label =
+    `What each side has paid by the end of years 1 to 4, in euros. AgentCore: ${YEARS.map((n) => eurShort(n * aws)).join(', ')}. ` +
+    `igni + Fleet: ${YEARS.map((n) => eurRangeShort(igniBy(igni, n))).join(', ')}` +
+    (igni.serverBuy > 0 ? `, of which ${eurShort(igni.serverBuy)} is the servers, paid once in the first year.` : ', with the servers already bought.')
+  return (
+    <figure className="cmp-years">
+      <figcaption className="cmp-years-title">Paid by the end of each year</figcaption>
+      <div className="cmp-years-plot" role="img" aria-label={label}>
+        {YEARS.map((n) => {
+          const [lo, hi] = igniBy(igni, n)
+          return (
+            <div key={n} className="cmp-years-group" data-year={n}>
+              <div className="cmp-years-bars">
+                <span className="cmp-years-bar cmp-bar-fill--aws" style={{ height: pct(n * aws) }} />
+                <span className="cmp-years-bar cmp-years-stack" style={{ height: pct(hi) }}>
+                  <span className="cmp-bar-fill--igni cmp-stack-part--2" style={{ flexGrow: n * igni.running[1] }} />
+                  <span className="cmp-bar-fill--igni cmp-stack-part--1" style={{ flexGrow: n * igni.licence }} />
+                  {igni.serverBuy > 0 && <span className="cmp-bar-fill--igni cmp-years-servers" style={{ flexGrow: igni.serverBuy }} />}
+                </span>
+              </div>
+              <span className="cmp-years-label">Year {n}</span>
+              <span className="cmp-years-value cmp-years-value--aws">{eurShort(n * aws)}</span>
+              <span className="cmp-years-value cmp-years-value--igni">{eurRangeShort([lo, hi])}</span>
+            </div>
+          )
+        })}
+      </div>
+      <div className="cmp-legend">
+        <span><i className="cmp-swatch cmp-bar-fill--aws" /> AgentCore</span>
+        {igni.serverBuy > 0 && <span><i className="cmp-swatch cmp-bar-fill--igni" /> igni: servers, paid once</span>}
+        <span><i className="cmp-swatch cmp-bar-fill--igni cmp-stack-part--1" /> igni: Fleet licence</span>
+        <span><i className="cmp-swatch cmp-bar-fill--igni cmp-stack-part--2" /> igni: power and support</span>
+      </div>
+    </figure>
+  )
+}
+
+/** The years chart for the three worked cases, one at a time. */
+export function WorkedYears() {
+  const [active, setActive] = useState(`${WORKED[0].workS}`)
+  const w = WORKED.find((x) => `${x.workS}` === active) ?? WORKED[0]
+  const inp = { ...WORKED_BASE, workS: w.workS }
+  return (
+    <div className="cmp-worked-years">
+      <PillTabs
+        label="Worked case"
+        tabs={WORKED.map((x) => ({ id: `${x.workS}`, label: x.label }))}
+        active={active}
+        onSelect={setActive}
+        idPrefix="cmp-years-tab"
+        panelId="cmp-years-panel"
+      />
+      <div role="tabpanel" id="cmp-years-panel" aria-labelledby={`cmp-years-tab-${active}`}>
+        <YearsChart aws={agentCoreYear(inp).total} igni={fleetYear(inp)} />
       </div>
     </div>
   )

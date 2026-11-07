@@ -313,8 +313,8 @@ export type FleetYear = {
   fourYears: [number, number]
 }
 
-/** Fleet's bill in euros: the servers are bought once, then each year is the licence and running them. The schedule does not change it: servers are sized for the working peak and owned all year. */
-export function fleetYear(i: UsageInputs): FleetYear {
+/** Fleet's bill in euros: the servers are bought once (unless `serversOwned`), then each year is the licence and running them. The schedule does not change it: servers are sized for the working peak and owned all year. */
+export function fleetYear(i: UsageInputs, serversOwned = false): FleetYear {
   const w = Math.min(Math.max(i.workS, 0), CYCLE_S)
   const licence = graduatedPrice(FLEET_PRICES, i.sessions)
   const active = (i.sessions * w) / CYCLE_S
@@ -326,7 +326,8 @@ export function fleetYear(i: UsageInputs): FleetYear {
   const byRam = fit(ramGb, SERVER.ramGb * HEADROOM.ram)
   const byThreads = fit(busyThreads, SERVER.threads * HEADROOM.threads)
   const servers = Math.max(byRam, byThreads, 1) + 1
-  const serverBuy = servers * SERVER_EUR
+  // Servers the customer already has cost nothing to buy, only to run.
+  const serverBuy = serversOwned ? 0 : servers * SERVER_EUR
   const running: [number, number] = [servers * SERVER_YEAR_PARTS.running[0], servers * SERVER_YEAR_PARTS.running[1]]
   const span = (f: (run: number) => number): [number, number] => [f(running[0]), f(running[1])]
   return {

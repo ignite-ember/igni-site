@@ -48,6 +48,7 @@ import {
   GpuCapacity,
   RTable,
   UsageCalculator,
+  WorkedYears,
   UsageChart,
   VsCard,
   Disclosure,
@@ -747,6 +748,7 @@ export function AgentCorePage() {
                 ]
               })}
             />
+            <WorkedYears />
           </Figure>
 
           <h4 className="lp-subhead">Work it out for your own load</h4>

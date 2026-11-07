@@ -1334,6 +1334,20 @@
 
 /* ── Phones, 2026-11-03 ───────────────────────────────────────── */
 @media (max-width: 640px) {
+  /* The years chart: shorter bars and smaller amounts. Scoped under
+     .cmp-years so it wins over the chart's own rules further down. */
+  .cmp-years .cmp-years-plot {
+    gap: var(--base-size-4);
+  }
+
+  .cmp-years .cmp-years-bars {
+    height: 10rem;
+  }
+
+  .cmp-years .cmp-years-value {
+    font-size: var(--text-caption-size, 0.75rem);
+  }
+
   /* "Software, not a service: CRA evidence in build" broke inside its
      words ("Softwar e") in a column var(--base-size-80) wide. The note now goes under
      its dot and keeps whole words. */
@@ -1406,4 +1420,110 @@
 .cmp-calc-quote .lp-est-total strong {
   font-size: var(--text-title-size-large);
   white-space: nowrap;
+}
+
+/* Cost by usage over the years: vertical bars, AgentCore beside igni,
+   for what each has paid by the end of years 1 to 4. */
+.cmp-calc-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-24);
+}
+
+.cmp-worked-years {
+  margin-top: var(--base-size-20);
+}
+
+.cmp-years {
+  margin: var(--base-size-16) 0 0;
+}
+
+.cmp-years-title {
+  margin-bottom: var(--base-size-12);
+  font-weight: var(--base-text-weight-semibold);
+  color: var(--fgColor-default);
+}
+
+.cmp-years-plot {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--base-size-16);
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
+}
+
+.cmp-years-group {
+  display: grid;
+  justify-items: center;
+  padding-bottom: var(--base-size-12);
+  text-align: center;
+}
+
+.cmp-years-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: var(--base-size-6);
+  width: 100%;
+  height: 14rem;
+}
+
+.cmp-years-bar {
+  display: block;
+  width: min(3rem, 40%);
+  min-height: var(--borderWidth-thick);
+  border-radius: var(--borderRadius-small) var(--borderRadius-small) 0 0;
+}
+
+.cmp-years-stack {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cmp-years-stack > span {
+  flex-basis: 0;
+}
+
+.cmp-years-stack > span + span {
+  border-top: var(--borderWidth-thick) solid var(--bgColor-default);
+}
+
+.cmp-years-label {
+  margin-top: var(--base-size-8);
+  font-size: var(--text-body-size-small);
+  color: var(--fgColor-muted);
+}
+
+.cmp-years-value {
+  font-size: var(--text-body-size-small);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.cmp-years-value--aws {
+  color: var(--fgColor-muted);
+}
+
+.cmp-years-value--igni {
+  color: var(--cmp-igni);
+}
+
+.cmp-calc-owned {
+  display: inline-flex;
+  align-self: flex-start;
+  width: fit-content;
+  margin-top: var(--base-size-6);
+  padding: var(--base-size-2) var(--base-size-8);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-full);
+  background: none;
+  color: var(--fgColor-muted);
+  font: inherit;
+  font-size: var(--text-body-size-small);
+  cursor: pointer;
+}
+
+.cmp-calc-owned--on {
+  border-color: var(--cmp-igni);
+  color: var(--cmp-igni);
 }
