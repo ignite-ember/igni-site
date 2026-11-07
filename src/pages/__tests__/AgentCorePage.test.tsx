@@ -15,13 +15,32 @@
  *   private repositories and documents as sources.
  */
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import { cleanup, screen } from '@testing-library/react'
+import { cleanup, fireEvent, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route, Routes } from 'react-router-dom'
 import { renderWithProviders } from '../../test/render'
 import { AgentCorePage } from '../AgentCorePage'
 import { AUTOPILOT_PRICES, FACTORY_EVAL, FACTORY_PER_YEAR, FLEET_PRICES, graduatedPrice } from '../site/siteData'
-import { BAND_200, COST_BARS, COST_SCALE, COVERAGE, USAGE, WAKE, WAKE_MAX_MS, countFull } from '../compare/agentcoreData'
+import {
+  AC_RUNTIME,
+  BAND_200,
+  COST_BARS,
+  COST_SCALE,
+  COVERAGE,
+  HEADROOM,
+  PAUSED_GB,
+  SCHEDULE_HOURS,
+  SERVER,
+  USAGE,
+  WAKE,
+  WAKE_MAX_MS,
+  WORKED,
+  WORKED_BASE,
+  agentCoreYear,
+  countFull,
+  fleetYear,
+  type UsageInputs,
+} from '../compare/agentcoreData'
 
 beforeEach(() => {
   vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')))
@@ -59,6 +78,7 @@ describe('the page renders', () => {
       'Extensions and the UI',
       'Models and GPU capacity',
       'Cost for 200 people, per year',
+      'Cost by usage, per year',
       'Speed',
       'Security and where data lives',
       'What erasure covers',
@@ -218,7 +238,7 @@ describe('it is built from the landing page’s pieces', () => {
   test('sections alternate with the tinted band', () => {
     renderPage()
     const sections = Array.from(document.querySelectorAll('section.cmp-section'))
-    expect(sections).toHaveLength(11)
+    expect(sections).toHaveLength(12)
     sections.forEach((sec, i) => {
       expect(sec.parentElement?.classList.contains('lp-band'), sec.id).toBe(i % 2 === 1)
     })
@@ -284,5 +304,130 @@ describe('it is linked', () => {
   test('from the footer', () => {
     renderPage()
     expect(document.querySelector('.landing-footer a[href="/compare/agentcore"]')).not.toBeNull()
+  })
+})
+
+describe('cost by usage', () => {
+  const at = (workS: number): UsageInputs => ({ ...WORKED_BASE, workS })
+  const k1 = (n: number) => Math.round(n / 100) / 10
+
+  test('the three worked cases are the figures the page states', () => {
+    // Hand-worked: AgentCore per 15 min at W = 60 is 36 vCPU-s and
+    // 2 GB × 180 s + 0.125 GB × 720 s = 450 GB-s, × 35,040 cycles × 1,000.
+    expect(WORKED.map((w) => w.workS)).toEqual([60, 300, 900])
+    for (const w of WORKED) {
+      const a = agentCoreYear(at(w.workS))
+      const f = fleetYear(at(w.workS))
+      expect(k1(a.total), `aws at ${w.workS}`).toBe(w.aws)
+      expect(k1(a.memIdle), `idle at ${w.workS}`).toBe(w.awsIdle)
+      expect(Math.round(a.idleShare * 100)).toBe(w.idlePct)
+      expect(f.servers, `servers at ${w.workS}`).toBe(w.servers)
+      expect(f.total.map(k1)).toEqual(w.igni)
+    }
+  })
+
+  test('the page prints them', () => {
+    renderPage()
+    const rows = Array.from(document.querySelectorAll('.cmp-worked tbody tr')).map((r) => r.textContent ?? '')
+    expect(rows).toHaveLength(3)
+    expect(rows[0]).toMatch(/\$118\.7k.*\$54\.3k \(46%\).*€85\.5–88\.5k.*€66k licence \+ €19\.5–22\.5k servers.*3$/)
+    expect(rows[1]).toMatch(/\$371\.6k.*\$49\.3k \(13%\).*€98\.5–103\.5k.*5$/)
+    expect(rows[2]).toMatch(/\$966\.8k.*\$0k \(0%\).*€137\.5–148\.5k.*11$/)
+  })
+
+  test('AgentCore: CPU only while working, memory reclaimed after 120 s down to 128 MB', () => {
+    const one: UsageInputs = { sessions: 1, workS: 300, vcpu: 4, busy: 0.5, memGb: 8, schedule: 'always' }
+    const cycles = (24 * 365 * 3600) / 900
+    const a = agentCoreYear(one)
+    expect(a.cpu).toBeCloseTo(((300 * 4 * 0.5) / 3600) * 0.1276 * cycles, 6)
+    expect(a.memWorking).toBeCloseTo(((8 * 300) / 3600) * 0.0169 * cycles, 6)
+    expect(a.memIdle).toBeCloseTo(((8 * 120 + 0.125 * 480) / 3600) * 0.0169 * cycles, 6)
+    expect(a.total).toBeCloseTo(a.cpu + a.memWorking + a.memIdle, 6)
+    // Under 120 s of idle, only the full-size hold: no floor.
+    const nearlyAll = agentCoreYear({ ...one, workS: 840 })
+    expect(nearlyAll.memIdle).toBeCloseTo(((8 * 60) / 3600) * 0.0169 * cycles, 6)
+    // Linear in sessions; working hours bill only those hours.
+    expect(agentCoreYear({ ...one, sessions: 10 }).total).toBeCloseTo(a.total * 10, 6)
+    expect(agentCoreYear({ ...one, schedule: 'working' }).total).toBeCloseTo((a.total * 2016) / 8760, 6)
+    expect(SCHEDULE_HOURS).toEqual({ always: 8760, working: 2016 })
+    expect(AC_RUNTIME).toMatchObject({ vcpuHour: 0.1276, gbHour: 0.0169, reclaimS: 120, floorGb: 0.125, maxLifetimeH: 8 })
+  })
+
+  test('Fleet: licence from the price list, servers by RAM or threads at the stated headroom, plus a spare', () => {
+    expect(SERVER).toMatchObject({ cpus: '2 × AMD EPYC 9474F', cores: 96, threads: 192, ramGb: 256, priceGbp: 17_950, perYear: [6_500, 7_500] })
+    expect(HEADROOM).toEqual({ ram: 0.85, threads: 0.7 })
+    expect(PAUSED_GB).toBe(0.23)
+    const f = fleetYear(at(300))
+    expect(f.licence).toBe(graduatedPrice(FLEET_PRICES, 1000))
+    expect(f.active).toBeCloseTo(1000 * 300 / 900, 9)
+    expect(f.ramGb).toBeCloseTo(f.active * 2 + (1000 - f.active) * 0.23, 9)
+    expect(f.busyThreads).toBeCloseTo(f.active * 2 * 0.3, 9)
+    expect(f.byRam).toBe(Math.ceil(f.ramGb / (256 * 0.85)))
+    expect(f.byThreads).toBe(Math.ceil(f.busyThreads / (192 * 0.7)))
+    expect(f.servers).toBe(Math.max(f.byRam, f.byThreads) + 1)
+    expect(f.serverCost).toEqual([f.servers * 6_500, f.servers * 7_500])
+    // CPU-bound: 100 agents always working at 8 vCPU fully busy need 800 threads.
+    const cpu = fleetYear({ sessions: 100, workS: 900, vcpu: 8, busy: 1, memGb: 1, schedule: 'always' })
+    expect(cpu.byThreads).toBe(Math.ceil(800 / 134.4))
+    expect(cpu.servers).toBe(cpu.byThreads + 1)
+    // Exactly full is not one more server.
+    // 64 agents × 6.8 GB = 435.2 GB, two servers' usable RAM exactly.
+    expect(fleetYear({ sessions: 64, workS: 900, vcpu: 1, busy: 0.1, memGb: 6.8, schedule: 'always' }).byRam).toBe(2)
+    // Servers are bought for the peak: the schedule does not change igni's bill.
+    expect(fleetYear({ ...at(300), schedule: 'working' })).toEqual(f)
+  })
+
+  test('the calculator recomputes both quotes as the inputs move, and fetches nothing', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    const total = (sel: string) => document.querySelector(sel)?.textContent
+    expect(total('.cmp-calc-aws-total')).toBe('$118.7k')
+    expect(total('.cmp-calc-igni-total')).toBe('€85.5–88.5k')
+
+    await user.click(screen.getByRole('button', { name: /5 minutes in 15/ }))
+    expect(total('.cmp-calc-aws-total')).toBe('$371.6k')
+    expect(total('.cmp-calc-igni-total')).toBe('€98.5–103.5k')
+
+    fireEvent.change(screen.getByLabelText('Sessions running (N)'), { target: { value: '200' } })
+    const inp: UsageInputs = { ...WORKED_BASE, sessions: 200, workS: 300 }
+    expect(total('.cmp-calc-aws-total')).toBe(`$${(agentCoreYear(inp).total / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })}k`)
+    expect(total('.cmp-calc-licence')).toBe('€24k')
+
+    await user.click(screen.getByRole('button', { name: /Working hours/ }))
+    const wk = agentCoreYear({ ...inp, schedule: 'working' })
+    expect(total('.cmp-calc-aws-total')).toBe(`$${(wk.total / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })}k`)
+    expect(fetch).not.toHaveBeenCalled()
+  })
+
+  test('it says what is measured, what bursts do, and converts nothing', () => {
+    renderPage()
+    const sec = document.querySelector('#cost-usage')?.textContent ?? ''
+    expect(sec).toMatch(/up to 400 agents on one server \(c3-highcpu-192-metal, 192 vCPU, 512 GiB\)/)
+    expect(sec).toMatch(/1,000 agents, and hundreds working at once, have not been measured/)
+    expect(sec).toMatch(/not a benchmark/)
+    expect(sec).toMatch(/if every agent works at the same moment, Fleet needs servers for that peak/)
+    expect(sec).toMatch(/not converted/)
+    expect(sec).toMatch(/Model tokens are left out on both sides/)
+    expect(sec).toMatch(/85% of its RAM and 70% of its threads/)
+    expect(sec).toMatch(/maxLifetime/)
+    expect(sec).not.toMatch(/€1 = |\$1\.10|×\s*cheaper|times (cheaper|as much)/)
+  })
+
+  test('the server is the 256 GB R7625 everywhere, with its CPUs and its source', () => {
+    renderPage()
+    const t = text()
+    expect(t).not.toMatch(/512 GB/)
+    expect(t).not.toMatch(/£17\.9k/)
+    expect(document.querySelector('#sources')?.textContent).toMatch(/2 × AMD EPYC 9474F \(96 cores, 192 threads\), 256 GB.*£17,950.*bytestock.*7 Nov 2026/)
+  })
+
+  test('its sources are on the page', () => {
+    renderPage()
+    const src = document.querySelector('#sources')?.textContent ?? ''
+    expect(src).toMatch(/LifecycleConfiguration/)
+    expect(src).toMatch(/End to end on bare metal: 400 real producers/)
+    expect(src).toMatch(/Step 6 again on bare metal/)
+    expect(src).toMatch(/Step 6 a third time on bare metal/)
+    expect(src).toMatch(/results log/)
   })
 })

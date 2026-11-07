@@ -1352,3 +1352,53 @@
     min-height: var(--base-size-44);
   }
 }
+
+/* ── Cost by usage: the landing estimator, with two quotes ─────── */
+
+.cmp-calc {
+  margin: var(--base-size-24) 0;
+}
+
+.cmp-calc-out {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-16);
+  min-width: 0;
+}
+
+.cmp-calc-value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* AgentCore's quote in the page's neutral side colour, not igni's orange. */
+.cmp-calc-quote--aws {
+  border-color: var(--borderColor-default);
+  background: var(--bgColor-default);
+  box-shadow: none;
+}
+
+.cmp-calc-quote--aws .lp-est-quote-kicker {
+  color: var(--cmp-aws);
+}
+
+.cmp-calc-quote--aws .lp-est-total strong {
+  background: none;
+  color: var(--fgColor-default);
+}
+
+.cmp-worked .cmp-cell-sub {
+  white-space: normal;
+}
+
+.cmp-calc .cmp-calc-quote {
+  /* The landing pins its one quote while the controls scroll; two pinned
+     quotes would overlap, so these stay in the flow. */
+  position: static;
+  align-self: stretch;
+}
+
+/* Two quotes share the column, so their totals take the smaller title size and stay on one line. */
+.cmp-calc-quote .lp-est-total strong {
+  font-size: var(--text-title-size-large);
+  white-space: nowrap;
+}

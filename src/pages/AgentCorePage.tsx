@@ -13,7 +13,27 @@ import {
 } from './site/siteData'
 import { SiteFooter, SiteNav } from './site/SiteChrome'
 import { Section as SiteSection, StatRow } from './site/Sections'
-import { AWS_CHECKED, BAND_200, WRITTEN, countFull, COVERAGE, USAGE } from './compare/agentcoreData'
+import {
+  AC_RUNTIME,
+  AWS_CHECKED,
+  BAND_200,
+  HEADROOM,
+  PAUSED_GB,
+  SERVER,
+  USAGE_CHECKED,
+  WORKED,
+  WORKED_BASE,
+  WRITTEN,
+  agentCoreYear,
+  countFull,
+  COVERAGE,
+  duration,
+  eurK1,
+  eurRangeK,
+  fleetYear,
+  usdK,
+  USAGE,
+} from './compare/agentcoreData'
 import {
   Architecture,
   Breakdown,
@@ -24,6 +44,7 @@ import {
   Figure,
   GpuCapacity,
   RTable,
+  UsageCalculator,
   UsageChart,
   VsCard,
   Disclosure,
@@ -73,6 +94,7 @@ const TOC: { id: string; label: string }[] = [
   { id: 'extensions', label: 'Extensions & UI' },
   { id: 'models', label: 'Models & GPUs' },
   { id: 'cost', label: 'Cost for 200 people' },
+  { id: 'cost-usage', label: 'Cost by usage' },
   { id: 'speed', label: 'Speed' },
   { id: 'security', label: 'Security & data' },
   { id: 'erasure', label: 'What erasure covers' },
@@ -111,7 +133,7 @@ function Rated({ tone, pill, children }: { tone: 'good' | 'warn'; pill: string; 
 }
 
 const DESCRIPTION =
-  'How igni with Fleet compares with AWS Bedrock AgentCore: where each runs, what persists, feature by feature, models and GPUs, cost for 200 people, speed, security and erasure. AWS facts checked 1–2 November 2026.'
+  'How igni with Fleet compares with AWS Bedrock AgentCore: where each runs, what persists, feature by feature, models and GPUs, cost for 200 people and by usage, speed, security and erasure. AWS facts checked 1–2 November 2026.'
 
 export function AgentCorePage() {
   useDocumentTitle('igni + Fleet vs AWS Bedrock AgentCore', DESCRIPTION)
@@ -579,7 +601,7 @@ export function AgentCorePage() {
                 rows={[
                   ['Harness, server, igni models (Apache-2.0)', '0'],
                   ['Fleet licence at 200 people (includes 200 apps), graduated per seat', k(FLEET_200)],
-                  ['CPU servers: 2, bought (Dell R7625, 512 GB), over 4 years, + power and support', '13–15k'],
+                  ['CPU servers: 2, bought (Dell R7625, 2 × EPYC 9474F, 256 GB), over 4 years, + power and support', '13–15k'],
                   ['Runtime, comparable to AgentCore’s', '37–39k'],
                   ['GPU: 1 × GH200, bought, over 4 years, + power and support', '14–18k'],
                   ['Total with the model', '51–57k'],
@@ -601,7 +623,7 @@ export function AgentCorePage() {
             head={['Option', 'CPU servers (2)', 'GPU (1)', 'Total with the Fleet licence']}
             num={[3]}
             rows={[
-              [<><b>Buy</b> (base case)</>, 'Dell R7625, 512 GB, over 4 years + power and support: €13–15k', 'GH200, over 4 years + power and support: €14–18k', <b>€51–57k</b>],
+              [<><b>Buy</b> (base case)</>, 'Dell R7625 (2 × EPYC 9474F, 256 GB), over 4 years + power and support: €13–15k', 'GH200, over 4 years + power and support: €14–18k', <b>€51–57k</b>],
               [<b>Rent</b>, 'Hetzner AX162 (48 cores, 128 GB; more RAM extra), €614 a month each: ~€15k', 'GH200 at Lambda Labs, $2.29 an hour: ~€18k', '~€57k'],
               [<b>Rent from AWS</b>, 'm7i.metal-24xl (96 vCPU, 384 GB), $4.84 an hour each, on-demand: ~€77k', 'No GH200 on EC2; H100 80 GB (p5.4xlarge), $6.88 an hour: ~€55k', '~€156k'],
             ]}
@@ -691,10 +713,82 @@ export function AgentCorePage() {
           </div>
         </Section>
 
+        {/* ── Cost by usage ──────────────────────────────── */}
+        <Section
+          id="cost-usage"
+          band
+          label="Cost by usage"
+          title="Cost by usage, per year"
+          sub="The 200-person case prices people. This prices use: how many agent sessions run, and how much of every 15 minutes each spends working. AgentCore bills each second an agent computes or holds memory; igni costs the Fleet licence plus the servers that hold what is working at once. AgentCore in US dollars, igni in euros, not converted. Model tokens are left out on both sides."
+        >
+          <Figure
+            title="Three worked cases"
+            caption={<>{WORKED_BASE.sessions.toLocaleString('en-US')} sessions, each {WORKED_BASE.vcpu} vCPU busy {Math.round(WORKED_BASE.busy * 100)}% while working and holding {WORKED_BASE.memGb} GB, running around the clock. Only the work in each 15 minutes changes. AgentCore at list; igni with the licence and the servers bought.</>}
+            after={<>The share of AgentCore&rsquo;s bill paid while the agent waits falls as it works more: at one minute in fifteen nearly half of it is memory held while idle. igni&rsquo;s licence is fixed; its servers grow with what works at once.</>}
+          >
+            <RTable
+              className="cmp-worked"
+              head={['The agent works', 'AgentCore, $ a year', 'of it while idle', 'igni + Fleet, € a year', 'Servers (incl. 1 spare)']}
+              num={[1, 2, 3, 4]}
+              rows={WORKED.map((w) => {
+                const inp = { ...WORKED_BASE, workS: w.workS }
+                const a = agentCoreYear(inp)
+                const f = fleetYear(inp)
+                return [
+                  <>{w.label}<span className="cmp-cell-sub">{duration(w.workS)} of every 15 min</span></>,
+                  usdK(a.total),
+                  `${usdK(a.memIdle)} (${Math.round(a.idleShare * 100)}%)`,
+                  <>{eurRangeK(f.total)}<span className="cmp-cell-sub">{eurK1(f.licence)} licence + {eurRangeK(f.serverCost)} servers</span></>,
+                  `${f.servers}`,
+                ]
+              })}
+            />
+          </Figure>
+
+          <h4 className="lp-subhead">Work it out for your own load</h4>
+          <p className="landing-section-desc lp-desc cmp-desc">
+            Move the sliders, or start from a worked case. Both sides are worked out from the
+            same inputs with the formulas below.
+          </p>
+          <UsageCalculator />
+
+          <div className="cmp-grid cmp-grid--2 cmp-gap">
+            <div className="lp-sec-card cmp-card cmp-card--aws">
+              <h4>How AgentCore is priced here</h4>
+              <ul>
+                <li>Runtime v2 at us-east-1 list, checked {USAGE_CHECKED}: <b>${AC_RUNTIME.vcpuHour} a vCPU-hour</b> and <b>${AC_RUNTIME.gbHour} a GB-hour</b>, billed per second.</li>
+                <li>CPU is not billed while the agent waits. Each 15 minutes: CPU = W × C × B vCPU-seconds.</li>
+                <li>Memory: M GB while working; while idle, M GB for up to {AC_RUNTIME.reclaimS} s until it is reclaimed, then the 128 MB minimum for the rest of the 15 minutes.</li>
+                <li>A session ends after {AC_RUNTIME.maxLifetimeH} hours at most (maxLifetime): a busy agent is restarted, with a ~2 s cold start, and loses what it held in memory.</li>
+                <li>Working hours: only those hours are billed. Overnight the idle timeout ({AC_RUNTIME.idleTimeoutS / 60} min by default) ends the session, so each morning starts cold.</li>
+              </ul>
+            </div>
+            <div className="lp-sec-card cmp-card cmp-card--igni">
+              <h4>How Fleet is sized here</h4>
+              <ul>
+                <li>Licence: the graduated <a href="/#pricing">price list</a> at N people. App agents count separately, up to as many as there are people, so N can be fewer people plus their apps.</li>
+                <li>Working at once: A = N × W / 900, assuming the work is spread evenly. RAM = A × M + (N − A) × {PAUSED_GB} GB for each paused agent (measured). Busy threads = A × C × B.</li>
+                <li>Servers: {SERVER.name}, {SERVER.cpus} ({SERVER.cores} cores, {SERVER.threads} threads), {SERVER.ramGb} GB. Sizing uses {Math.round(HEADROOM.ram * 100)}% of its RAM and {Math.round(HEADROOM.threads * 100)}% of its threads; the count is whichever needs more, plus 1 spare.</li>
+                <li>Each server bought costs €{SERVER.perYear[0] / 1000}–{SERVER.perYear[1] / 1000}k a year over 4 years with power and support, as in the 200-person case. Servers are bought for the working peak, so working hours cost the same.</li>
+              </ul>
+            </div>
+          </div>
+
+          <p className="cmp-note">
+            <b>Measured so far:</b> up to 400 agents on one server (c3-highcpu-192-metal, 192
+            vCPU, 512 GiB). 1,000 agents, and hundreds working at once, have not been measured;
+            the sizing here is arithmetic from measured per-agent figures, not a benchmark. The
+            one-minute case puts 500 agents on each working server, more than were measured.
+          </p>
+          <p className="cmp-note">
+            <b>Bursts:</b> if every agent works at the same moment, Fleet needs servers for that
+            peak, while AgentCore charges the same per second whenever the work happens.
+          </p>
+        </Section>
+
         {/* ── Speed ──────────────────────────────────────── */}
         <Section
           id="speed"
-          band
           label="Speed"
           title="Speed"
           sub={<>Fleet figures are measured through the real gateway with the real igni image, p50, on a bare-metal GCP server (C3) with 100–300 agents; the figures for an app first used days later on a nested-virtualisation GCP VM. Details are on the <a href="/fleet">Fleet page</a>.</>}
@@ -718,7 +812,7 @@ export function AgentCorePage() {
         </Section>
 
         {/* ── Security ───────────────────────────────────── */}
-        <Section id="security" label="Security" title="Security and where data lives">
+        <Section id="security" band label="Security" title="Security and where data lives">
           <div className="cmp-grid cmp-grid--2">
             <div className="lp-sec-card cmp-card cmp-card--aws">
               <h4>AgentCore</h4>
@@ -742,7 +836,7 @@ export function AgentCorePage() {
         </Section>
 
         {/* ── Erasure ────────────────────────────────────── */}
-        <Section id="erasure" band label="Erasure" title="What erasure covers">
+        <Section id="erasure" label="Erasure" title="What erasure covers">
           <Figure
             title="What happens on a discard in Fleet"
             after="AgentCore discards the VM; Memory, S3, CloudWatch and session storage are deleted service by service, by you."
@@ -760,7 +854,7 @@ export function AgentCorePage() {
         </Section>
 
         {/* ── Where AgentCore is ahead ───────────────────── */}
-        <Section id="aws-wins" label="Honestly" title="Where AgentCore is ahead">
+        <Section id="aws-wins" band label="Honestly" title="Where AgentCore is ahead">
           <RTable
             head={['Area', 'Gap', 'How igni addresses it']}
             rows={[
@@ -777,7 +871,7 @@ export function AgentCorePage() {
         </Section>
 
         {/* ── Which to choose ────────────────────────────── */}
-        <Section id="choose" band label="Choosing" title="Which to choose">
+        <Section id="choose" label="Choosing" title="Which to choose">
           <div className="cmp-grid cmp-grid--2">
             <div className="lp-sec-card cmp-card cmp-card--aws">
               <h4>Choose AgentCore when…</h4>
@@ -810,9 +904,9 @@ export function AgentCorePage() {
         </Section>
 
         {/* ── Assumptions and sources ────────────────────── */}
-        <Section id="sources" label="Sources" title="Assumptions and sources">
+        <Section id="sources" band label="Sources" title="Assumptions and sources">
           <ul className="cmp-sources">
-            <li>Written {WRITTEN}. AWS facts and list prices checked against AWS documentation on {AWS_CHECKED}. Usage figures are the assumptions below. €1 = $1.10 assumed throughout.</li>
+            <li>Written {WRITTEN}. AWS facts and list prices checked against AWS documentation on {AWS_CHECKED}. Usage figures are the assumptions below. €1 = $1.10 assumed throughout, except in the cost-by-usage section, which does not convert.</li>
             <li>AgentCore prices: aws.amazon.com/bedrock/agentcore/pricing, us-east-1 list, 1 Nov 2026. Runtime V2 $0.1276 / vCPU-hour and $0.0169 / GB-hour; committed $0.0997 and $0.0132. Committed figures also assume a 10% enterprise discount.</li>
             <li>AgentCore UI: the AgentCore console harness playground and observability (AWS blog, harness GA, 2026). igni extensions: igni&rsquo;s extension documentation (<a href="/docs/building-extensions">Building extensions</a>) and its example extensions, checked 2 Nov 2026.</li>
             <li>Own-GPU options: AWS p5.4xlarge (1 × H100 80 GB) at $6.88 an hour on-demand, run all year; GH200 not offered on EC2 as of Nov 2026. The AgentCore part is the bill above without model tokens (committed + 10% discount to list).</li>
@@ -821,10 +915,12 @@ export function AgentCorePage() {
             <li>AgentCore Browser: list price as Code Interpreter; customer-provided proxies (AWS What&rsquo;s New, Feb 2026); session recording, live view and Web Bot Auth (AgentCore developer guide). Chromium in Fleet: igni&rsquo;s own measurement in a Fleet VM, Oct–Nov 2026.</li>
             <li>AgentCore features: AWS developer guide — runtime file system configurations, how Runtime works (platform versions by region), supported regions; checked 2 Nov 2026. Session storage is in preview.</li>
             <li>Heavy-use case, per person per working day, all 200 people: 8 h session of 2 vCPU / 4 GB, CPU busy 30%, memory held half the time; Code Interpreter 1 h (2 vCPU busy 30%, 4 GB held); 5 workspace rebuilds of 3 minutes; 300 tool calls; 30 long-term memory records, 100 retrievals; 10 web searches; 5 M input / 0.15 M output tokens. Sonnet includes cache writes.</li>
-            <li>igni prices: igni&rsquo;s <a href="/#pricing">price list</a>, the graduated Fleet licence (€24k at 200 people), list, excl. VAT. Servers: Dell PowerEdge R7625 at ~£17.9k each from a UK reseller. GPU ownership at ≈$15–20k a GPU-year is an estimate; get a quote.</li>
+            <li>igni prices: igni&rsquo;s <a href="/#pricing">price list</a>, the graduated Fleet licence (€24k at 200 people), list, excl. VAT. Servers: Dell PowerEdge R7625 with 2 × AMD EPYC 9474F (96 cores, 192 threads), 256 GB DDR5 and 2 × 3.84 TB NVMe, at £17,950 each ex VAT from a UK reseller (shop.bytestock.com listing, checked 7 Nov 2026). GPU ownership at ≈$15–20k a GPU-year is an estimate; get a quote.</li>
             <li>Staff and development are not included on either side.</li>
+            <li>Cost by usage, AgentCore: aws.amazon.com/bedrock/agentcore/pricing, runtime v2, us-east-1 list, checked {USAGE_CHECKED}: $0.1276 / vCPU-hour and $0.0169 / GB-hour, billed per second; CPU scales to zero during I/O wait; idle memory reclaimed after 120 s; 128 MB minimum memory billed. Session lifetime: AgentCore Control API reference, LifecycleConfiguration — maxLifetime 28,800 s (8 h) by default and at most; idleRuntimeSessionTimeout 900 s by default.</li>
+            <li>Cost by usage, Fleet sizing: igni&rsquo;s own measurements in the Fleet repository&rsquo;s results log, &ldquo;End to end on bare metal: 400 real producers&rdquo; (31 Oct 2026) and &ldquo;Step 6 again on bare metal&rdquo; (5 Nov 2026), on c3-highcpu-192-metal: up to 400 agents on one server; a paused agent held 190–240 MiB of host RAM ({PAUSED_GB} GB used here, the median). The servers and their yearly cost are the R7625 line above.</li>
             <li>AgentCore cold start and idle behaviour: AWS blog &ldquo;The new AgentCore runtime: elastic, optimized, and consistently fast starts&rdquo; and the runtime lifecycle settings page, checked 7 Nov 2026.</li>
-            <li>Fleet timings: igni&rsquo;s own measurements, bare-metal GCP server (c3-highcpu-192-metal) and nested GCP VM (n2-standard-8), Oct–Nov 2026; details are on the <a href="/fleet">Fleet page</a>. Security tests ran on cloud test VMs with OpenBao in dev mode and a test object store; a pilot repeats them on your hardware.</li>
+            <li>Fleet timings: igni&rsquo;s own measurements, bare-metal GCP server (c3-highcpu-192-metal) and nested GCP VM (n2-standard-8), Oct–Nov 2026; wake times from the Fleet repository&rsquo;s results log, &ldquo;Step 6 a third time on bare metal&rdquo; (6 Nov 2026); details are on the <a href="/fleet">Fleet page</a>. Security tests ran on cloud test VMs with OpenBao in dev mode and a test object store; a pilot repeats them on your hardware.</li>
             <li>GPU sizing: one GH200 for ~200 people with the 27B, assuming each agent works hard for ~1 minute then idles ~3; ~60 requests generating at once with 25–100k tokens of context; FP8 weights; KV cache tiered across GPU memory, CPU RAM and SSD. Our calculation; a pilot load test confirms it on your hardware. How igni routes to inference nodes: <a href="/docs/inference-backends">Inference backends</a>.</li>
             <li>Model providers: igni&rsquo;s client configuration — OpenAI-compatible, native Anthropic (Messages API, prompt caching, extended thinking) and Gemini — checked 2 Nov 2026.</li>
           </ul>

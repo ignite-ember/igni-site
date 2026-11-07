@@ -11,6 +11,8 @@
  * checks that the price list still says what this page assumed.
  */
 
+import { FLEET_PRICES, graduatedPrice } from '../site/siteData'
+
 /** When the AWS side was last checked. Shown on the page; keep it true. */
 export const AWS_CHECKED = '1–2 November 2026'
 export const WRITTEN = '2 November 2026'
@@ -156,3 +158,199 @@ export const WAKE: { label: string; side: Side; ms: number; shown: string }[] = 
 ]
 
 export const WAKE_MAX_MS = 2000
+
+/* ── Cost by usage ────────────────────────────────────────────────
+ *
+ * The 200-person case above prices a person; this prices use. One agent
+ * session is modelled as a 15-minute cycle in which it works for W
+ * seconds and waits for the rest. Both bills are computed from the
+ * inputs below, nothing else: the page's calculator and its three worked
+ * cases call these same functions, and the test checks the worked cases
+ * against the figures the page prints.
+ *
+ * AgentCore: runtime v2 at us-east-1 list, re-checked on the pricing
+ * page on 7 November 2026. Fleet: the graduated licence from the price
+ * list plus the servers the load takes. Model tokens are left out on
+ * both sides. AgentCore is in dollars and igni in euros; this section
+ * does not convert between them.
+ */
+
+/** When the usage section's AWS prices and server listing were checked. */
+export const USAGE_CHECKED = '7 November 2026'
+
+/** AgentCore Runtime v2, list, us-east-1: the pricing page and the LifecycleConfiguration API reference. */
+export const AC_RUNTIME = {
+  /** $ per vCPU-hour, consumption. Not billed while the agent waits on I/O. */
+  vcpuHour: 0.1276,
+  /** $ per GB-hour, consumption. */
+  gbHour: 0.0169,
+  /** Idle memory is reclaimed after this many seconds. */
+  reclaimS: 120,
+  /** The 128 MB minimum memory billed, in GB. */
+  floorGb: 0.125,
+  /** maxLifetime: a session ends after 8 hours at most (28,800 s). */
+  maxLifetimeH: 8,
+  /** Default idle timeout (idleRuntimeSessionTimeout), s. */
+  idleTimeoutS: 900,
+} as const
+
+/**
+ * The CPU server, bought: Bytestock's UK listing, checked 7 November 2026,
+ * £17,950 ex VAT. A server-year is the page's existing basis — two
+ * servers at €13–15k a year over 4 years with power and support.
+ */
+export const SERVER = {
+  name: 'Dell PowerEdge R7625',
+  cpus: '2 × AMD EPYC 9474F',
+  cores: 96,
+  threads: 192,
+  ramGb: 256,
+  priceGbp: 17_950,
+  /** € per server-year, low and high. */
+  perYear: [6_500, 7_500] as [number, number],
+} as const
+
+/** The share of each server sizing may use: the rest is headroom. */
+export const HEADROOM = { ram: 0.85, threads: 0.7 } as const
+
+/** Host RAM a paused Fleet agent holds, GB: the median of the measured 190–240 MiB. */
+export const PAUSED_GB = 0.23
+
+/** The cycle the model is written in, in seconds. */
+export const CYCLE_S = 900
+
+export type Schedule = 'always' | 'working'
+
+/** Hours a year the agents run: all day, or 8 h a day on ~21 days a month. */
+export const SCHEDULE_HOURS: Record<Schedule, number> = {
+  always: 24 * 365,
+  working: 8 * 21 * 12,
+}
+
+export type UsageInputs = {
+  /** Sessions N: agents, one per person or app. */
+  sessions: number
+  /** Seconds of work W in each 15-minute cycle, 0–900. */
+  workS: number
+  /** vCPU C per agent. */
+  vcpu: number
+  /** CPU busy fraction B while working, 0–1. */
+  busy: number
+  /** GB M held while working. */
+  memGb: number
+  schedule: Schedule
+}
+
+export type AgentCoreYear = {
+  /** $ a year for CPU. */
+  cpu: number
+  /** $ a year for memory while the agent works. */
+  memWorking: number
+  /** $ a year for memory while it waits: 120 s at full size, then the 128 MB floor. */
+  memIdle: number
+  total: number
+  /** The share of the bill paid while the agent is idle, 0–1. */
+  idleShare: number
+}
+
+/** AgentCore's runtime bill for a year, in dollars. */
+export function agentCoreYear(i: UsageInputs): AgentCoreYear {
+  const w = Math.min(Math.max(i.workS, 0), CYCLE_S)
+  const cycles = (SCHEDULE_HOURS[i.schedule] * 3600) / CYCLE_S
+  const idle = CYCLE_S - w
+  const vcpuS = w * i.vcpu * i.busy
+  const gbSWorking = i.memGb * w
+  const gbSIdle = i.memGb * Math.min(AC_RUNTIME.reclaimS, idle) + AC_RUNTIME.floorGb * Math.max(0, idle - AC_RUNTIME.reclaimS)
+  const perYear = (unitS: number, rate: number) => (unitS / 3600) * rate * cycles * i.sessions
+  const cpu = perYear(vcpuS, AC_RUNTIME.vcpuHour)
+  const memWorking = perYear(gbSWorking, AC_RUNTIME.gbHour)
+  const memIdle = perYear(gbSIdle, AC_RUNTIME.gbHour)
+  const total = cpu + memWorking + memIdle
+  return { cpu, memWorking, memIdle, total, idleShare: total > 0 ? memIdle / total : 0 }
+}
+
+export type FleetYear = {
+  /** € a year: the graduated Fleet licence for `sessions` people. */
+  licence: number
+  /** Agents working at once, A = N·W/900. */
+  active: number
+  /** GB of RAM the agents need at once. */
+  ramGb: number
+  /** Threads busy at once. */
+  busyThreads: number
+  /** Servers RAM alone needs, at its headroom. */
+  byRam: number
+  /** Servers the busy threads alone need, at their headroom. */
+  byThreads: number
+  /** Servers to buy: the larger of the two, plus one spare. */
+  servers: number
+  /** € a year for the servers, low and high. */
+  serverCost: [number, number]
+  /** € a year, licence + servers, low and high. */
+  total: [number, number]
+}
+
+/** Fleet's bill for a year, in euros. The schedule does not change it: servers are sized for the working peak and owned all year. */
+export function fleetYear(i: UsageInputs): FleetYear {
+  const w = Math.min(Math.max(i.workS, 0), CYCLE_S)
+  const licence = graduatedPrice(FLEET_PRICES, i.sessions)
+  const active = (i.sessions * w) / CYCLE_S
+  const ramGb = active * i.memGb + (i.sessions - active) * PAUSED_GB
+  const busyThreads = active * i.vcpu * i.busy
+  // Rounded to a millionth before the ceiling, so a float such as
+  // 2.0000000001 does not buy a server.
+  const fit = (need: number, per: number) => Math.ceil(Math.round((need / per) * 1e6) / 1e6)
+  const byRam = fit(ramGb, SERVER.ramGb * HEADROOM.ram)
+  const byThreads = fit(busyThreads, SERVER.threads * HEADROOM.threads)
+  const servers = Math.max(byRam, byThreads, 1) + 1
+  const serverCost: [number, number] = [servers * SERVER.perYear[0], servers * SERVER.perYear[1]]
+  return {
+    licence,
+    active,
+    ramGb,
+    busyThreads,
+    byRam,
+    byThreads,
+    servers,
+    serverCost,
+    total: [licence + serverCost[0], licence + serverCost[1]],
+  }
+}
+
+const one = { maximumFractionDigits: 1 }
+/** "$118.7k": a dollar figure in thousands, as the usage section prints it. */
+export const usdK = (n: number) => `$${(n / 1000).toLocaleString('en-US', one)}k`
+/** "€66k", "€85.5k": a euro figure in thousands. */
+export const eurK1 = (n: number) => `€${(n / 1000).toLocaleString('en-US', one)}k`
+/** "€85.5–88.5k": a euro range in thousands. */
+export const eurRangeK = ([lo, hi]: [number, number]) =>
+  `€${(lo / 1000).toLocaleString('en-US', one)}–${(hi / 1000).toLocaleString('en-US', one)}k`
+/** "4 min 30 s", "45 s", "15 min". */
+export const duration = (s: number) => {
+  const m = Math.floor(s / 60)
+  const r = s % 60
+  if (m === 0) return `${r} s`
+  return r === 0 ? `${m} min` : `${m} min ${r} s`
+}
+
+/** The worked cases' shared inputs: 1,000 sessions, 2 vCPU busy 30%, 2 GB, all day. */
+export const WORKED_BASE: Omit<UsageInputs, 'workS'> = { sessions: 1000, vcpu: 2, busy: 0.3, memGb: 2, schedule: 'always' }
+
+/**
+ * The three worked cases as the page states them, worked by hand from the
+ * functions above: AgentCore in $ thousand a year, Fleet in € thousand.
+ * The test recomputes them; edit only together with the functions.
+ */
+export const WORKED: {
+  workS: number
+  label: string
+  aws: number
+  awsIdle: number
+  idlePct: number
+  servers: number
+  igni: [number, number]
+}[] = [
+  { workS: 60, label: '1 minute in 15', aws: 118.7, awsIdle: 54.3, idlePct: 46, servers: 3, igni: [85.5, 88.5] },
+  { workS: 300, label: '5 minutes in 15', aws: 371.6, awsIdle: 49.3, idlePct: 13, servers: 5, igni: [98.5, 103.5] },
+  { workS: 900, label: 'All the time', aws: 966.8, awsIdle: 0, idlePct: 0, servers: 11, igni: [137.5, 148.5] },
+]

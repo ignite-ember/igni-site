@@ -8,15 +8,30 @@ import {
   TerminalIcon,
 } from '@primer/octicons-react'
 import {
+  AC_RUNTIME,
   BREAKDOWN,
   COST_SCALE,
   COST_BARS,
   COVERAGE,
   HAS_LABEL,
   USAGE,
+  HEADROOM,
+  PAUSED_GB,
+  SCHEDULE_HOURS,
+  SERVER,
   WAKE,
   WAKE_MAX_MS,
+  WORKED,
+  WORKED_BASE,
+  agentCoreYear,
+  duration,
+  eurK1,
+  eurRangeK,
+  fleetYear,
+  usdK,
   type Has,
+  type Schedule,
+  type UsageInputs,
 } from './agentcoreData'
 import { PillTabs } from '../site/Sections'
 
@@ -658,6 +673,199 @@ export function WakeChart() {
             <span key={t} style={{ left: `${i * 25}%` }}>{t}</span>
           ))}
         </span>
+      </div>
+    </div>
+  )
+}
+
+/* ── Cost by usage ─────────────────────────────────────────────── */
+
+/** One input of the calculator: a label, its value, and the landing estimator's slider. */
+function UsageSlider({
+  id,
+  label,
+  shown,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+}: {
+  id: string
+  label: string
+  shown: string
+  value: number
+  min: number
+  max: number
+  step: number
+  onChange: (v: number) => void
+}) {
+  const fill = ((value - min) / (max - min)) * 100
+  return (
+    <div className="lp-est-field">
+      <div className="lp-est-topline">
+        <label className="lp-est-label" htmlFor={id}>
+          {label}
+        </label>
+        <span className="lp-est-readout">
+          <span className="lp-est-big cmp-calc-value" aria-live="polite">{shown}</span>
+        </span>
+      </div>
+      <input
+        id={id}
+        type="range"
+        className="lp-est-range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        style={{ ['--fill' as string]: `${fill}%` }}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+    </div>
+  )
+}
+
+const SCHEDULES: { id: Schedule; label: string; note: string }[] = [
+  { id: 'always', label: 'Around the clock', note: '24/7' },
+  { id: 'working', label: 'Working hours', note: '8 h × 21 days' },
+]
+
+/**
+ * The cost-by-usage calculator: the landing estimator's controls, and two
+ * quotes computed by the same functions as the worked cases. Each side in
+ * its own currency; nothing is converted.
+ */
+export function UsageCalculator() {
+  const [inp, setInp] = useState<UsageInputs>({ ...WORKED_BASE, workS: WORKED[0].workS })
+  const set = (patch: Partial<UsageInputs>) => setInp((v) => ({ ...v, ...patch }))
+  const aws = agentCoreYear(inp)
+  const igni = fleetYear(inp)
+  const preset = WORKED.find(
+    (w) =>
+      w.workS === inp.workS &&
+      inp.sessions === WORKED_BASE.sessions &&
+      inp.vcpu === WORKED_BASE.vcpu &&
+      inp.busy === WORKED_BASE.busy &&
+      inp.memGb === WORKED_BASE.memGb &&
+      inp.schedule === WORKED_BASE.schedule,
+  )
+  const n = inp.sessions.toLocaleString('en-US')
+  const idle = inp.workS < 900
+
+  return (
+    <div className="lp-est cmp-calc">
+      <div className="lp-est-controls">
+        <div className="lp-est-presets" role="group" aria-label="The worked cases">
+          {WORKED.map((w) => (
+            <button
+              key={w.workS}
+              type="button"
+              aria-pressed={preset === w}
+              className={`lp-est-preset${preset === w ? ' lp-est-preset--on' : ''}`}
+              onClick={() => setInp({ ...WORKED_BASE, workS: w.workS })}
+            >
+              <strong>{w.label}</strong>
+              <span>1,000 sessions, 2 vCPU, 2 GB, 24/7</span>
+            </button>
+          ))}
+        </div>
+
+        <UsageSlider id="cmp-calc-n" label="Sessions running (N)" shown={n} value={inp.sessions} min={10} max={5000} step={10} onChange={(v) => set({ sessions: v })} />
+        <UsageSlider id="cmp-calc-w" label="Work in each 15 minutes (W)" shown={duration(inp.workS)} value={inp.workS} min={0} max={900} step={15} onChange={(v) => set({ workS: v })} />
+        <UsageSlider id="cmp-calc-c" label="vCPU per agent (C)" shown={`${inp.vcpu}`} value={inp.vcpu} min={0.5} max={8} step={0.5} onChange={(v) => set({ vcpu: v })} />
+        <UsageSlider id="cmp-calc-b" label="CPU busy while working (B)" shown={`${Math.round(inp.busy * 100)}%`} value={Math.round(inp.busy * 100)} min={5} max={100} step={5} onChange={(v) => set({ busy: v / 100 })} />
+        <UsageSlider id="cmp-calc-m" label="Memory held while working (M)" shown={`${inp.memGb} GB`} value={inp.memGb} min={0.5} max={16} step={0.5} onChange={(v) => set({ memGb: v })} />
+
+        <div className="lp-est-field">
+          <span className="lp-est-label" id="cmp-calc-s-label">When the agents run</span>
+          <div className="lp-est-bands" role="group" aria-labelledby="cmp-calc-s-label">
+            {SCHEDULES.map((sc) => (
+              <button
+                key={sc.id}
+                type="button"
+                aria-pressed={inp.schedule === sc.id}
+                className={`lp-est-seg-btn${inp.schedule === sc.id ? ' lp-est-seg-btn--on' : ''}`}
+                onClick={() => set({ schedule: sc.id })}
+              >
+                <span className="lp-est-seg-top">{sc.label}</span>
+                <span className="lp-est-seg-unit">{sc.note}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="cmp-calc-out">
+        <div className="lp-est-quote cmp-calc-quote cmp-calc-quote--aws" aria-live="polite">
+          <span className="lp-est-quote-kicker">AgentCore runtime v2, list, US dollars</span>
+          <ul className="lp-est-lines">
+            <li>
+              <span>
+                CPU while working
+                <em>{inp.vcpu} vCPU × {Math.round(inp.busy * 100)}% busy for {duration(inp.workS)}, every 15 min</em>
+              </span>
+              <strong className="cmp-calc-aws-cpu">{usdK(aws.cpu)}</strong>
+            </li>
+            <li>
+              <span>
+                Memory while working
+                <em>{inp.memGb} GB for {duration(inp.workS)}</em>
+              </span>
+              <strong>{usdK(aws.memWorking)}</strong>
+            </li>
+            <li>
+              <span>
+                Memory while idle
+                <em>{idle ? `${inp.memGb} GB for up to ${AC_RUNTIME.reclaimS} s, then the 128 MB minimum` : 'never idle'}</em>
+              </span>
+              <strong className="cmp-calc-aws-idle">{usdK(aws.memIdle)}</strong>
+            </li>
+          </ul>
+          <div className="lp-est-total">
+            <span>
+              Per year, {n} sessions
+              <em>{Math.round(aws.idleShare * 100)}% of it paid while idle · {SCHEDULE_HOURS[inp.schedule].toLocaleString('en-US')} h</em>
+            </span>
+            <strong className="cmp-calc-aws-total">{usdK(aws.total)}</strong>
+          </div>
+        </div>
+
+        <div className="lp-est-quote cmp-calc-quote" aria-live="polite">
+          <span className="lp-est-quote-kicker">igni + Fleet, euros</span>
+          <ul className="lp-est-lines">
+            <li>
+              <span>
+                Fleet licence
+                <em>{n} people on the price list (or fewer people plus apps)</em>
+              </span>
+              <strong className="cmp-calc-licence">{eurK1(igni.licence)}</strong>
+            </li>
+            <li>
+              <span>
+                {igni.servers} × {SERVER.name}
+                <em>
+                  {igni.byRam} for RAM, {igni.byThreads} for CPU, + 1 spare ·{' '}
+                  {Math.round(igni.active).toLocaleString('en-US')} working at once need{' '}
+                  {Math.round(igni.ramGb).toLocaleString('en-US')} GB and {Math.round(igni.busyThreads).toLocaleString('en-US')} busy threads
+                </em>
+              </span>
+              <strong className="cmp-calc-servers">{eurRangeK(igni.serverCost)}</strong>
+            </li>
+          </ul>
+          <div className="lp-est-total">
+            <span>
+              Per year
+              <em>the same around the clock or in working hours</em>
+            </span>
+            <strong className="cmp-calc-igni-total">{eurRangeK(igni.total)}</strong>
+          </div>
+          <p className="lp-est-fine">
+            Each server {SERVER.cpus} ({SERVER.cores} cores, {SERVER.threads} threads), {SERVER.ramGb} GB; sized
+            to {Math.round(HEADROOM.ram * 100)}% of its RAM and {Math.round(HEADROOM.threads * 100)}% of its
+            threads. A paused agent holds {PAUSED_GB} GB.
+          </p>
+        </div>
       </div>
     </div>
   )
