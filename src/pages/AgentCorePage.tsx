@@ -20,7 +20,10 @@ import {
   HEADROOM,
   PAUSED_GB,
   SERVER,
+  SERVER_EUR,
+  EUR_PER_GBP,
   USAGE_CHECKED,
+  USD_PER_EUR,
   WORKED,
   WORKED_BASE,
   WRITTEN,
@@ -31,7 +34,6 @@ import {
   eurShort,
   eurRangeShort,
   fleetYear,
-  usdShort,
   USAGE,
 } from './compare/agentcoreData'
 import {
@@ -719,7 +721,7 @@ export function AgentCorePage() {
           band
           label="Cost by usage"
           title="Cost by usage, per year"
-          sub="The 200-person case prices people. This prices use: how many agent sessions run, and how much of every 15 minutes each spends working. AgentCore bills each second an agent computes or holds memory; igni costs the Fleet licence plus the servers that hold what is working at once. AgentCore in US dollars, igni in euros, not converted. Model tokens are left out on both sides."
+          sub="The 200-person case prices people. This prices use: how many agent sessions run, and how much of every 15 minutes each spends working. AgentCore bills each second an agent computes or holds memory; igni costs the Fleet licence plus the servers that hold what is working at once. Both in euros, AgentCore at €1 = $1.10 as above. Model tokens are left out on both sides."
         >
           <Figure
             title="Three worked cases"
@@ -728,7 +730,7 @@ export function AgentCorePage() {
           >
             <RTable
               className="cmp-worked"
-              head={['The agent works', 'AgentCore, $ a year', 'of it while idle', 'igni + Fleet, € a year', 'Servers (incl. 1 spare)']}
+              head={['The agent works', 'AgentCore, € a year', 'of it while idle', 'igni + Fleet, € a year', 'Servers (incl. 1 spare)']}
               num={[1, 2, 3, 4]}
               rows={WORKED.map((w) => {
                 const inp = { ...WORKED_BASE, workS: w.workS }
@@ -736,8 +738,8 @@ export function AgentCorePage() {
                 const f = fleetYear(inp)
                 return [
                   <>{w.label}<span className="cmp-cell-sub">{duration(w.workS)} of every 15 min</span></>,
-                  usdShort(a.total),
-                  `${usdShort(a.memIdle)} (${Math.round(a.idleShare * 100)}%)`,
+                  eurShort(a.total),
+                  `${eurShort(a.memIdle)} (${Math.round(a.idleShare * 100)}%)`,
                   <>{eurRangeShort(f.total)}<span className="cmp-cell-sub">{eurShort(f.licence)} licence + {eurRangeShort(f.serverCost)} servers</span></>,
                   `${f.servers}`,
                 ]
@@ -756,7 +758,7 @@ export function AgentCorePage() {
             <div className="lp-sec-card cmp-card cmp-card--aws">
               <h4>How AgentCore is priced here</h4>
               <ul>
-                <li>Runtime v2 at us-east-1 list, checked {USAGE_CHECKED}: <b>${AC_RUNTIME.vcpuHour} a vCPU-hour</b> and <b>${AC_RUNTIME.gbHour} a GB-hour</b>, billed per second.</li>
+                <li>Runtime v2 at us-east-1 list, checked {USAGE_CHECKED}: <b>${AC_RUNTIME.vcpuHour} a vCPU-hour</b> and <b>${AC_RUNTIME.gbHour} a GB-hour</b>, billed per second, converted at €1 = ${USD_PER_EUR.toFixed(2)}.</li>
                 <li>CPU is not billed while the agent waits. Each 15 minutes: CPU = W × C × B vCPU-seconds.</li>
                 <li>Memory: M GB while working; while idle, M GB for up to {AC_RUNTIME.reclaimS} s until it is reclaimed, then the 128 MB minimum for the rest of the 15 minutes.</li>
                 <li>A session ends after {AC_RUNTIME.maxLifetimeH} hours at most (maxLifetime): a busy agent is restarted, with a ~2 s cold start, and loses what it held in memory.</li>
@@ -769,7 +771,7 @@ export function AgentCorePage() {
                 <li>Licence: the graduated <a href="/#pricing">price list</a> at N people. App agents count separately, up to as many as there are people, so N can be fewer people plus their apps.</li>
                 <li>Working at once: A = N × W / 900, assuming the work is spread evenly. RAM = A × M + (N − A) × {PAUSED_GB} GB for each paused agent (measured). Busy threads = A × C × B.</li>
                 <li>Servers: {SERVER.name}, {SERVER.cpus} ({SERVER.cores} cores, {SERVER.threads} threads), {SERVER.ramGb} GB. Sizing uses {Math.round(HEADROOM.ram * 100)}% of its RAM and {Math.round(HEADROOM.threads * 100)}% of its threads; the count is whichever needs more, plus 1 spare.</li>
-                <li>Each server bought costs €{SERVER.perYear[0] / 1000}–{SERVER.perYear[1] / 1000}k a year over 4 years with power and support, as in the 200-person case. Servers are bought for the working peak, so working hours cost the same.</li>
+                <li>Servers are bought, at £{SERVER.priceGbp.toLocaleString('en-US')} each (≈{eurShort(SERVER_EUR)} at £1 = €{EUR_PER_GBP.toFixed(2)}), paid up front. Each costs €{SERVER.perYear[0] / 1000}–{SERVER.perYear[1] / 1000}k a year: the price spread over {SERVER.years} years plus power and support, as in the 200-person case. So 3 servers are ≈{eurShort(3 * SERVER_EUR)} to buy and €{(3 * SERVER.perYear[0]) / 1000}–{(3 * SERVER.perYear[1]) / 1000}k a year. Servers are bought for the working peak, so working hours cost the same.</li>
               </ul>
             </div>
           </div>

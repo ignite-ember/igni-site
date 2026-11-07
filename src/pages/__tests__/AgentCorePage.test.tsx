@@ -31,7 +31,11 @@ import {
   PAUSED_GB,
   SCHEDULE_HOURS,
   SERVER,
+  SERVER_EUR,
+  SERVER_YEAR_PARTS,
+  EUR_PER_GBP,
   USAGE,
+  USD_PER_EUR,
   WAKE,
   WAKE_MAX_MS,
   WORKED,
@@ -41,7 +45,6 @@ import {
   eurRangeShort,
   eurShort,
   fleetYear,
-  usdShort,
   type UsageInputs,
 } from '../compare/agentcoreData'
 
@@ -333,26 +336,27 @@ describe('cost by usage', () => {
     renderPage()
     const rows = Array.from(document.querySelectorAll('.cmp-worked tbody tr')).map((r) => r.textContent ?? '')
     expect(rows).toHaveLength(3)
-    expect(rows[0]).toMatch(/\$118\.7k.*\$54\.3k \(46%\).*€85\.5–88\.5k.*€66k licence \+ €19\.5–22\.5k servers.*3$/)
-    expect(rows[1]).toMatch(/\$371\.6k.*\$49\.3k \(13%\).*€98\.5–103\.5k.*5$/)
-    expect(rows[2]).toMatch(/\$966\.8k.*\$0k \(0%\).*€137\.5–148\.5k.*11$/)
+    expect(rows[0]).toMatch(/€107\.9k.*€49\.3k \(46%\).*€85\.5–88\.5k.*€66k licence \+ €19\.5–22\.5k servers.*3$/)
+    expect(rows[1]).toMatch(/€337\.8k.*€44\.9k \(13%\).*€98\.5–103\.5k.*5$/)
+    expect(rows[2]).toMatch(/€878\.9k.*€0k \(0%\).*€137\.5–148\.5k.*11$/)
   })
 
   test('AgentCore: CPU only while working, memory reclaimed after 120 s down to 128 MB', () => {
     const one: UsageInputs = { sessions: 1, workS: 300, vcpu: 4, busy: 0.5, memGb: 8, schedule: 'always' }
     const cycles = (24 * 365 * 3600) / 900
     const a = agentCoreYear(one)
-    expect(a.cpu).toBeCloseTo(((300 * 4 * 0.5) / 3600) * 0.1276 * cycles, 6)
-    expect(a.memWorking).toBeCloseTo(((8 * 300) / 3600) * 0.0169 * cycles, 6)
-    expect(a.memIdle).toBeCloseTo(((8 * 120 + 0.125 * 480) / 3600) * 0.0169 * cycles, 6)
+    expect(a.cpu).toBeCloseTo((((300 * 4 * 0.5) / 3600) * 0.1276 * cycles) / 1.1, 6)
+    expect(a.memWorking).toBeCloseTo((((8 * 300) / 3600) * 0.0169 * cycles) / 1.1, 6)
+    expect(a.memIdle).toBeCloseTo((((8 * 120 + 0.125 * 480) / 3600) * 0.0169 * cycles) / 1.1, 6)
     expect(a.total).toBeCloseTo(a.cpu + a.memWorking + a.memIdle, 6)
     // Under 120 s of idle, only the full-size hold: no floor.
     const nearlyAll = agentCoreYear({ ...one, workS: 840 })
-    expect(nearlyAll.memIdle).toBeCloseTo(((8 * 60) / 3600) * 0.0169 * cycles, 6)
+    expect(nearlyAll.memIdle).toBeCloseTo((((8 * 60) / 3600) * 0.0169 * cycles) / 1.1, 6)
     // Linear in sessions; working hours bill only those hours.
     expect(agentCoreYear({ ...one, sessions: 10 }).total).toBeCloseTo(a.total * 10, 6)
     expect(agentCoreYear({ ...one, schedule: 'working' }).total).toBeCloseTo((a.total * 2016) / 8760, 6)
     expect(SCHEDULE_HOURS).toEqual({ always: 8760, working: 2016 })
+    expect(USD_PER_EUR).toBe(1.1)
     expect(AC_RUNTIME).toMatchObject({ vcpuHour: 0.1276, gbHour: 0.0169, reclaimS: 120, floorGb: 0.125, maxLifetimeH: 8 })
   })
 
@@ -384,36 +388,54 @@ describe('cost by usage', () => {
     const user = userEvent.setup()
     renderPage()
     const total = (sel: string) => document.querySelector(sel)?.textContent
-    expect(total('.cmp-calc-aws-total')).toBe('$118.7k')
+    expect(total('.cmp-calc-aws-total')).toBe('€107.9k')
     expect(total('.cmp-calc-igni-total')).toBe('€85.5–88.5k')
 
     await user.click(screen.getByRole('button', { name: /5 minutes in 15/ }))
-    expect(total('.cmp-calc-aws-total')).toBe('$371.6k')
+    expect(total('.cmp-calc-aws-total')).toBe('€337.8k')
     expect(total('.cmp-calc-igni-total')).toBe('€98.5–103.5k')
 
     fireEvent.change(screen.getByLabelText('Sessions running (N)'), { target: { value: '200' } })
     const inp: UsageInputs = { ...WORKED_BASE, sessions: 200, workS: 300 }
-    expect(total('.cmp-calc-aws-total')).toBe(`$${(agentCoreYear(inp).total / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })}k`)
+    expect(total('.cmp-calc-aws-total')).toBe(`€${(agentCoreYear(inp).total / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })}k`)
     expect(total('.cmp-calc-licence')).toBe('€24k')
 
     await user.click(screen.getByRole('button', { name: /Working hours/ }))
     const wk = agentCoreYear({ ...inp, schedule: 'working' })
-    expect(total('.cmp-calc-aws-total')).toBe(`$${(wk.total / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })}k`)
+    expect(total('.cmp-calc-aws-total')).toBe(`€${(wk.total / 1000).toLocaleString('en-US', { maximumFractionDigits: 1 })}k`)
     expect(fetch).not.toHaveBeenCalled()
   })
 
-  test('it says what is measured, what bursts do, and converts nothing', () => {
+  test('the servers are shown as bought up front and spread over 4 years', () => {
+    expect(EUR_PER_GBP).toBe(1.15)
+    expect(SERVER.years).toBe(4)
+    expect(SERVER_EUR).toBeCloseTo(20_642.5, 6)
+    expect(SERVER_YEAR_PARTS.purchase + SERVER_YEAR_PARTS.running[0]).toBeCloseTo(6_500, 6)
+    expect(SERVER_YEAR_PARTS.running[0]).toBeGreaterThan(0)
+    expect(fleetYear(at(60)).serverBuy).toBeCloseTo(3 * 20_642.5, 6)
+    renderPage()
+    const buy = document.querySelector('.cmp-calc-buy')?.textContent ?? ''
+    expect(buy).toMatch(/3 × £17,950 ≈ €61\.9k up front.*over 4 years \(≈€5\.2k a server\).*power and support \(€1\.3–2\.3k a server\)/)
+    expect(document.querySelector('.cmp-calc-quote:not(.cmp-calc-quote--aws)')?.textContent).toMatch(/RAM needs 2, CPU 1: the larger, plus 1 spare/)
+    expect(document.querySelector('#cost-usage')?.textContent).toMatch(/paid up front.*spread over 4 years plus power and support/)
+  })
+
+  test('it says what is measured, what bursts do, and that it is all in euros', () => {
     renderPage()
     const sec = document.querySelector('#cost-usage')?.textContent ?? ''
     expect(sec).toMatch(/up to 400 agents on one server \(c3-highcpu-192-metal, 192 vCPU, 512 GiB\)/)
     expect(sec).toMatch(/1,000 agents, and hundreds working at once, have not been measured/)
     expect(sec).toMatch(/not a benchmark/)
     expect(sec).toMatch(/if every agent works at the same moment, Fleet needs servers for that peak/)
-    expect(sec).toMatch(/not converted/)
+    expect(sec).toMatch(/Both in euros, AgentCore at €1 = \$1\.10/)
+    expect(sec).toMatch(/converted at €1 = \$1\.10/)
+    expect(document.querySelector('.cmp-calc-quote--aws')?.textContent).toMatch(/in euros at €1 = \$1\.10/)
+    // No dollar amount outside the stated AWS list rates and the rate itself.
+    expect(sec.replace(/\$0\.1276|\$0\.0169|\$1\.10/g, '')).not.toMatch(/\$/)
     expect(sec).toMatch(/Model tokens are left out on both sides/)
     expect(sec).toMatch(/85% of its RAM and 70% of its threads/)
     expect(sec).toMatch(/maxLifetime/)
-    expect(sec).not.toMatch(/€1 = |\$1\.10|×\s*cheaper|times (cheaper|as much)/)
+    expect(sec).not.toMatch(/×\s*cheaper|times (cheaper|as much)/)
   })
 
   test('the server is the 256 GB R7625 everywhere, with its CPUs and its source', () => {
@@ -436,10 +458,9 @@ describe('cost by usage', () => {
 })
 
 describe('usage amounts print in k below a million and in M from a million', () => {
-  test('dollars and euros', () => {
-    expect(usdShort(118_700)).toBe('$118.7k')
-    expect(usdShort(966_800)).toBe('$966.8k')
-    expect(usdShort(1_934_000)).toBe('$1.93M')
+  test('euros', () => {
+    expect(eurShort(107_900)).toBe('€107.9k')
+    expect(eurShort(1_757_800)).toBe('€1.76M')
     expect(eurShort(66_000)).toBe('€66k')
     expect(eurShort(1_200_000)).toBe('€1.2M')
   })

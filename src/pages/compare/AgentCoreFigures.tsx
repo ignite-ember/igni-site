@@ -19,6 +19,9 @@ import {
   PAUSED_GB,
   SCHEDULE_HOURS,
   SERVER,
+  SERVER_YEAR_PARTS,
+  USD_PER_EUR,
+  EUR_PER_GBP,
   WAKE,
   WAKE_MAX_MS,
   WORKED,
@@ -28,7 +31,6 @@ import {
   eurShort,
   eurRangeShort,
   fleetYear,
-  usdShort,
   type Has,
   type Schedule,
   type UsageInputs,
@@ -798,28 +800,28 @@ export function UsageCalculator() {
 
       <div className="cmp-calc-out">
         <div className="lp-est-quote cmp-calc-quote cmp-calc-quote--aws" aria-live="polite">
-          <span className="lp-est-quote-kicker">AgentCore runtime v2, list, US dollars</span>
+          <span className="lp-est-quote-kicker">AgentCore runtime v2, list, in euros at €1 = ${USD_PER_EUR.toFixed(2)}</span>
           <ul className="lp-est-lines">
             <li>
               <span>
                 CPU while working
                 <em>{inp.vcpu} vCPU × {Math.round(inp.busy * 100)}% busy for {duration(inp.workS)}, every 15 min</em>
               </span>
-              <strong className="cmp-calc-aws-cpu">{usdShort(aws.cpu)}</strong>
+              <strong className="cmp-calc-aws-cpu">{eurShort(aws.cpu)}</strong>
             </li>
             <li>
               <span>
                 Memory while working
                 <em>{inp.memGb} GB for {duration(inp.workS)}</em>
               </span>
-              <strong>{usdShort(aws.memWorking)}</strong>
+              <strong>{eurShort(aws.memWorking)}</strong>
             </li>
             <li>
               <span>
                 Memory while idle
                 <em>{idle ? `${inp.memGb} GB for up to ${AC_RUNTIME.reclaimS} s, then the 128 MB minimum` : 'never idle'}</em>
               </span>
-              <strong className="cmp-calc-aws-idle">{usdShort(aws.memIdle)}</strong>
+              <strong className="cmp-calc-aws-idle">{eurShort(aws.memIdle)}</strong>
             </li>
           </ul>
           <div className="lp-est-total">
@@ -827,7 +829,7 @@ export function UsageCalculator() {
               Per year, {n} sessions
               <em>{Math.round(aws.idleShare * 100)}% of it paid while idle · {SCHEDULE_HOURS[inp.schedule].toLocaleString('en-US')} h</em>
             </span>
-            <strong className="cmp-calc-aws-total">{usdShort(aws.total)}</strong>
+            <strong className="cmp-calc-aws-total">{eurShort(aws.total)}</strong>
           </div>
         </div>
 
@@ -845,7 +847,7 @@ export function UsageCalculator() {
               <span>
                 {igni.servers} × {SERVER.name}
                 <em>
-                  {igni.byRam} for RAM, {igni.byThreads} for CPU, + 1 spare ·{' '}
+                  RAM needs {igni.byRam}, CPU {igni.byThreads}: the larger, plus 1 spare ·{' '}
                   {Math.round(igni.active).toLocaleString('en-US')} working at once need{' '}
                   {Math.round(igni.ramGb).toLocaleString('en-US')} GB and {Math.round(igni.busyThreads).toLocaleString('en-US')} busy threads
                 </em>
@@ -864,6 +866,12 @@ export function UsageCalculator() {
             Each server {SERVER.cpus} ({SERVER.cores} cores, {SERVER.threads} threads), {SERVER.ramGb} GB; sized
             to {Math.round(HEADROOM.ram * 100)}% of its RAM and {Math.round(HEADROOM.threads * 100)}% of its
             threads. A paused agent holds {PAUSED_GB} GB.
+          </p>
+          <p className="lp-est-fine cmp-calc-buy">
+            The servers are bought: {igni.servers} × £{SERVER.priceGbp.toLocaleString('en-US')} ≈{' '}
+            <b>{eurShort(igni.serverBuy)} up front</b>. The yearly figure spreads that over {SERVER.years} years
+            (≈{eurShort(SERVER_YEAR_PARTS.purchase)} a server) and adds power and support
+            (€{(SERVER_YEAR_PARTS.running[0] / 1000).toFixed(1)}–{(SERVER_YEAR_PARTS.running[1] / 1000).toFixed(1)}k a server). £1 = €{EUR_PER_GBP.toFixed(2)}.
           </p>
         </div>
       </div>

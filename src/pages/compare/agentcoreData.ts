@@ -171,9 +171,12 @@ export const WAKE_MAX_MS = 2000
  * AgentCore: runtime v2 at us-east-1 list, re-checked on the pricing
  * page on 7 November 2026. Fleet: the graduated licence from the price
  * list plus the servers the load takes. Model tokens are left out on
- * both sides. AgentCore is in dollars and igni in euros; this section
- * does not convert between them.
+ * both sides. Both are in euros: AWS's dollar list prices are converted
+ * at USD_PER_EUR, the rate the rest of the page uses.
  */
+
+/** Dollars to the euro, as everywhere on this page: €1 = $1.10. */
+export const USD_PER_EUR = 1.1
 
 /** When the usage section's AWS prices and server listing were checked. */
 export const USAGE_CHECKED = '7 November 2026'
@@ -206,9 +209,23 @@ export const SERVER = {
   threads: 192,
   ramGb: 256,
   priceGbp: 17_950,
-  /** € per server-year, low and high. */
+  /** The purchase is spread over this many years. */
+  years: 4,
+  /** € per server-year, low and high: the purchase over `years`, plus power and support. */
   perYear: [6_500, 7_500] as [number, number],
 } as const
+
+/** Euros to the pound, for the server's UK price: £1 = €1.15. */
+export const EUR_PER_GBP = 1.15
+
+/** One server's purchase price in euros. */
+export const SERVER_EUR = SERVER.priceGbp * EUR_PER_GBP
+
+/** What a server-year is made of, €: the purchase over 4 years, and power and support (low, high). */
+export const SERVER_YEAR_PARTS = {
+  purchase: SERVER_EUR / SERVER.years,
+  running: [SERVER.perYear[0] - SERVER_EUR / SERVER.years, SERVER.perYear[1] - SERVER_EUR / SERVER.years] as [number, number],
+}
 
 /** The share of each server sizing may use: the rest is headroom. */
 export const HEADROOM = { ram: 0.85, threads: 0.7 } as const
@@ -242,18 +259,18 @@ export type UsageInputs = {
 }
 
 export type AgentCoreYear = {
-  /** $ a year for CPU. */
+  /** € a year for CPU. */
   cpu: number
-  /** $ a year for memory while the agent works. */
+  /** € a year for memory while the agent works. */
   memWorking: number
-  /** $ a year for memory while it waits: 120 s at full size, then the 128 MB floor. */
+  /** € a year for memory while it waits: 120 s at full size, then the 128 MB floor. */
   memIdle: number
   total: number
   /** The share of the bill paid while the agent is idle, 0–1. */
   idleShare: number
 }
 
-/** AgentCore's runtime bill for a year, in dollars. */
+/** AgentCore's runtime bill for a year, in euros: the dollar list prices at USD_PER_EUR. */
 export function agentCoreYear(i: UsageInputs): AgentCoreYear {
   const w = Math.min(Math.max(i.workS, 0), CYCLE_S)
   const cycles = (SCHEDULE_HOURS[i.schedule] * 3600) / CYCLE_S
@@ -261,7 +278,7 @@ export function agentCoreYear(i: UsageInputs): AgentCoreYear {
   const vcpuS = w * i.vcpu * i.busy
   const gbSWorking = i.memGb * w
   const gbSIdle = i.memGb * Math.min(AC_RUNTIME.reclaimS, idle) + AC_RUNTIME.floorGb * Math.max(0, idle - AC_RUNTIME.reclaimS)
-  const perYear = (unitS: number, rate: number) => (unitS / 3600) * rate * cycles * i.sessions
+  const perYear = (unitS: number, rateUsd: number) => ((unitS / 3600) * rateUsd * cycles * i.sessions) / USD_PER_EUR
   const cpu = perYear(vcpuS, AC_RUNTIME.vcpuHour)
   const memWorking = perYear(gbSWorking, AC_RUNTIME.gbHour)
   const memIdle = perYear(gbSIdle, AC_RUNTIME.gbHour)
@@ -286,6 +303,8 @@ export type FleetYear = {
   servers: number
   /** € a year for the servers, low and high. */
   serverCost: [number, number]
+  /** € paid up front to buy the servers. */
+  serverBuy: number
   /** € a year, licence + servers, low and high. */
   total: [number, number]
 }
@@ -313,20 +332,16 @@ export function fleetYear(i: UsageInputs): FleetYear {
     byThreads,
     servers,
     serverCost,
+    serverBuy: servers * SERVER_EUR,
     total: [licence + serverCost[0], licence + serverCost[1]],
   }
 }
 
-/** The unit a usage-section amount is printed in: millions from €/$1M up, else thousands. */
+/** The unit a usage-section amount is printed in: millions from €1M up, else thousands. */
 const unitOf = (n: number): [number, string] => (Math.abs(n) >= 1_000_000 ? [1_000_000, 'M'] : [1000, 'k'])
 const short = (n: number, div: number) =>
   (n / div).toLocaleString('en-US', { maximumFractionDigits: div === 1000 ? 1 : 2 })
-/** "$118.7k", "$1.93M": a dollar figure as the usage section prints it. */
-export const usdShort = (n: number) => {
-  const [div, unit] = unitOf(n)
-  return `$${short(n, div)}${unit}`
-}
-/** "€66k", "€85.5k", "€1.2M": a euro figure. */
+/** "€66k", "€85.5k", "€1.2M": a euro figure as the usage section prints it. */
 export const eurShort = (n: number) => {
   const [div, unit] = unitOf(n)
   return `€${short(n, div)}${unit}`
@@ -349,7 +364,7 @@ export const WORKED_BASE: Omit<UsageInputs, 'workS'> = { sessions: 1000, vcpu: 2
 
 /**
  * The three worked cases as the page states them, worked by hand from the
- * functions above: AgentCore in $ thousand a year, Fleet in € thousand.
+ * functions above, in € thousand a year on both sides.
  * The test recomputes them; edit only together with the functions.
  */
 export const WORKED: {
@@ -361,7 +376,7 @@ export const WORKED: {
   servers: number
   igni: [number, number]
 }[] = [
-  { workS: 60, label: '1 minute in 15', aws: 118.7, awsIdle: 54.3, idlePct: 46, servers: 3, igni: [85.5, 88.5] },
-  { workS: 300, label: '5 minutes in 15', aws: 371.6, awsIdle: 49.3, idlePct: 13, servers: 5, igni: [98.5, 103.5] },
-  { workS: 900, label: 'All the time', aws: 966.8, awsIdle: 0, idlePct: 0, servers: 11, igni: [137.5, 148.5] },
+  { workS: 60, label: '1 minute in 15', aws: 107.9, awsIdle: 49.3, idlePct: 46, servers: 3, igni: [85.5, 88.5] },
+  { workS: 300, label: '5 minutes in 15', aws: 337.8, awsIdle: 44.9, idlePct: 13, servers: 5, igni: [98.5, 103.5] },
+  { workS: 900, label: 'All the time', aws: 878.9, awsIdle: 0, idlePct: 0, servers: 11, igni: [137.5, 148.5] },
 ]
