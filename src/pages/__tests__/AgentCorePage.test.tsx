@@ -38,7 +38,10 @@ import {
   WORKED_BASE,
   agentCoreYear,
   countFull,
+  eurRangeShort,
+  eurShort,
   fleetYear,
+  usdShort,
   type UsageInputs,
 } from '../compare/agentcoreData'
 
@@ -429,5 +432,19 @@ describe('cost by usage', () => {
     expect(src).toMatch(/Step 6 again on bare metal/)
     expect(src).toMatch(/Step 6 a third time on bare metal/)
     expect(src).toMatch(/results log/)
+  })
+})
+
+describe('usage amounts print in k below a million and in M from a million', () => {
+  test('dollars and euros', () => {
+    expect(usdShort(118_700)).toBe('$118.7k')
+    expect(usdShort(966_800)).toBe('$966.8k')
+    expect(usdShort(1_934_000)).toBe('$1.93M')
+    expect(eurShort(66_000)).toBe('€66k')
+    expect(eurShort(1_200_000)).toBe('€1.2M')
+  })
+  test('a range takes the unit of its higher end', () => {
+    expect(eurRangeShort([85_500, 88_500])).toBe('€85.5–88.5k')
+    expect(eurRangeShort([950_000, 1_050_000])).toBe('€0.95–1.05M')
   })
 })

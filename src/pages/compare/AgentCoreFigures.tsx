@@ -25,10 +25,10 @@ import {
   WORKED_BASE,
   agentCoreYear,
   duration,
-  eurK1,
-  eurRangeK,
+  eurShort,
+  eurRangeShort,
   fleetYear,
-  usdK,
+  usdShort,
   type Has,
   type Schedule,
   type UsageInputs,
@@ -805,21 +805,21 @@ export function UsageCalculator() {
                 CPU while working
                 <em>{inp.vcpu} vCPU × {Math.round(inp.busy * 100)}% busy for {duration(inp.workS)}, every 15 min</em>
               </span>
-              <strong className="cmp-calc-aws-cpu">{usdK(aws.cpu)}</strong>
+              <strong className="cmp-calc-aws-cpu">{usdShort(aws.cpu)}</strong>
             </li>
             <li>
               <span>
                 Memory while working
                 <em>{inp.memGb} GB for {duration(inp.workS)}</em>
               </span>
-              <strong>{usdK(aws.memWorking)}</strong>
+              <strong>{usdShort(aws.memWorking)}</strong>
             </li>
             <li>
               <span>
                 Memory while idle
                 <em>{idle ? `${inp.memGb} GB for up to ${AC_RUNTIME.reclaimS} s, then the 128 MB minimum` : 'never idle'}</em>
               </span>
-              <strong className="cmp-calc-aws-idle">{usdK(aws.memIdle)}</strong>
+              <strong className="cmp-calc-aws-idle">{usdShort(aws.memIdle)}</strong>
             </li>
           </ul>
           <div className="lp-est-total">
@@ -827,7 +827,7 @@ export function UsageCalculator() {
               Per year, {n} sessions
               <em>{Math.round(aws.idleShare * 100)}% of it paid while idle · {SCHEDULE_HOURS[inp.schedule].toLocaleString('en-US')} h</em>
             </span>
-            <strong className="cmp-calc-aws-total">{usdK(aws.total)}</strong>
+            <strong className="cmp-calc-aws-total">{usdShort(aws.total)}</strong>
           </div>
         </div>
 
@@ -839,7 +839,7 @@ export function UsageCalculator() {
                 Fleet licence
                 <em>{n} people on the price list (or fewer people plus apps)</em>
               </span>
-              <strong className="cmp-calc-licence">{eurK1(igni.licence)}</strong>
+              <strong className="cmp-calc-licence">{eurShort(igni.licence)}</strong>
             </li>
             <li>
               <span>
@@ -850,7 +850,7 @@ export function UsageCalculator() {
                   {Math.round(igni.ramGb).toLocaleString('en-US')} GB and {Math.round(igni.busyThreads).toLocaleString('en-US')} busy threads
                 </em>
               </span>
-              <strong className="cmp-calc-servers">{eurRangeK(igni.serverCost)}</strong>
+              <strong className="cmp-calc-servers">{eurRangeShort(igni.serverCost)}</strong>
             </li>
           </ul>
           <div className="lp-est-total">
@@ -858,7 +858,7 @@ export function UsageCalculator() {
               Per year
               <em>the same around the clock or in working hours</em>
             </span>
-            <strong className="cmp-calc-igni-total">{eurRangeK(igni.total)}</strong>
+            <strong className="cmp-calc-igni-total">{eurRangeShort(igni.total)}</strong>
           </div>
           <p className="lp-est-fine">
             Each server {SERVER.cpus} ({SERVER.cores} cores, {SERVER.threads} threads), {SERVER.ramGb} GB; sized

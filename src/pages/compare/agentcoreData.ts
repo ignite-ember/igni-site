@@ -317,14 +317,25 @@ export function fleetYear(i: UsageInputs): FleetYear {
   }
 }
 
-const one = { maximumFractionDigits: 1 }
-/** "$118.7k": a dollar figure in thousands, as the usage section prints it. */
-export const usdK = (n: number) => `$${(n / 1000).toLocaleString('en-US', one)}k`
-/** "€66k", "€85.5k": a euro figure in thousands. */
-export const eurK1 = (n: number) => `€${(n / 1000).toLocaleString('en-US', one)}k`
-/** "€85.5–88.5k": a euro range in thousands. */
-export const eurRangeK = ([lo, hi]: [number, number]) =>
-  `€${(lo / 1000).toLocaleString('en-US', one)}–${(hi / 1000).toLocaleString('en-US', one)}k`
+/** The unit a usage-section amount is printed in: millions from €/$1M up, else thousands. */
+const unitOf = (n: number): [number, string] => (Math.abs(n) >= 1_000_000 ? [1_000_000, 'M'] : [1000, 'k'])
+const short = (n: number, div: number) =>
+  (n / div).toLocaleString('en-US', { maximumFractionDigits: div === 1000 ? 1 : 2 })
+/** "$118.7k", "$1.93M": a dollar figure as the usage section prints it. */
+export const usdShort = (n: number) => {
+  const [div, unit] = unitOf(n)
+  return `$${short(n, div)}${unit}`
+}
+/** "€66k", "€85.5k", "€1.2M": a euro figure. */
+export const eurShort = (n: number) => {
+  const [div, unit] = unitOf(n)
+  return `€${short(n, div)}${unit}`
+}
+/** "€85.5–88.5k", "€1.05–1.2M": a euro range, both ends in the unit of the higher. */
+export const eurRangeShort = ([lo, hi]: [number, number]) => {
+  const [div, unit] = unitOf(hi)
+  return `€${short(lo, div)}–${short(hi, div)}${unit}`
+}
 /** "4 min 30 s", "45 s", "15 min". */
 export const duration = (s: number) => {
   const m = Math.floor(s / 60)

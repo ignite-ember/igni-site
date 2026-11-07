@@ -28,10 +28,10 @@ import {
   countFull,
   COVERAGE,
   duration,
-  eurK1,
-  eurRangeK,
+  eurShort,
+  eurRangeShort,
   fleetYear,
-  usdK,
+  usdShort,
   USAGE,
 } from './compare/agentcoreData'
 import {
@@ -736,9 +736,9 @@ export function AgentCorePage() {
                 const f = fleetYear(inp)
                 return [
                   <>{w.label}<span className="cmp-cell-sub">{duration(w.workS)} of every 15 min</span></>,
-                  usdK(a.total),
-                  `${usdK(a.memIdle)} (${Math.round(a.idleShare * 100)}%)`,
-                  <>{eurRangeK(f.total)}<span className="cmp-cell-sub">{eurK1(f.licence)} licence + {eurRangeK(f.serverCost)} servers</span></>,
+                  usdShort(a.total),
+                  `${usdShort(a.memIdle)} (${Math.round(a.idleShare * 100)}%)`,
+                  <>{eurRangeShort(f.total)}<span className="cmp-cell-sub">{eurShort(f.licence)} licence + {eurRangeShort(f.serverCost)} servers</span></>,
                   `${f.servers}`,
                 ]
               })}
