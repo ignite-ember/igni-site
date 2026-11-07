@@ -223,13 +223,14 @@ const SCENARIOS: Scenario[] = [
     title: 'A cloud agent for every person and every app, on your servers',
     body: 'Everyone already has a free agent in the igni app on their own machine. Fleet adds a cloud agent for each person and each app, in its own isolated VM on your servers, so it keeps working when the laptop is closed and your systems can reach it. An idle agent is paused, then suspended to disk, where it uses no memory until a request wakes it.',
     outcome: 'The licence counts people, and each band includes as many app agents.',
-    // From Ignite Ember's bare-metal benchmark, "End to end on bare metal":
-    // real igni on c3-highcpu-192-metal, volumes on Filestore, first answer
-    // at the client, p50: paused 29.4 ms (50 agents), 29.9 ms (300); from
-    // disk 117-139 ms at every step up to 400.
+    // From Ignite Ember's bare-metal benchmark, "Step 6 a third time on bare
+    // metal": real igni on c3-highcpu-192-metal, volumes on Filestore, first
+    // answer at the client, p50 at 100-300 agents: paused under 10 min
+    // 26.7-32.6 ms, over 15 min 35.6-40.4 ms (44.4 at most in one bucket);
+    // from a snapshot 142-148 ms, cold 135-141 ms.
     stat: {
       value: '~30 ms',
-      label: 'for a paused agent to answer. Under 150 ms from disk.',
+      label: 'for a paused agent to answer, under 45 ms after a long idle. Under 150 ms from disk.',
       source: 'Ignite Ember\u2019s tests on one bare-metal server running real igni agents: median first answer after waking.',
     },
     price: `${eurSeat(marginalRates(FLEET_PRICES)[0])} a person a year, less at scale`,

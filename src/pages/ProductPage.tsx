@@ -213,8 +213,8 @@ const PRODUCT_LIST: Product[] = [
       <div className="lp-prod-proof-note">
         <p>
           The real igni image doing real work through the gateway, on one bare-metal
-          server (Google Cloud c3-highcpu-192-metal) running 50 agents with their volumes
-          on shared storage, time to the first answer, 40 runs of each.
+          server (Google Cloud c3-highcpu-192-metal) running 100 agents with their volumes
+          on shared storage, time to the first answer.
         </p>
         <div className="lp-table-wrap">
           <table className="lp-table">
@@ -226,13 +226,18 @@ const PRODUCT_LIST: Product[] = [
               </tr>
             </thead>
             <tbody>
-              <tr><td>Paused</td><td>29 ms</td><td>73 ms</td></tr>
-              <tr><td>Suspended to disk</td><td>155 ms</td><td>194 ms</td></tr>
-              <tr><td>Cold</td><td>137 ms</td><td>188 ms</td></tr>
+              <tr><td>Paused, back within 10 minutes</td><td>31 ms</td><td>41 ms</td></tr>
+              <tr><td>Paused for over 15 minutes</td><td>40 ms</td><td>224 ms</td></tr>
+              <tr><td>Suspended to disk</td><td>148 ms</td><td>287 ms</td></tr>
+              <tr><td>Cold</td><td>135 ms</td><td>285 ms</td></tr>
             </tbody>
           </table>
         </div>
-        <p>Measure on your own hardware before you size a cluster.</p>
+        <p>
+          At 200 and 300 agents the typical times stay within a few milliseconds of these. The slow
+          ones are rare wakes held up in the gateway, not in the VM. Measure on your own hardware
+          before you size a cluster.
+        </p>
       </div>
     ),
     needs: [

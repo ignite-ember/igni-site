@@ -131,8 +131,8 @@ describe('Fleet', () => {
     renderProduct('fleet')
     const text = document.body.textContent ?? ''
     expect(text).toMatch(/c3-highcpu-192-metal/)
-    expect(text).toMatch(/29 ms/)
-    expect(text).toMatch(/137 ms/)
+    expect(text).toMatch(/31 ms/)
+    expect(text).toMatch(/135 ms/)
     expect(text).not.toMatch(/~25 ms/)
   })
 

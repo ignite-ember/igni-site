@@ -114,15 +114,19 @@ A node agent resumes a VM for the agent's own scheduled tasks without asking the
 
 ## Measured wake times
 
-Measured with the real igni image doing real work through the gateway, on one bare-metal server (Google Cloud c3-highcpu-192-metal) with every producer's volume on Filestore, first answer at the client, 40 wakes of each:
+Measured with the real igni image doing real work through the gateway, on one bare-metal server (Google Cloud c3-highcpu-192-metal) with every producer's volume on Filestore, first answer at the client, one wake at a time (November 2026):
 
-| Starting from | 50 agents, p50 | p95 | 300 agents, p50 | p95 |
-|---|---|---|---|---|
-| Paused | 29 ms | 73 ms | 30 ms | 36 ms |
-| Suspended snapshot | 155 ms | 194 ms | 146 ms | 203 ms |
-| Cold | 137 ms | 188 ms | 139 ms | 206 ms |
+| Starting from | 100 agents, p50 | p95 | 200 agents, p50 | p95 | 300 agents, p50 | p95 |
+|---|---|---|---|---|---|---|
+| Paused, back within 10 minutes | 31 ms | 41 ms | 33 ms | 620 ms | 27 ms | 158 ms |
+| Paused for over 15 minutes | 40 ms | 224 ms | 37 ms | 83 ms | 36 ms | 79 ms |
+| Suspended snapshot | 148 ms | 287 ms | 142 ms | 291 ms | – | – |
+| Cold | 135 ms | 285 ms | 141 ms | 912 ms | – | – |
 
-The 300-agent column had the gateway keep each producer's VM profile for a day; when it still fetched the profile from igni server on a wake, paused wakes took 92–116 ms p50 at 100–300 agents. The gateway now keeps each producer's profile from igni server's feed of producers and asks igni server nothing on a wake: with 100 agents woken at once after a long idle, its own part of the wake went from 3.9–4.9 s to 0.2–0.5 s p50 (`RESULTS.md`, "The profile from the feed"). 398 paused agents used 79 GiB of the server's 503 GiB.
+- **After a long idle** igni renews its own credential with igni server. It does so after the first answer, so the wake costs only a few milliseconds more.
+- **The slow tail** (p95) is a few wakes held up in the gateway's start step, while the VM itself unpaused in 3–5 ms. It is being investigated.
+- **300 agents:** snapshot and cold were measured with fewer wakes and no model turn after each, so they are left out. 400 agents were not measured in this run.
+- **Earlier runs:** an earlier run on the same server had 29 ms paused at 50 agents. 398 paused agents used 79 GiB of the server's 503 GiB.
 
 The raw results, and earlier measurements with a smaller test guest and on bare metal, are in `RESULTS.md` in the Fleet repository. Measure on your own hardware before you size a cluster.
 

@@ -82,7 +82,7 @@ describe('the page renders', () => {
     const t = text()
     expect(t).toMatch(/10–50 GiB/)
     expect(t).toMatch(/≈50%/)
-    expect(t).toMatch(/~29 ms/)
+    expect(t).toMatch(/~30 ms/)
     expect(t).toMatch(/€51–57k/)
     expect(t).toMatch(/107k \/ 413k/)
   })
@@ -207,7 +207,7 @@ describe('it is built from the landing page’s pieces', () => {
   test('the four key figures sit in the landing’s stat row', () => {
     renderPage()
     const values = Array.from(document.querySelectorAll('.landing-stats .landing-stat-value')).map((e) => e.textContent)
-    expect(values).toEqual(['10–50 GiB', 'Until erased', '≈50%', '~29 ms'])
+    expect(values).toEqual(['10–50 GiB', 'Until erased', '≈50%', '~30 ms'])
   })
 
   test('the hero’s second line is the landing’s gradient', () => {

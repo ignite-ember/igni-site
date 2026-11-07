@@ -164,7 +164,7 @@ export function AgentCorePage() {
           { value: '10–50 GiB', label: 'Workspace kept per person on Fleet, against 1 GB of AgentCore session storage (preview).' },
           { value: 'Until erased', label: 'How long Fleet keeps files, against 14 days on AgentCore, which also wipes them on every agent update.' },
           { value: '≈50%', label: 'Usage above which igni is cheaper than AgentCore with an open-weight model (Qwen3 32B on Bedrock).' },
-          { value: '~29 ms', label: 'Fleet back from a pause (p50), against ~2 s for AgentCore’s cold start once its idle timeout has ended the session (P75, AWS).' },
+          { value: '~30 ms', label: 'Fleet back from a pause (p50; under 45 ms after a long idle), against ~2 s for AgentCore’s cold start once its idle timeout has ended the session (P75, AWS).' },
         ]}
       />
 
@@ -246,7 +246,7 @@ export function AgentCorePage() {
               className="cmp-compare"
               head={['Capability', 'AWS AgentCore', 'igni + Fleet']}
               rows={[
-                ['Agent runtime', 'Runtime: one microVM per session, up to 8 h, any framework. Runtime Instances: a dedicated EC2 instance per session for up to 14 days, with EBS, at the EC2 price + 12%. Managed harness (GA June 2026).', <Rated tone="good" pill="Has it">Fleet: one microVM per person or app, suspends when idle and resumes in ~29 ms, persistent encrypted volume; gateway, node agent, PostgreSQL job queue, audited erasure, egress rules.</Rated>],
+                ['Agent runtime', 'Runtime: one microVM per session, up to 8 h, any framework. Runtime Instances: a dedicated EC2 instance per session for up to 14 days, with EBS, at the EC2 price + 12%. Managed harness (GA June 2026).', <Rated tone="good" pill="Has it">Fleet: one microVM per person or app, suspends when idle and resumes in ~30 ms, persistent encrypted volume; gateway, node agent, PostgreSQL job queue, audited erasure, egress rules.</Rated>],
                 ['Persistence', 'Session storage (preview): per session, up to 1 GB, kept 14 days idle, wiped on every agent redeploy. Or shared EFS / S3 Files mounts (not per user), or Instances with EBS kept until the session is deleted.', <Rated tone="good" pill="Bigger, longer, per person">Per person/app volume (10 GiB default, up to 50 GiB), dm-crypt encrypted, survives redeploys and idle time, offloaded to your own object store when cold; erased only by policy or command.</Rated>],
                 ['Memory', 'Memory: short-term events and long-term extracted records with semantic retrieval; billed per GB and per 1,000 records.', <Rated tone="good" pill="Has it">User memory and profiles, entity memory and session context carried across conversations (Agno&rsquo;s learning machine), conversation history in SQLite or PostgreSQL with automatic compaction — plus the agent&rsquo;s own persistent disk. Artifacts and CodeIndex (paid) add versioned documents and code retrieval.</Rated>],
                 ['MCP tools', 'Gateway: connects agents to MCP servers, with tool search across them; billed per call.', <Rated tone="good" pill="Has it">Any MCP server, over stdio or SSE/HTTP, with per-tool approvals and filters; extensions add tools of their own. No search across tools when a deployment has hundreds of them.</Rated>],
@@ -697,21 +697,21 @@ export function AgentCorePage() {
           band
           label="Speed"
           title="Speed"
-          sub={<>Fleet figures are measured through the real gateway with the real igni image, p50, on a bare-metal GCP server (C3) with 50 and 300 agents; the new-app and reset figures on a nested-virtualisation GCP VM. Details are on the <a href="/fleet">Fleet page</a>.</>}
+          sub={<>Fleet figures are measured through the real gateway with the real igni image, p50, on a bare-metal GCP server (C3) with 100–300 agents; the figures for an app first used days later on a nested-virtualisation GCP VM. Details are on the <a href="/fleet">Fleet page</a>.</>}
         >
           <RTable
             head={['Moment', 'AgentCore', 'Fleet (measured)']}
             rows={[
-              ['Agent picks up where it left off', 'Within the idle timeout (15 min by default, up to 8 h): the same VM, warm. After it: a new VM, ~2 s cold start (P75, AWS’s figure), then session storage restored — or a full rebuild if it is off, after a redeploy or after 14 idle days', <><b>~29–30 ms</b> from paused (p95 36–73 ms); ~146–155 ms from a snapshot; ~137–139 ms cold</>],
+              ['Agent picks up where it left off', 'Within the idle timeout (15 min by default, up to 8 h): the same VM, warm. After it: a new VM, ~2 s cold start (P75, AWS’s figure), then session storage restored — or a full rebuild if it is off, after a redeploy or after 14 idle days', <><b>~27–33 ms</b> from paused, back within 10 minutes; ~36–40 ms after a longer idle; ~142–148 ms from a snapshot; ~135–141 ms cold</>],
               ['While the agent is idle', 'No CPU charge; memory is reclaimed after 120 s down to a 128 MB floor, which is billed until the idle timeout ends the session. A longer timeout keeps it warm for longer at that cost.', 'Paused, holding ~200 MiB on your server; its files are on shared storage, so they survive a node failure. No extra charge — the licence is fixed.'],
-              ['New app created', 'New session each time', '~25 ms hot (pre-started when the app is created); ~300 ms if first used days later'],
-              ['After a discard or reset', 'n/a', '~25 ms hot / ~300 ms days later — a fresh disk is prepared in the background'],
+              ['New app created', 'New session each time', '~30 ms (started and paused when the app is created); ~0.2–0.4 s if first used days later, restored from your object store'],
+              ['After a discard or reset', 'n/a', '~30 ms / ~0.2–0.4 s days later — a fresh disk is prepared in the background'],
               ['Upgrades', 'A redeploy wipes session storage', 'An image upgrade restarts each session once; files persist'],
             ]}
           />
           <Figure
             title="How long a person waits for their agent after it has been idle"
-            caption="To scale. Fleet: measured p50, first answer from igni through the real gateway, bare-metal GCP server (the new-app figure on a nested GCP VM); a person’s first VM is prepared ahead of time, so nobody waits for it. AgentCore: AWS’s published P75 cold start for runtime V2, once the idle timeout (15 min by default) has ended the session; inside the timeout the VM is still warm, and AWS publishes no figure for that."
+            caption="To scale. Fleet: measured p50, first answer from igni through the real gateway, bare-metal GCP server, 100–300 agents; a person’s first VM is prepared ahead of time, so nobody waits for it. AgentCore: AWS’s published P75 cold start for runtime V2, once the idle timeout (15 min by default) has ended the session; inside the timeout the VM is still warm, and AWS publishes no figure for that."
           >
             <WakeChart />
           </Figure>
@@ -823,7 +823,7 @@ export function AgentCorePage() {
             <li>Heavy-use case, per person per working day, all 200 people: 8 h session of 2 vCPU / 4 GB, CPU busy 30%, memory held half the time; Code Interpreter 1 h (2 vCPU busy 30%, 4 GB held); 5 workspace rebuilds of 3 minutes; 300 tool calls; 30 long-term memory records, 100 retrievals; 10 web searches; 5 M input / 0.15 M output tokens. Sonnet includes cache writes.</li>
             <li>igni prices: igni&rsquo;s <a href="/#pricing">price list</a>, the graduated Fleet licence (€24k at 200 people), list, excl. VAT. Servers: Dell PowerEdge R7625 at ~£17.9k each from a UK reseller. GPU ownership at ≈$15–20k a GPU-year is an estimate; get a quote.</li>
             <li>Staff and development are not included on either side.</li>
-            <li>AgentCore cold start and idle behaviour: AWS blog &ldquo;The new AgentCore runtime: elastic, optimized, and consistently fast starts&rdquo; and the runtime lifecycle settings page, checked 2 Nov 2026.</li>
+            <li>AgentCore cold start and idle behaviour: AWS blog &ldquo;The new AgentCore runtime: elastic, optimized, and consistently fast starts&rdquo; and the runtime lifecycle settings page, checked 7 Nov 2026.</li>
             <li>Fleet timings: igni&rsquo;s own measurements, bare-metal GCP server (c3-highcpu-192-metal) and nested GCP VM (n2-standard-8), Oct–Nov 2026; details are on the <a href="/fleet">Fleet page</a>. Security tests ran on cloud test VMs with OpenBao in dev mode and a test object store; a pilot repeats them on your hardware.</li>
             <li>GPU sizing: one GH200 for ~200 people with the 27B, assuming each agent works hard for ~1 minute then idles ~3; ~60 requests generating at once with 25–100k tokens of context; FP8 weights; KV cache tiered across GPU memory, CPU RAM and SSD. Our calculation; a pilot load test confirms it on your hardware. How igni routes to inference nodes: <a href="/docs/inference-backends">Inference backends</a>.</li>
             <li>Model providers: igni&rsquo;s client configuration — OpenAI-compatible, native Anthropic (Messages API, prompt caching, extended thinking) and Gemini — checked 2 Nov 2026.</li>
