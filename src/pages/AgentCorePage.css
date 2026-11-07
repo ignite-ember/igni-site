@@ -1334,20 +1334,6 @@
 
 /* ── Phones, 2026-11-03 ───────────────────────────────────────── */
 @media (max-width: 640px) {
-  /* The years chart: shorter bars and smaller amounts. Scoped under
-     .cmp-years so it wins over the chart's own rules further down. */
-  .cmp-years .cmp-years-plot {
-    gap: var(--base-size-4);
-  }
-
-  .cmp-years .cmp-years-bars {
-    height: 10rem;
-  }
-
-  .cmp-years .cmp-years-value {
-    font-size: var(--text-caption-size, 0.75rem);
-  }
-
   /* "Software, not a service: CRA evidence in build" broke inside its
      words ("Softwar e") in a column var(--base-size-80) wide. The note now goes under
      its dot and keeps whole words. */
@@ -1422,8 +1408,7 @@
   white-space: nowrap;
 }
 
-/* Cost by usage over the years: vertical bars, AgentCore beside igni,
-   for what each has paid by the end of years 1 to 4. */
+/* Cost by usage: the calculator, then the bill a year and over 4 years. */
 .cmp-calc-wrap {
   display: flex;
   flex-direction: column;
@@ -1435,95 +1420,114 @@
 }
 
 .cmp-years {
-  margin: var(--base-size-16) 0 0;
-}
-
-.cmp-years-title {
-  margin-bottom: var(--base-size-12);
-  font-weight: var(--base-text-weight-semibold);
-  color: var(--fgColor-default);
-}
-
-.cmp-years-plot {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--base-size-16);
-  border-bottom: var(--borderWidth-thin) solid var(--borderColor-default);
-}
-
-.cmp-years-group {
-  display: grid;
-  justify-items: center;
-  padding-bottom: var(--base-size-12);
-  text-align: center;
-}
-
-.cmp-years-bars {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: var(--base-size-6);
-  width: 100%;
-  height: 14rem;
-}
-
-.cmp-years-bar {
-  display: block;
-  width: min(3rem, 40%);
-  min-height: var(--borderWidth-thick);
-  border-radius: var(--borderRadius-small) var(--borderRadius-small) 0 0;
-}
-
-.cmp-years-stack {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  gap: var(--base-size-24);
+  margin-top: var(--base-size-16);
 }
 
-.cmp-years-stack > span {
-  flex-basis: 0;
+.cmp-years-section {
+  gap: var(--base-size-8);
 }
 
-.cmp-years-stack > span + span {
-  border-top: var(--borderWidth-thick) solid var(--bgColor-default);
-}
-
-.cmp-years-label {
-  margin-top: var(--base-size-8);
+.cmp-years-case {
+  margin: var(--base-size-8) 0 0;
   font-size: var(--text-body-size-small);
-  color: var(--fgColor-muted);
-}
-
-.cmp-years-value {
-  font-size: var(--text-body-size-small);
-  font-variant-numeric: tabular-nums;
   font-weight: var(--base-text-weight-semibold);
+  color: var(--fgColor-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.cmp-years-value--aws {
+.cmp-years .cmp-bar-label .cmp-cell-sub {
+  display: block;
+  font-weight: var(--base-text-weight-normal);
   color: var(--fgColor-muted);
 }
 
-.cmp-years-value--igni {
-  color: var(--cmp-igni);
-}
-
-.cmp-calc-owned {
-  display: inline-flex;
-  align-self: flex-start;
-  width: fit-content;
-  margin-top: var(--base-size-6);
-  padding: var(--base-size-2) var(--base-size-8);
-  border: var(--borderWidth-thin) solid var(--borderColor-default);
-  border-radius: var(--borderRadius-full);
-  background: none;
-  color: var(--fgColor-muted);
-  font: inherit;
-  font-size: var(--text-body-size-small);
+.cmp-calc-owned-row label {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--text-body-size-medium);
+  font-weight: var(--base-text-weight-semibold);
   cursor: pointer;
 }
 
-.cmp-calc-owned--on {
+.cmp-calc-owned-row label em {
+  font-size: var(--text-body-size-small);
+  font-style: normal;
+  font-weight: var(--base-text-weight-normal);
+  color: var(--fgColor-muted);
+}
+
+/* An on/off switch: the knob slides right and the track turns orange. */
+.cmp-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: var(--base-size-40);
+  height: var(--base-size-24);
+  padding: 0;
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-full);
+  background-color: var(--bgColor-muted);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.cmp-switch-knob {
+  position: absolute;
+  top: 50%;
+  left: var(--base-size-2);
+  margin-top: calc(var(--base-size-16) / -2);
+  width: var(--base-size-16);
+  height: var(--base-size-16);
+  border-radius: var(--borderRadius-full);
+  background-color: var(--fgColor-muted);
+  transition: transform 0.15s ease;
+}
+
+.cmp-switch[aria-checked='true'] {
   border-color: var(--cmp-igni);
+  background-color: var(--cmp-igni);
+}
+
+.cmp-switch[aria-checked='true'] .cmp-switch-knob {
+  transform: translateX(var(--base-size-16));
+  background-color: var(--fgColor-onEmphasis);
+}
+
+.cmp-switch:focus-visible {
+  outline: var(--borderWidth-thick) solid var(--focus-outlineColor);
+  outline-offset: var(--base-size-2);
+}
+
+/* The two igni totals side by side, the same size; only the recurring one in orange. */
+.cmp-calc-totals {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--base-size-16);
+}
+
+.cmp-calc-totals div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-4);
+}
+
+.cmp-calc-totals span {
+  font-size: var(--text-body-size-small);
+  font-weight: var(--base-text-weight-semibold);
+  color: var(--fgColor-muted);
+}
+
+.cmp-calc-totals strong {
+  font-size: var(--text-title-size-medium);
+  font-weight: var(--base-text-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--fgColor-default);
+}
+
+.cmp-calc-totals-main strong {
   color: var(--cmp-igni);
 }
