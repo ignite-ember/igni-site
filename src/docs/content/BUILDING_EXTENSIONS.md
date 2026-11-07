@@ -125,7 +125,7 @@ uv add igni-service            # your service
 npm install @ignite-ember/extension-bridge @ignite-ember/ui-react @ignite-ember/ui-css
 ```
 
-Each SDK release (`sdk-v<version>` on [github.com/ignite-ember/igni](https://github.com/ignite-ember/igni/releases)) also carries every wheel and npm tarball, with their SHA-256 digests, for a build machine that cannot reach PyPI or npm.
+Each SDK release (`sdk-v<version>` on [github.com/ignite-ember/igni-sdk](https://github.com/ignite-ember/igni-sdk/releases)) also carries every wheel and npm tarball, with their SHA-256 digests, for a build machine that cannot reach PyPI or npm.
 
 ## An extension's process
 

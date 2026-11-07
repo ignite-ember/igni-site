@@ -12,7 +12,7 @@ The app is called **igni**. It is a Tauri application that shows igni's web inte
 | Windows | `.msi`, `.exe` | Not code-signed: Windows shows an "unknown publisher" prompt on first launch. |
 | Linux | `.AppImage`, `.deb`, `.rpm` | |
 
-Builds are attached to each release at [github.com/ignite-ember/igni/releases](https://github.com/ignite-ember/igni/releases).
+Builds are attached to each release at [github.com/ignite-ember/igni-app/releases](https://github.com/ignite-ember/igni-app/releases).
 
 **On first launch it installs its own backend.** The app downloads `uv`, uses it to install Python 3.12, creates a private virtual environment, installs `ignite-ember[decisions]` at the app's own version, and downloads igni's decision model (about 1.7 GB). It needs network access for this, and at least 1 GB free before it starts. Everything lands in a per-user cache:
 

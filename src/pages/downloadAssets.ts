@@ -24,7 +24,7 @@
  * so those match nothing below and are never offered.
  */
 
-export const GITHUB_REPO = 'ignite-ember/igni'
+export const GITHUB_REPO = 'ignite-ember/igni-app'
 export const RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases`
 export const LATEST_API_URL = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`
 

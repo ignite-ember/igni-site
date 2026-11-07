@@ -246,7 +246,7 @@ If you publish nothing, the client falls back to asking for the server address a
 | Windows | `.msi` / `.exe` |
 | Linux | `.AppImage` / `.deb` / `.rpm` |
 
-The builds are on each release at [ignite-ember/igni](https://github.com/ignite-ember/igni/releases). The macOS build is signed with a Developer ID, notarised, and updates itself. The Windows and Linux builds have no OS code signing — Windows shows a SmartScreen "unknown publisher" prompt on first launch — and do not update themselves, so those installs stay on the version they were installed at until somebody installs the next release.
+The builds are on each release at [ignite-ember/igni-app](https://github.com/ignite-ember/igni-app/releases). The macOS build is signed with a Developer ID, notarised, and updates itself. The Windows and Linux builds have no OS code signing — Windows shows a SmartScreen "unknown publisher" prompt on first launch — and do not update themselves, so those installs stay on the version they were installed at until somebody installs the next release.
 
 **2. It installs its own backend, on first launch.** The app downloads `uv`, uses it to provision a pinned CPython 3.12, creates a managed virtualenv, installs `ignite-ember` at the version the app was built against, and downloads igni's decision model. Everything lands in a per-user cache — `~/Library/Caches/ember-code` on macOS, `%LOCALAPPDATA%\ember-code` on Windows, `$XDG_CACHE_HOME/ember-code` on Linux — so later launches skip straight to starting the backend.
 
