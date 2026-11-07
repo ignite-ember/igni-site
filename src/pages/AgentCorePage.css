@@ -649,6 +649,10 @@
   opacity: 0.35;
 }
 
+.cmp-stack-part--3 {
+  opacity: 0.2;
+}
+
 .cmp-stack-legend {
   margin-top: var(--base-size-6);
 }
@@ -984,6 +988,12 @@
 
 .cmp-chart-line--aws {
   stroke: var(--cmp-aws);
+}
+
+/* igni's first year, hardware bought: dashed, beside the solid each-year-after line. */
+.cmp-chart-line--first {
+  stroke-dasharray: 8 6;
+  stroke-width: 2;
 }
 
 .cmp-chart-dot--igni {

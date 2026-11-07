@@ -35,6 +35,14 @@ import {
   SERVER_YEAR_PARTS,
   EUR_PER_GBP,
   USAGE,
+  usageBill,
+  GPU,
+  GPU_RUNNING,
+  HW_200,
+  IGNI_200,
+  RUNTIME_200,
+  PAYBACK_200,
+  k1,
   USD_PER_EUR,
   WAKE,
   WAKE_MAX_MS,
@@ -83,7 +91,7 @@ describe('the page renders', () => {
       'Feature by feature',
       'Extensions and the UI',
       'Models and GPU capacity',
-      'Cost for 200 people, per year',
+      'Cost for 200 people',
       'Cost by usage',
       'Speed',
       'Security and where data lives',
@@ -109,7 +117,7 @@ describe('the page renders', () => {
     expect(t).toMatch(/10–50 GiB/)
     expect(t).toMatch(/≈50%/)
     expect(t).toMatch(/~30 ms/)
-    expect(t).toMatch(/€51–57k/)
+    expect(t).toMatch(/€113\.8–119\.8k the first year, €30\.1–36\.1k each year after/)
     expect(t).toMatch(/107k \/ 413k/)
   })
 
@@ -136,7 +144,8 @@ describe('it stays honest', () => {
     expect(t).toMatch(/No independent penetration test yet/)
     expect(t).toMatch(/Estimates, not a quote/)
     expect(t).toMatch(/your integrator quotes the final price/)
-    expect(t).toMatch(/Below about 70 people AgentCore is cheaper/)
+    expect(t).toMatch(/Over 4 years,\s+below about 70 people AgentCore is cheaper/)
+    expect(t).toMatch(/The first year, with the\s+hardware bought, costs clearly more than AgentCore below about 200 people, within\s+about 10% of it either way from 200 to 500, and less from 600/)
     expect(document.querySelectorAll('#aws-wins tbody tr').length).toBe(8)
   })
 
@@ -183,7 +192,9 @@ describe('igni’s side is the price list', () => {
     // across the bands the team spans, so igni's low end must clear it plus
     // some hardware — never fall below the licence alone.
     for (const u of USAGE) {
-      expect(u.igni[0]).toBeGreaterThan(graduatedPrice(FLEET_PRICES, u.people) / 1000)
+      const b = usageBill(u)
+      expect(b.licence).toBe(graduatedPrice(FLEET_PRICES, u.people))
+      expect(b.yearAfter[0]).toBeGreaterThan(b.licence)
     }
   })
 })
@@ -485,7 +496,7 @@ describe('cost by usage', () => {
 
   test('the 200-person case says its two servers have no spare', () => {
     renderPage()
-    expect(text()).toMatch(/CPU servers: 2, bought .*No spare: 200 agents fill about 97% of their usable RAM/)
+    expect(text()).toMatch(/CPU servers: 2 × Dell PowerEdge R7625 .*bought once\. No spare: 200 agents fill about 97% of their usable RAM/)
   })
 
   test('the server is the 256 GB R7625 everywhere, with its CPUs and its source', () => {
@@ -504,6 +515,46 @@ describe('cost by usage', () => {
     expect(src).toMatch(/Step 6 again on bare metal/)
     expect(src).toMatch(/Step 6 a third time on bare metal/)
     expect(src).toMatch(/results log/)
+  })
+})
+
+describe('the 200-person case buys its hardware once', () => {
+  test('the GPU and servers are bought once, then cost power and support', () => {
+    expect(GPU).toMatchObject({ system: 'Supermicro ARS-111GL-NHR', priceEur: 42_430, perYear: [14_000, 18_000] })
+    expect(GPU_RUNNING).toEqual([3_392.5, 7_392.5])
+    expect(HW_200).toEqual({ servers: 2, gpus: 1 })
+    expect(IGNI_200.buy).toBeCloseTo(2 * 20_642.5 + 42_430, 6)
+    expect(IGNI_200.firstYear.map(k1)).toEqual([113.8, 119.8])
+    expect(IGNI_200.yearAfter.map(k1)).toEqual([30.1, 36.1])
+    expect(RUNTIME_200.firstYear.map(k1)).toEqual([68, 70])
+    expect(RUNTIME_200.yearAfter.map(k1)).toEqual([26.7, 28.7])
+    // Over 4 years it comes to the old per-year basis: €51–57k a year.
+    expect(IGNI_200.fourYears.map((v) => Math.round(v / 4 / 1000))).toEqual([51, 57])
+    expect(PAYBACK_200).toEqual([14, 18])
+  })
+
+  test('the page says so: the table, the bars, buy or rent, and the hero', () => {
+    renderPage()
+    const t = text()
+    expect(t).toMatch(/Total with the model113\.8–119\.8k30\.1–36\.1k/)
+    expect(t).toMatch(/GPU: 1 × GH200 \(Supermicro ARS-111GL-NHR\), bought once42\.4k–/)
+    expect(t).toMatch(/a second, for GPU failover, is optional\s+\(\+€42\.4k once, then \+3\.4–7\.4k a year\)/)
+    expect(t).toMatch(/igni: Fleet \+ servers \+ 1 GH200, first year \(hardware bought\)/)
+    expect(t).toMatch(/bought once \(≈€83\.7k\); after that igni costs about a third of\s+AgentCore’s bill a year, and it has cost less in total from about month\s+14–18/)
+    expect(t).toMatch(/Usage above which igni costs less than AgentCore over 4 years, its hardware bought once/)
+    expect(document.querySelector('#sources')?.textContent).toMatch(/Supermicro ARS-111GL-NHR with one GH200, €42,430 \(aiserver\.eu listing, checked 7 Nov 2026; VAT not stated\)/)
+    expect(document.querySelector('#sources')?.textContent).not.toMatch(/does not convert/)
+  })
+
+  test('the team-size table has the first year, each year after, and when igni has cost less', () => {
+    renderPage()
+    const rows = Array.from(document.querySelectorAll('.cmp-usage tbody tr')).map((r) => Array.from(r.querySelectorAll('td')).map((td) => td.textContent))
+    expect(rows[0]).toEqual(['50', '~29k', '99.8–105.8k1 GH200, 2 servers bought · €10k licence', '16.1–22.1k', 'not within 4 years'])
+    expect(rows[2]).toEqual(['200', '~107k', '113.8–119.8k1 GH200, 2 servers bought · €24k licence', '30.1–36.1k', 'month 14'])
+    expect(rows[9][2]).toMatch(/25 GH200, 34 servers bought · €128k licence \(flat\)$/)
+    // The chart draws igni's first year dashed beside each year after.
+    expect(document.querySelectorAll('.cmp-chart--wide .cmp-chart-line--first')).toHaveLength(1)
+    expect(document.querySelector('.cmp-usage-chart .cmp-chart--wide')?.getAttribute('aria-label')).toMatch(/below AgentCore at every size.*within about 10% of it either way from 200 to 500, and below it at 600/)
   })
 })
 

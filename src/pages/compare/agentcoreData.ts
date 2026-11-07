@@ -58,27 +58,145 @@ export function countFull(side: 'aws' | 'igni'): number {
   return COVERAGE.filter((r) => r[side] === 'full').length
 }
 
+/* ── Hardware: bought once ──────────────────────────────────────── */
+
+/**
+ * igni's hardware is bought once, then costs power and support every
+ * year. Each part's purchase plus 4 years of running comes to the page's
+ * earlier per-year basis (€6.5–7.5k a server-year, €14–18k a GPU-year),
+ * so a 4-year total is the same either way: the running figures are that
+ * basis less the purchase spread over 4 years.
+ */
+
+/** The CPU server, bought: Bytestock's UK listing, checked 7 November 2026, £17,950 ex VAT. */
+export const SERVER = {
+  name: 'Dell PowerEdge R7625',
+  cpus: '2 × AMD EPYC 9474F',
+  cores: 96,
+  threads: 192,
+  ramGb: 256,
+  priceGbp: 17_950,
+  /** The years the per-year basis spreads a purchase over; plan to replace the server after them. */
+  years: 4,
+  /** € per server-year, low and high: the purchase over `years`, plus power and support. */
+  perYear: [6_500, 7_500] as [number, number],
+} as const
+
+/** Euros to the pound, for the server's UK price: £1 = €1.15. */
+export const EUR_PER_GBP = 1.15
+
+/** One server's purchase price in euros. */
+export const SERVER_EUR = SERVER.priceGbp * EUR_PER_GBP
+
+/** What a server-year is made of, €: the purchase over 4 years, and power and support (low, high). */
+export const SERVER_YEAR_PARTS = {
+  purchase: SERVER_EUR / SERVER.years,
+  running: [SERVER.perYear[0] - SERVER_EUR / SERVER.years, SERVER.perYear[1] - SERVER_EUR / SERVER.years] as [number, number],
+}
+
+/**
+ * The GPU, bought: a Supermicro ARS-111GL-NHR with one GH200 (72-core
+ * Grace, H100 with 96–144 GB, 480 GB LPDDR5X), €42,430 at aiserver.eu,
+ * checked 7 November 2026. The listing does not say whether VAT is
+ * included. Other listings found the same day ran $34–55k.
+ */
+export const GPU = {
+  name: 'GH200',
+  system: 'Supermicro ARS-111GL-NHR',
+  priceEur: 42_430,
+  years: 4,
+  /** € per GPU-year, low and high: the purchase over `years`, plus power and support. */
+  perYear: [14_000, 18_000] as [number, number],
+} as const
+
+/** Power and support for one GPU, € a year (low, high). */
+export const GPU_RUNNING: [number, number] = [GPU.perYear[0] - GPU.priceEur / GPU.years, GPU.perYear[1] - GPU.priceEur / GPU.years]
+
+export type Hardware = { servers: number; gpus: number }
+
+/** A bill whose hardware is bought once, €: the licence, the purchase, and each year after (low, high). */
+export type OnceBill = {
+  licence: number
+  /** Paid once, in the first year. */
+  buy: number
+  /** Power and support, every year. */
+  running: [number, number]
+  /** Licence + purchase + running. */
+  firstYear: [number, number]
+  /** Licence + running. */
+  yearAfter: [number, number]
+  /** The purchase once, licence and running four times. */
+  fourYears: [number, number]
+}
+
+export function onceBill(licence: number, h: Hardware): OnceBill {
+  const buy = h.servers * SERVER_EUR + h.gpus * GPU.priceEur
+  const running: [number, number] = [
+    h.servers * SERVER_YEAR_PARTS.running[0] + h.gpus * GPU_RUNNING[0],
+    h.servers * SERVER_YEAR_PARTS.running[1] + h.gpus * GPU_RUNNING[1],
+  ]
+  const span = (f: (run: number) => number): [number, number] => [f(running[0]), f(running[1])]
+  return {
+    licence,
+    buy,
+    running,
+    firstYear: span((run) => licence + buy + run),
+    yearAfter: span((run) => licence + run),
+    fourYears: span((run) => 4 * licence + buy + 4 * run),
+  }
+}
+
+/**
+ * The month from which the total paid for igni is below the total paid
+ * for AgentCore at `aws` € a year: the purchase over what igni saves a
+ * year (the middle of its range). Null if igni saves nothing a year.
+ */
+export function paybackMonths(bill: OnceBill, aws: number): number | null {
+  const saves = aws - (bill.yearAfter[0] + bill.yearAfter[1]) / 2
+  return saves > 0 ? Math.max(1, Math.round((bill.buy / saves) * 12)) : null
+}
+
+/** A € figure in thousands to one decimal: 113_750 → 113.8. */
+export const k1 = (n: number) => Math.round(n / 100) / 10
+
 /* ── Cost for 200 people, € thousand a year ───────────────────────── */
 
 export type Side = 'aws' | 'igni'
 
+/** 200 people: 2 CPU servers and 1 GH200. */
+export const HW_200: Hardware = { servers: 2, gpus: 1 }
+/** igni with the model: Fleet licence, servers and the GPU. */
+export const IGNI_200 = onceBill(graduatedPrice(FLEET_PRICES, 200), HW_200)
+/** igni's runtime alone, comparable to AgentCore's: Fleet licence and the CPU servers. */
+export const RUNTIME_200 = onceBill(graduatedPrice(FLEET_PRICES, 200), { servers: 2, gpus: 0 })
+
+/** AgentCore with the open-weight model, € thousand a year: committed with discount, and list. */
+export const AWS_200: [number, number] = [88, 107]
+
+/** The months from which igni has cost less in total than AgentCore with the open-weight model: at list, and at the committed rate. */
+export const PAYBACK_200: [number, number] = [paybackMonths(IGNI_200, AWS_200[1] * 1000)!, paybackMonths(IGNI_200, AWS_200[0] * 1000)!]
+
+const range = (r: [number, number]) => ({ low: k1(r[0]), high: k1(r[1]) })
+
 /** The side-by-side bars: a range, low to high, drawn to the high end. */
 export const COST_BARS: { label: string; side: Side; low: number; high: number }[] = [
   { label: 'AgentCore, all services, no model', side: 'aws', low: 52, high: 66 },
-  { label: 'AgentCore + open-weight model (Qwen3 32B)', side: 'aws', low: 88, high: 107 },
+  { label: 'AgentCore + open-weight model (Qwen3 32B)', side: 'aws', low: AWS_200[0], high: AWS_200[1] },
   { label: 'AgentCore + Claude Sonnet (frontier model)', side: 'aws', low: 363, high: 413 },
-  { label: 'Fleet licence + CPU servers', side: 'igni', low: 37, high: 39 },
-  { label: 'igni: Fleet + servers + 1 GH200 (bought or rented)', side: 'igni', low: 51, high: 57 },
+  { label: 'igni: Fleet + servers + 1 GH200, first year (hardware bought)', side: 'igni', ...range(IGNI_200.firstYear) },
+  { label: 'igni: Fleet + servers + 1 GH200, each year after', side: 'igni', ...range(IGNI_200.yearAfter) },
 ]
 
 /** The longest cost bar's share of its track, leaving room for its amount after it. */
 export const COST_SCALE = 80
 
-/** What each bill is made of: open-weight model, heavy use, middle of each range. */
+const midK = (r: [number, number]) => k1((r[0] + r[1]) / 2)
+
+/** What each bill is made of: open-weight model, heavy use, middle of each range, € thousand. */
 export const BREAKDOWN: { side: Side; name: string; total: number; parts: { label: string; k: number }[] }[] = [
   {
     side: 'aws',
-    name: 'AgentCore',
+    name: 'AgentCore, every year',
     total: 107,
     parts: [
       { label: 'Runtime', k: 42 },
@@ -88,12 +206,22 @@ export const BREAKDOWN: { side: Side; name: string; total: number; parts: { labe
   },
   {
     side: 'igni',
-    name: 'igni + Fleet',
-    total: 54,
+    name: 'igni + Fleet, first year',
+    total: midK(IGNI_200.firstYear),
     parts: [
-      { label: 'Licence', k: 24 },
-      { label: 'Servers', k: 14 },
-      { label: 'GPU', k: 16 },
+      { label: 'Licence', k: k1(IGNI_200.licence) },
+      { label: 'Servers, bought', k: k1(2 * SERVER_EUR) },
+      { label: 'GPU, bought', k: k1(GPU.priceEur) },
+      { label: 'Power and support', k: midK(IGNI_200.running) },
+    ],
+  },
+  {
+    side: 'igni',
+    name: 'igni + Fleet, each year after',
+    total: midK(IGNI_200.yearAfter),
+    parts: [
+      { label: 'Licence', k: k1(IGNI_200.licence) },
+      { label: 'Power and support', k: midK(IGNI_200.running) },
     ],
   },
 ]
@@ -108,35 +236,32 @@ export const BREAKDOWN: { side: Side; name: string; total: number; parts: { labe
  *
  * AgentCore is at list and scales ~linearly with people (≈€0.52k a person
  * a year: open-weight model, heavy use, one session each). igni is the
- * graduated Fleet licence plus the hardware the load takes: 1 GH200 per
- * ~200 people (€14–18k each) and a CPU server per ~150 (€6.5–7.5k each,
- * two minimum). The licence is graduated (siteData.ts), so each team pays
- * only for the people in each band: it comes to €10k at 50, €15k at 100,
- * €24k at 200, €29k at 300, €35k at 400, €40k at 500, €45k at 600, €66k at
- * 1,000 and €97k at 2,000, reaching the €128k ceiling at 3,000. Above 3,000
- * the licence is flat at €128k — no further per-person charge. The old
- * stepped bands doubled at each edge; the graduated licence does not.
+ * graduated Fleet licence (siteData.ts: €10k at 50, €24k at 200, €66k at
+ * 1,000, the €128k ceiling from 3,000) plus the hardware the load takes:
+ * 1 GH200 per ~200 people and a CPU server per ~150, two minimum, bought
+ * once (see onceBill).
  *
  * The 200-person row is the measured/modelled anchor (BAND_200, 1 GH200);
  * the rows above 1,000 people scale that sizing linearly and are MODELLED,
  * not measured — the page says so. The table shows every row; the chart
- * (AgentCoreFigures) plots only the rows ≤600, where the two lines are
- * still legible side by side. Do not edit a number without redoing the
- * sum: licence = graduatedPrice(FLEET_PRICES, people), hardware from the
- * per-unit rates above (low = €14k GPU + €6.5k server; high = €18k + €7.5k).
+ * (AgentCoreFigures) plots only the rows ≤600, where the lines are still
+ * legible side by side.
  */
-export const USAGE: { people: number; aws: number; igni: [number, number]; hw: string }[] = [
-  { people: 50, aws: 29, igni: [37, 43], hw: '1 GH200, 2 servers · €10k licence' },
-  { people: 100, aws: 55, igni: [42, 48], hw: '1 GH200, 2 servers · €15k licence' },
-  { people: 200, aws: 107, igni: [51, 57], hw: '1 GH200, 2 servers · €24k licence' },
-  { people: 300, aws: 159, igni: [70, 80], hw: '2 GH200, 2 servers · €29k licence' },
-  { people: 400, aws: 211, igni: [82, 93], hw: '2 GH200, 3 servers · €35k licence' },
-  { people: 500, aws: 263, igni: [108, 124], hw: '3 GH200, 4 servers · €40k licence' },
-  { people: 600, aws: 315, igni: [113, 129], hw: '3 GH200, 4 servers · €45k licence' },
-  { people: 1000, aws: 523, igni: [182, 209], hw: '5 GH200, 7 servers · €66k licence' },
-  { people: 2000, aws: 1043, igni: [328, 382], hw: '10 GH200, 14 servers · €97k licence' },
-  { people: 5000, aws: 2603, igni: [699, 833], hw: '25 GH200, 34 servers · €128k licence (flat)' },
+export const USAGE: { people: number; aws: number; gpus: number; servers: number }[] = [
+  { people: 50, aws: 29, gpus: 1, servers: 2 },
+  { people: 100, aws: 55, gpus: 1, servers: 2 },
+  { people: 200, aws: 107, gpus: 1, servers: 2 },
+  { people: 300, aws: 159, gpus: 2, servers: 2 },
+  { people: 400, aws: 211, gpus: 2, servers: 3 },
+  { people: 500, aws: 263, gpus: 3, servers: 4 },
+  { people: 600, aws: 315, gpus: 3, servers: 4 },
+  { people: 1000, aws: 523, gpus: 5, servers: 7 },
+  { people: 2000, aws: 1043, gpus: 10, servers: 14 },
+  { people: 5000, aws: 2603, gpus: 25, servers: 34 },
 ]
+
+/** igni's bill for a USAGE row: the graduated licence at its headcount plus its hardware, bought once. */
+export const usageBill = (u: (typeof USAGE)[number]) => onceBill(graduatedPrice(FLEET_PRICES, u.people), u)
 
 /* ── Speed ────────────────────────────────────────────────────────── */
 
@@ -196,36 +321,6 @@ export const AC_RUNTIME = {
   /** Default idle timeout (idleRuntimeSessionTimeout), s. */
   idleTimeoutS: 900,
 } as const
-
-/**
- * The CPU server, bought: Bytestock's UK listing, checked 7 November 2026,
- * £17,950 ex VAT. A server-year is the page's existing basis — two
- * servers at €13–15k a year over 4 years with power and support.
- */
-export const SERVER = {
-  name: 'Dell PowerEdge R7625',
-  cpus: '2 × AMD EPYC 9474F',
-  cores: 96,
-  threads: 192,
-  ramGb: 256,
-  priceGbp: 17_950,
-  /** The purchase is spread over this many years. */
-  years: 4,
-  /** € per server-year, low and high: the purchase over `years`, plus power and support. */
-  perYear: [6_500, 7_500] as [number, number],
-} as const
-
-/** Euros to the pound, for the server's UK price: £1 = €1.15. */
-export const EUR_PER_GBP = 1.15
-
-/** One server's purchase price in euros. */
-export const SERVER_EUR = SERVER.priceGbp * EUR_PER_GBP
-
-/** What a server-year is made of, €: the purchase over 4 years, and power and support (low, high). */
-export const SERVER_YEAR_PARTS = {
-  purchase: SERVER_EUR / SERVER.years,
-  running: [SERVER.perYear[0] - SERVER_EUR / SERVER.years, SERVER.perYear[1] - SERVER_EUR / SERVER.years] as [number, number],
-}
 
 /** The share of each server sizing may use: the rest is headroom. */
 export const HEADROOM = { ram: 0.85, threads: 0.7 } as const

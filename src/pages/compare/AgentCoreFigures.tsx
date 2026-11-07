@@ -15,6 +15,8 @@ import {
   COVERAGE,
   HAS_LABEL,
   USAGE,
+  usageBill,
+  k1,
   SCHEDULE_HOURS,
   SERVER,
   USD_PER_EUR,
@@ -571,9 +573,14 @@ const NARROW: Geometry = { W: 340, H: 400, M: { l: 54, r: 12, t: 28, b: 64 }, ti
 const Y_MAX = 350
 const Y_TICKS = [0, 100, 200, 300]
 const mid = (r: [number, number]) => (r[0] + r[1]) / 2
-/** The chart plots only the smaller teams, where the two lines stay legible
- * side by side; the table beside it carries the full range to 5,000. */
-const CHART = USAGE.filter((u) => u.people <= 600)
+/** The chart plots only the smaller teams, where the lines stay legible
+ * side by side; the table beside it carries the full range to 5,000.
+ * igni's figures are in € thousand, like AgentCore's. */
+const CHART = USAGE.filter((u) => u.people <= 600).map((u) => {
+  const b = usageBill(u)
+  const th = (r: [number, number]): [number, number] => [k1(r[0]), k1(r[1])]
+  return { people: u.people, aws: u.aws, first: th(b.firstYear), after: th(b.yearAfter) }
+})
 const N = CHART.length
 
 /** € a year, short: "€500k", "€2.5M". */
@@ -585,32 +592,23 @@ const kf = (n: number) => n.toLocaleString('en-US')
 /** The index (0…N-1) of a people count, for the categorical x-axis. */
 const idxOf = (people: number) => CHART.findIndex((u) => u.people === people)
 
-/** Where AgentCore's line crosses igni's, between the first two points, in people. */
-function breakEven(): number {
-  const [a, b] = CHART
-  const target = mid(a.igni)
-  return a.people + ((b.people - a.people) * (target - a.aws)) / (b.aws - a.aws)
-}
-
-const be = breakEven()
-const beRounded = Math.round(be / 10) * 10
 const last = CHART[CHART.length - 1]
-const USAGE_LABEL = `Cost against team size, € a year, open-weight model. AgentCore rises from €${kf(CHART[0].aws)}k at ${CHART[0].people} people to €${kf(last.aws)}k at ${kf(last.people)} people. igni with Fleet rises in steps as licence bands and GPUs are added, from €${kf(CHART[0].igni[0])}–${kf(CHART[0].igni[1])}k to €${kf(last.igni[0])}–${kf(last.igni[1])}k at ${kf(last.people)} people. They cross at about ${beRounded} people.`
+const USAGE_LABEL =
+  `Cost against team size, € a year, open-weight model. AgentCore rises from €${kf(CHART[0].aws)}k at ${CHART[0].people} people to €${kf(last.aws)}k at ${kf(last.people)} people. ` +
+  `igni with Fleet, each year after the first, rises from €${kf(CHART[0].after[0])}–${kf(CHART[0].after[1])}k to €${kf(last.after[0])}–${kf(last.after[1])}k at ${kf(last.people)} people, below AgentCore at every size. ` +
+  `igni's first year, with the hardware bought, runs from €${kf(CHART[0].first[0])}–${kf(CHART[0].first[1])}k to €${kf(last.first[0])}–${kf(last.first[1])}k: well above AgentCore below 200 people, within about 10% of it either way from 200 to 500, and below it at 600.`
 
 function UsageDrawing({ g, className }: { g: Geometry; className: string }) {
   const { W, H, M } = g
   const innerW = W - M.l - M.r
-  // Categorical x: the seven bands evenly spaced. A fractional index (the
-  // break-even) lands between its two neighbours.
+  // Categorical x: the seven team sizes evenly spaced.
   const xi = (i: number) => M.l + (N === 1 ? 0 : (i / (N - 1)) * innerW)
   const x = (people: number) => xi(idxOf(people))
   const y = (k: number) => H - M.b - (k / Y_MAX) * (H - M.t - M.b)
   const pts = (f: (u: (typeof CHART)[number]) => number) => CHART.map((u, i) => `${xi(i)},${y(f(u))}`).join(' ')
-  const lower = CHART.map((u, i) => `${xi(i)},${y(u.igni[0])}`)
-  const upper = CHART.map((u, i) => `${xi(i)},${y(u.igni[1])}`).reverse()
+  const lower = CHART.map((u, i) => `${xi(i)},${y(u.after[0])}`)
+  const upper = CHART.map((u, i) => `${xi(i)},${y(u.after[1])}`).reverse()
   const band = [...lower, ...upper].join(' ')
-  // The break-even sits in the first segment: a fractional index 0…1.
-  const beIdx = (be - CHART[0].people) / (CHART[1].people - CHART[0].people)
   return (
     <svg className={`cmp-chart ${className}`} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={USAGE_LABEL}>
       {Y_TICKS.map((k) => (
@@ -625,19 +623,19 @@ function UsageDrawing({ g, className }: { g: Geometry; className: string }) {
       <text x={(M.l + W - M.r) / 2} y={H - 10} textAnchor="middle" className="cmp-chart-muted">people (at the heavy per-person rate)</text>
 
       <polygon points={band} className="cmp-chart-band" />
-      <polyline points={pts((u) => mid(u.igni))} className="cmp-chart-line cmp-chart-line--igni" />
+      <polyline points={pts((u) => mid(u.first))} className="cmp-chart-line cmp-chart-line--igni cmp-chart-line--first" />
+      <polyline points={pts((u) => mid(u.after))} className="cmp-chart-line cmp-chart-line--igni" />
       <polyline points={pts((u) => u.aws)} className="cmp-chart-line cmp-chart-line--aws" />
       {CHART.map((u, i) => (
         <g key={u.people}>
           <circle cx={xi(i)} cy={y(u.aws)} r={4} className="cmp-chart-dot--aws" />
-          <circle cx={xi(i)} cy={y(mid(u.igni))} r={4} className="cmp-chart-dot--igni" />
+          <circle cx={xi(i)} cy={y(mid(u.after))} r={4} className="cmp-chart-dot--igni" />
         </g>
       ))}
 
-      <line x1={xi(beIdx)} x2={xi(beIdx)} y1={M.t} y2={H - M.b} className="cmp-chart-rule" />
-      <text x={xi(beIdx) + 6} y={M.t + 4} className="cmp-chart-muted">break-even ≈ {beRounded} people</text>
-      <text x={x(last.people) - 8} y={y(last.aws) - 4} textAnchor="end" className="cmp-chart-label--aws">AgentCore €{kf(last.aws)}k</text>
-      <text x={x(last.people) - 8} y={y(last.igni[1]) - 12} textAnchor="end" className="cmp-chart-label--igni">igni + Fleet €{kf(last.igni[0])}–{kf(last.igni[1])}k</text>
+      <text x={x(last.people) - 8} y={y(last.aws) - 10} textAnchor="end" className="cmp-chart-label--aws">AgentCore €{kf(last.aws)}k</text>
+      <text x={x(last.people) - 8} y={y(mid(last.first)) + 44} textAnchor="end" className="cmp-chart-label--igni">igni, first year €{kf(last.first[0])}–{kf(last.first[1])}k</text>
+      <text x={x(last.people) - 8} y={y(last.after[1]) - 12} textAnchor="end" className="cmp-chart-label--igni">igni, each year after €{kf(last.after[0])}–{kf(last.after[1])}k</text>
     </svg>
   )
 }
