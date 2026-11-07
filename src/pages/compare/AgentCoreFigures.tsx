@@ -911,21 +911,31 @@ function niceStep(max: number) {
 
 const YEARS_AXIS = [0, 1, 2, 3, 4]
 
-/**
- * What one worked case has cost in total by each point of 4 years.
- * AgentCore starts at nothing and grows by the same bill every year.
- * Fleet starts at the servers, bought on day one, then grows by the
- * licence and power and support; its line is the middle of its range,
- * with the range as a band. Where the lines cross, Fleet has paid for
- * its servers.
- */
-function CumulativeChart({ title, aws, igni }: { title: string; aws: number; igni: FleetYear }) {
-  const W = 360
-  const H = 250
-  const M = { l: 52, r: 84, t: 16, b: 34 }
+type CumGeometry = { W: number; H: number; M: { l: number; r: number; t: number; b: number } }
+const CUM_WIDE: CumGeometry = { W: 900, H: 340, M: { l: 64, r: 110, t: 20, b: 40 } }
+const CUM_NARROW: CumGeometry = { W: 360, H: 280, M: { l: 52, r: 84, t: 16, b: 34 } }
+
+/** One worked case's totals: AgentCore by year t, Fleet's low and high, and where they cross. */
+function cumulative(aws: number, igni: FleetYear) {
   const yearly = [igni.licence + igni.running[0], igni.licence + igni.running[1]]
   const fleetAt = (t: number, k: 0 | 1) => igni.serverBuy + t * yearly[k]
   const mid = (t: number) => (fleetAt(t, 0) + fleetAt(t, 1)) / 2
+  // Where AgentCore's total passes Fleet's (middle of the range), in years.
+  const gain = aws - (yearly[0] + yearly[1]) / 2
+  const cross = gain > 0 && igni.serverBuy / gain <= 4 ? igni.serverBuy / gain : null
+  return { fleetAt, mid, cross, crossMonths: cross === null ? null : Math.round(cross * 12) }
+}
+
+/**
+ * The total paid over 4 years for one worked case. AgentCore starts at
+ * nothing and grows by the same bill every year. Fleet starts at the
+ * servers, bought on day one, then grows by the licence and power and
+ * support; its line is the middle of its range, with the range as a
+ * band. Where the lines cross, Fleet has paid for its servers.
+ */
+function CumulativeDrawing({ g, className, label, aws, igni }: { g: CumGeometry; className: string; label: string; aws: number; igni: FleetYear }) {
+  const { W, H, M } = g
+  const { fleetAt, mid, cross } = cumulative(aws, igni)
   const top = Math.max(4 * aws, fleetAt(4, 1))
   const step = niceStep(top)
   const yMax = Math.ceil(top / step) * step
@@ -934,61 +944,66 @@ function CumulativeChart({ title, aws, igni }: { title: string; aws: number; ign
   const y = (v: number) => H - M.b - (v / yMax) * (H - M.t - M.b)
   const line = (f: (t: number) => number) => YEARS_AXIS.map((t) => `${x(t)},${y(f(t))}`).join(' ')
   const band = [...YEARS_AXIS.map((t) => `${x(t)},${y(fleetAt(t, 0))}`), ...[...YEARS_AXIS].reverse().map((t) => `${x(t)},${y(fleetAt(t, 1))}`)].join(' ')
-  // Where AgentCore's total passes Fleet's (middle of the range), in years.
-  const gain = aws - (yearly[0] + yearly[1]) / 2
-  const cross = gain > 0 ? igni.serverBuy / gain : null
-  const crossMonths = cross !== null ? Math.round(cross * 12) : null
-  const label =
-    `${title}: total cost over 4 years. AgentCore ${YEARS_AXIS.slice(1).map((t) => eurShort(t * aws)).join(', ')} by the end of years 1 to 4. ` +
-    `Fleet starts at ${eurShort(igni.serverBuy)} for the servers and reaches ${YEARS_AXIS.slice(1).map((t) => eurRangeShort([fleetAt(t, 0), fleetAt(t, 1)])).join(', ')}.` +
-    (crossMonths !== null && cross! <= 4 ? ` Fleet costs less from about month ${crossMonths}.` : '')
   return (
-    <figure className="cmp-cum" data-case={title}>
-      <figcaption className="cmp-cum-title">{title}</figcaption>
-      <svg className="cmp-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
-        {ticks.map((v) => (
-          <g key={v}>
-            <line x1={M.l} x2={W - M.r} y1={y(v)} y2={y(v)} className="cmp-chart-grid" />
-            <text x={M.l - 6} y={y(v) + 4} textAnchor="end" className="cmp-chart-muted">{v === 0 ? '0' : eurShort(v)}</text>
-          </g>
-        ))}
-        {YEARS_AXIS.map((t) => (
-          <text key={t} x={x(t)} y={H - M.b + 20} textAnchor="middle" className="cmp-chart-muted">{t === 0 ? 'Start' : `Year ${t}`}</text>
-        ))}
-        <polygon points={band} className="cmp-chart-band" />
-        <polyline points={line((t) => t * aws)} className="cmp-chart-line cmp-chart-line--aws" />
-        <polyline points={line(mid)} className="cmp-chart-line cmp-chart-line--igni" />
-        {cross !== null && cross <= 4 && (
-          <g className="cmp-cum-cross">
-            <line x1={x(cross)} x2={x(cross)} y1={M.t} y2={H - M.b} className="cmp-chart-rule" />
-            <circle cx={x(cross)} cy={y(cross * aws)} r={5} className="cmp-chart-dot--igni" />
-          </g>
-        )}
-        <text x={x(4) + 6} y={y(4 * aws) + 4} className="cmp-chart-label--aws">{eurShort(4 * aws)}</text>
-        <text x={x(4) + 6} y={y(mid(4)) + 4} className="cmp-chart-label--igni">{eurRangeShort([fleetAt(4, 0), fleetAt(4, 1)])}</text>
-      </svg>
-      <p className="cmp-cum-note">
-        {crossMonths !== null && cross! <= 4
-          ? <>Fleet costs less from about <b>month {crossMonths}</b>.</>
-          : <>Fleet does not cost less within 4 years.</>}
-      </p>
-    </figure>
+    <svg className={`cmp-chart ${className}`} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
+      {ticks.map((v) => (
+        <g key={v}>
+          <line x1={M.l} x2={W - M.r} y1={y(v)} y2={y(v)} className="cmp-chart-grid" />
+          <text x={M.l - 8} y={y(v) + 4} textAnchor="end" className="cmp-chart-muted">{v === 0 ? '0' : eurShort(v)}</text>
+        </g>
+      ))}
+      {YEARS_AXIS.map((t) => (
+        <text key={t} x={x(t)} y={H - M.b + 22} textAnchor="middle" className="cmp-chart-muted">{t === 0 ? 'Start' : `Year ${t}`}</text>
+      ))}
+      <polygon points={band} className="cmp-chart-band" />
+      <polyline points={line((t) => t * aws)} className="cmp-chart-line cmp-chart-line--aws" />
+      <polyline points={line(mid)} className="cmp-chart-line cmp-chart-line--igni" />
+      {cross !== null && (
+        <g className="cmp-cum-cross">
+          <line x1={x(cross)} x2={x(cross)} y1={M.t} y2={H - M.b} className="cmp-chart-rule" />
+          <circle cx={x(cross)} cy={y(cross * aws)} r={5} className="cmp-chart-dot--igni" />
+        </g>
+      )}
+      <text x={x(4) + 8} y={y(4 * aws) + 4} className="cmp-chart-label--aws">{eurShort(4 * aws)}</text>
+      <text x={x(4) + 8} y={y(mid(4)) + 4} className="cmp-chart-label--igni">{eurRangeShort([fleetAt(4, 0), fleetAt(4, 1)])}</text>
+    </svg>
   )
 }
 
-/** The three worked cases side by side, each on its own scale. */
+/** The worked cases as one full-width chart, switched by tab; 5 minutes in 15 first. */
 export function WorkedLines() {
+  const [active, setActive] = useState('300')
+  const w = WORKED.find((x) => `${x.workS}` === active) ?? WORKED[1]
+  const inp = { ...WORKED_BASE, workS: w.workS }
+  const aws = agentCoreYear(inp).total
+  const igni = fleetYear(inp)
+  const { fleetAt, crossMonths } = cumulative(aws, igni)
+  const label =
+    `${w.label}: total cost over 4 years. AgentCore ${YEARS_AXIS.slice(1).map((t) => eurShort(t * aws)).join(', ')} by the end of years 1 to 4. ` +
+    `Fleet starts at ${eurShort(igni.serverBuy)} for the servers and reaches ${YEARS_AXIS.slice(1).map((t) => eurRangeShort([fleetAt(t, 0), fleetAt(t, 1)])).join(', ')}.` +
+    (crossMonths !== null ? ` Fleet costs less from about month ${crossMonths}.` : '')
   return (
     <div className="cmp-cums">
-      <div className="cmp-legend cmp-cums-legend">
-        <span><i className="cmp-swatch cmp-bar-fill--aws" /> AgentCore</span>
-        <span><i className="cmp-swatch cmp-bar-fill--igni" /> Fleet, servers bought at the start</span>
-      </div>
-      <div className="cmp-cums-grid">
-        {WORKED.map((w) => {
-          const inp = { ...WORKED_BASE, workS: w.workS }
-          return <CumulativeChart key={w.workS} title={w.label} aws={agentCoreYear(inp).total} igni={fleetYear(inp)} />
-        })}
+      <PillTabs
+        label="Worked case"
+        tabs={WORKED.map((x) => ({ id: `${x.workS}`, label: x.label }))}
+        active={active}
+        onSelect={setActive}
+        idPrefix="cmp-cum-tab"
+        panelId="cmp-cum-panel"
+      />
+      <div role="tabpanel" id="cmp-cum-panel" aria-labelledby={`cmp-cum-tab-${active}`} className="cmp-cum" data-case={w.label}>
+        <div className="cmp-legend cmp-cums-legend">
+          <span><i className="cmp-swatch cmp-bar-fill--aws" /> AgentCore</span>
+          <span><i className="cmp-swatch cmp-bar-fill--igni" /> Fleet, servers bought at the start</span>
+        </div>
+        <CumulativeDrawing g={CUM_WIDE} className="cmp-chart--wide" label={label} aws={aws} igni={igni} />
+        <CumulativeDrawing g={CUM_NARROW} className="cmp-chart--narrow" label={label} aws={aws} igni={igni} />
+        <p className="cmp-cum-note">
+          {crossMonths !== null
+            ? <>Fleet costs less from about <b>month {crossMonths}</b>, once its servers are paid for.</>
+            : <>Fleet does not cost less within 4 years.</>}
+        </p>
       </div>
     </div>
   )

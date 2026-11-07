@@ -1167,10 +1167,6 @@
 /* ── Narrower screens ─────────────────────────────────────────── */
 
 @media (max-width: 960px) {
-  .cmp-cums-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .cmp-grid--3,
   .cmp-arch,
   .cmp-gpu {
@@ -1403,30 +1399,13 @@
   white-space: nowrap;
 }
 
-/* Cost by usage: the total over 4 years, one small line chart per case. */
-.cmp-cums-legend {
-  margin: 0 0 var(--base-size-12);
-}
-
-.cmp-cums-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--base-size-16);
-}
-
+/* Cost by usage: the total over 4 years, one chart, a case at a time. */
 .cmp-cum {
-  margin: 0;
-  padding: var(--base-size-12);
-  border: var(--borderWidth-thin) solid var(--borderColor-muted);
-  border-radius: var(--borderRadius-large);
-  font-size: var(--text-body-size-small);
+  margin-top: var(--base-size-16);
 }
 
-.cmp-cum-title {
-  margin-bottom: var(--base-size-8);
-  font-size: var(--text-body-size-medium);
-  font-weight: var(--base-text-weight-semibold);
-  color: var(--fgColor-default);
+.cmp-cums-legend {
+  margin: 0 0 var(--base-size-8);
 }
 
 .cmp-cum-note {

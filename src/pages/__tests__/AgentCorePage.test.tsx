@@ -334,25 +334,28 @@ describe('cost by usage', () => {
     }
   })
 
-  test('the worked cases are three line charts of the total paid over 4 years', () => {
+  test('the worked cases are one line chart of the total paid over 4 years, a case at a time, 5 in 15 first', async () => {
+    const user = userEvent.setup()
     renderPage()
-    const charts = Array.from(document.querySelectorAll('.cmp-cum'))
-    expect(charts.map((c) => c.getAttribute('data-case'))).toEqual(['1 minute in 15', '5 minutes in 15', 'All the time'])
-    const label = (n: number) => charts[n].querySelector('svg[role="img"]')?.getAttribute('aria-label') ?? ''
-    expect(label(0)).toMatch(/AgentCore €107\.9k, €215\.9k, €323\.8k, €431\.8k by the end of years 1 to 4/)
-    expect(label(0)).toMatch(/Fleet starts at €61\.9k for the servers and reaches €131\.9–134\.9k, €202–208k, €272–281k, €342–354k/)
-    expect(label(2)).toMatch(/€3\.52M by the end/)
-    // Where the lines cross: the servers over what Fleet saves a year.
-    expect(charts.map((c) => c.querySelector('.cmp-cum-note')?.textContent)).toEqual([
-      'Fleet costs less from about month 20.',
-      'Fleet costs less from about month 5.',
-      'Fleet costs less from about month 3.',
-    ])
+    const panel = () => document.querySelector('.cmp-cum') as HTMLElement
+    const label = () => panel().querySelector('svg.cmp-chart--wide')?.getAttribute('aria-label') ?? ''
+    const note = () => panel().querySelector('.cmp-cum-note')?.textContent
+    expect(screen.getByRole('tab', { name: '5 minutes in 15' })).toHaveAttribute('aria-selected', 'true')
+    expect(panel().getAttribute('data-case')).toBe('5 minutes in 15')
+    expect(label()).toMatch(/AgentCore €337\.8k, €675\.6k, €1\.01M, €1\.35M by the end of years 1 to 4/)
+    expect(note()).toBe('Fleet costs less from about month 5, once its servers are paid for.')
     // Each line has the start and the 4 year ends.
-    for (const c of charts) {
-      expect(c.querySelector('.cmp-chart-line--aws')?.getAttribute('points')?.split(' ')).toHaveLength(5)
-      expect(c.querySelector('.cmp-chart-line--igni')?.getAttribute('points')?.split(' ')).toHaveLength(5)
-    }
+    expect(panel().querySelector('.cmp-chart--wide .cmp-chart-line--aws')?.getAttribute('points')?.split(' ')).toHaveLength(5)
+    expect(panel().querySelector('.cmp-chart--wide .cmp-chart-line--igni')?.getAttribute('points')?.split(' ')).toHaveLength(5)
+
+    await user.click(screen.getByRole('tab', { name: '1 minute in 15' }))
+    expect(label()).toMatch(/AgentCore €107\.9k, €215\.9k, €323\.8k, €431\.8k by the end of years 1 to 4/)
+    expect(label()).toMatch(/Fleet starts at €61\.9k for the servers and reaches €131\.9–134\.9k, €202–208k, €272–281k, €342–354k/)
+    expect(note()).toMatch(/month 20,/)
+
+    await user.click(screen.getByRole('tab', { name: 'All the time' }))
+    expect(label()).toMatch(/€3\.52M by the end/)
+    expect(note()).toMatch(/month 3,/)
   })
 
   test('AgentCore: CPU only while working, memory reclaimed after 120 s down to 128 MB', () => {
