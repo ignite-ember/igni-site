@@ -31,6 +31,7 @@ import {
   eurShort,
   eurRangeShort,
   fleetYear,
+  type FleetYear,
   type Has,
   type Schedule,
   type UsageInputs,
@@ -901,84 +902,93 @@ export function UsageCalculator() {
 
 /* ── Cost by usage: the worked cases ───────────────────────────── */
 
-/** An amount with a thin bar under it, drawn against `max`. */
-function Amount({ shown, value, max, side }: { shown: string; value: number; max: number; side: 'aws' | 'igni' }) {
+/** A round step for about four gridlines up to `max`: 1, 2 or 5 times a power of ten. */
+function niceStep(max: number) {
+  const raw = max / 4
+  const pow = 10 ** Math.floor(Math.log10(raw))
+  return [1, 2, 5, 10].map((m) => m * pow).find((st) => st >= raw) ?? raw
+}
+
+const YEARS_AXIS = [0, 1, 2, 3, 4]
+
+/**
+ * What one worked case has cost in total by each point of 4 years.
+ * AgentCore starts at nothing and grows by the same bill every year.
+ * Fleet starts at the servers, bought on day one, then grows by the
+ * licence and power and support; its line is the middle of its range,
+ * with the range as a band. Where the lines cross, Fleet has paid for
+ * its servers.
+ */
+function CumulativeChart({ title, aws, igni }: { title: string; aws: number; igni: FleetYear }) {
+  const W = 360
+  const H = 250
+  const M = { l: 52, r: 84, t: 16, b: 34 }
+  const yearly = [igni.licence + igni.running[0], igni.licence + igni.running[1]]
+  const fleetAt = (t: number, k: 0 | 1) => igni.serverBuy + t * yearly[k]
+  const mid = (t: number) => (fleetAt(t, 0) + fleetAt(t, 1)) / 2
+  const top = Math.max(4 * aws, fleetAt(4, 1))
+  const step = niceStep(top)
+  const yMax = Math.ceil(top / step) * step
+  const ticks = Array.from({ length: Math.round(yMax / step) + 1 }, (_, n) => n * step)
+  const x = (t: number) => M.l + (t / 4) * (W - M.l - M.r)
+  const y = (v: number) => H - M.b - (v / yMax) * (H - M.t - M.b)
+  const line = (f: (t: number) => number) => YEARS_AXIS.map((t) => `${x(t)},${y(f(t))}`).join(' ')
+  const band = [...YEARS_AXIS.map((t) => `${x(t)},${y(fleetAt(t, 0))}`), ...[...YEARS_AXIS].reverse().map((t) => `${x(t)},${y(fleetAt(t, 1))}`)].join(' ')
+  // Where AgentCore's total passes Fleet's (middle of the range), in years.
+  const gain = aws - (yearly[0] + yearly[1]) / 2
+  const cross = gain > 0 ? igni.serverBuy / gain : null
+  const crossMonths = cross !== null ? Math.round(cross * 12) : null
+  const label =
+    `${title}: total cost over 4 years. AgentCore ${YEARS_AXIS.slice(1).map((t) => eurShort(t * aws)).join(', ')} by the end of years 1 to 4. ` +
+    `Fleet starts at ${eurShort(igni.serverBuy)} for the servers and reaches ${YEARS_AXIS.slice(1).map((t) => eurRangeShort([fleetAt(t, 0), fleetAt(t, 1)])).join(', ')}.` +
+    (crossMonths !== null && cross! <= 4 ? ` Fleet costs less from about month ${crossMonths}.` : '')
   return (
-    <span className="cmp-amount">
-      <span className="cmp-amount-text">{shown}</span>
-      <span className="cmp-amount-track">
-        <span className={`cmp-amount-bar cmp-bar-fill--${side}`} style={{ width: `${(value / max) * 100}%` }} />
-      </span>
-    </span>
+    <figure className="cmp-cum" data-case={title}>
+      <figcaption className="cmp-cum-title">{title}</figcaption>
+      <svg className="cmp-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
+        {ticks.map((v) => (
+          <g key={v}>
+            <line x1={M.l} x2={W - M.r} y1={y(v)} y2={y(v)} className="cmp-chart-grid" />
+            <text x={M.l - 6} y={y(v) + 4} textAnchor="end" className="cmp-chart-muted">{v === 0 ? '0' : eurShort(v)}</text>
+          </g>
+        ))}
+        {YEARS_AXIS.map((t) => (
+          <text key={t} x={x(t)} y={H - M.b + 20} textAnchor="middle" className="cmp-chart-muted">{t === 0 ? 'Start' : `Year ${t}`}</text>
+        ))}
+        <polygon points={band} className="cmp-chart-band" />
+        <polyline points={line((t) => t * aws)} className="cmp-chart-line cmp-chart-line--aws" />
+        <polyline points={line(mid)} className="cmp-chart-line cmp-chart-line--igni" />
+        {cross !== null && cross <= 4 && (
+          <g className="cmp-cum-cross">
+            <line x1={x(cross)} x2={x(cross)} y1={M.t} y2={H - M.b} className="cmp-chart-rule" />
+            <circle cx={x(cross)} cy={y(cross * aws)} r={5} className="cmp-chart-dot--igni" />
+          </g>
+        )}
+        <text x={x(4) + 6} y={y(4 * aws) + 4} className="cmp-chart-label--aws">{eurShort(4 * aws)}</text>
+        <text x={x(4) + 6} y={y(mid(4)) + 4} className="cmp-chart-label--igni">{eurRangeShort([fleetAt(4, 0), fleetAt(4, 1)])}</text>
+      </svg>
+      <p className="cmp-cum-note">
+        {crossMonths !== null && cross! <= 4
+          ? <>Fleet costs less from about <b>month {crossMonths}</b>.</>
+          : <>Fleet does not cost less within 4 years.</>}
+      </p>
+    </figure>
   )
 }
 
-/** Fleet against AgentCore as words: "€24–27k more", "€34.9–37.9k less". */
-const difference = ([lo, hi]: [number, number]) => {
-  if (lo >= 0) return `${eurRangeShort([lo, hi])} more`
-  if (hi <= 0) return `${eurRangeShort([-hi, -lo])} less`
-  return `${eurShort(-lo)} less to ${eurShort(hi)} more`
-}
-
-/**
- * The worked cases, one at a time: what each side costs in the first year
- * and in the second, what each bill is made of, and the difference.
- * Every later year is the same as the second.
- */
-export function WorkedTable() {
-  const [active, setActive] = useState(`${WORKED[0].workS}`)
-  const w = WORKED.find((x) => `${x.workS}` === active) ?? WORKED[0]
-  const inp = { ...WORKED_BASE, workS: w.workS }
-  const aws = agentCoreYear(inp)
-  const igni = fleetYear(inp)
-  const max = Math.max(aws.total, igni.firstYear[1])
-  const part = (label: string, first: string, second: string) => [
-    <span className="cmp-worked-part">{label}</span>,
-    <span className="cmp-worked-part">{first}</span>,
-    <span className="cmp-worked-part">{second}</span>,
-  ]
+/** The three worked cases side by side, each on its own scale. */
+export function WorkedLines() {
   return (
-    <div className="cmp-worked-case">
-      <PillTabs
-        label="Worked case"
-        tabs={WORKED.map((x) => ({ id: `${x.workS}`, label: x.label }))}
-        active={active}
-        onSelect={setActive}
-        idPrefix="cmp-worked-tab"
-        panelId="cmp-worked-panel"
-      />
-      <div role="tabpanel" id="cmp-worked-panel" aria-labelledby={`cmp-worked-tab-${active}`}>
-        <p className="cmp-worked-what">
-          The agent works {duration(w.workS)} of every 15 minutes. Fleet needs {igni.servers} servers (1 of them spare).
-        </p>
-        <RTable
-          className="cmp-worked"
-          head={['', 'First year', 'Second year, and every year after']}
-          rows={[
-            [
-              <b className="cmp-bar-label--aws">AgentCore</b>,
-              <Amount shown={eurShort(aws.total)} value={aws.total} max={max} side="aws" />,
-              <Amount shown={eurShort(aws.total)} value={aws.total} max={max} side="aws" />,
-            ],
-            part('CPU while working', eurShort(aws.cpu), eurShort(aws.cpu)),
-            part('Memory while working', eurShort(aws.memWorking), eurShort(aws.memWorking)),
-            part(`Memory while idle (${Math.round(aws.idleShare * 100)}% of the bill)`, eurShort(aws.memIdle), eurShort(aws.memIdle)),
-            [
-              <b className="cmp-bar-label--igni">Fleet</b>,
-              <Amount shown={eurRangeShort(igni.firstYear)} value={igni.firstYear[1]} max={max} side="igni" />,
-              <Amount shown={eurRangeShort(igni.yearAfter)} value={igni.yearAfter[1]} max={max} side="igni" />,
-            ],
-            part('Licence', eurShort(igni.licence), eurShort(igni.licence)),
-            part(`${igni.servers} servers, bought once`, eurShort(igni.serverBuy), '–'),
-            part('Power and support', eurRangeShort(igni.running), eurRangeShort(igni.running)),
-            [
-              <b>Fleet against AgentCore</b>,
-              <b className="cmp-worked-diff">{difference([igni.firstYear[0] - aws.total, igni.firstYear[1] - aws.total])}</b>,
-              <b className="cmp-worked-diff">{difference([igni.yearAfter[0] - aws.total, igni.yearAfter[1] - aws.total])}</b>,
-            ],
-          ]}
-          total={[8]}
-        />
+    <div className="cmp-cums">
+      <div className="cmp-legend cmp-cums-legend">
+        <span><i className="cmp-swatch cmp-bar-fill--aws" /> AgentCore</span>
+        <span><i className="cmp-swatch cmp-bar-fill--igni" /> Fleet, servers bought at the start</span>
+      </div>
+      <div className="cmp-cums-grid">
+        {WORKED.map((w) => {
+          const inp = { ...WORKED_BASE, workS: w.workS }
+          return <CumulativeChart key={w.workS} title={w.label} aws={agentCoreYear(inp).total} igni={fleetYear(inp)} />
+        })}
       </div>
     </div>
   )

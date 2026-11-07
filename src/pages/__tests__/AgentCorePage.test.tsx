@@ -334,40 +334,25 @@ describe('cost by usage', () => {
     }
   })
 
-  test('the worked cases are one table, a case at a time: first year, second year, and the difference', async () => {
-    const user = userEvent.setup()
+  test('the worked cases are three line charts of the total paid over 4 years', () => {
     renderPage()
-    const rows = () =>
-      Array.from(document.querySelectorAll('.cmp-worked tbody tr')).map((r) =>
-        Array.from(r.querySelectorAll('td')).map((td) => td.textContent),
-      )
-    expect(document.querySelector('.cmp-worked-what')?.textContent).toBe('The agent works 1 min of every 15 minutes. Fleet needs 3 servers (1 of them spare).')
-    expect(rows()).toEqual([
-      ['AgentCore', '€107.9k', '€107.9k'],
-      ['CPU while working', '€40.6k', '€40.6k'],
-      ['Memory while working', '€17.9k', '€17.9k'],
-      ['Memory while idle (46% of the bill)', '€49.3k', '€49.3k'],
-      ['Fleet', '€131.9–134.9k', '€70–73k'],
-      ['Licence', '€66k', '€66k'],
-      ['3 servers, bought once', '€61.9k', '–'],
-      ['Power and support', '€4–7k', '€4–7k'],
-      ['Fleet against AgentCore', '€24–27k more', '€34.9–37.9k less'],
+    const charts = Array.from(document.querySelectorAll('.cmp-cum'))
+    expect(charts.map((c) => c.getAttribute('data-case'))).toEqual(['1 minute in 15', '5 minutes in 15', 'All the time'])
+    const label = (n: number) => charts[n].querySelector('svg[role="img"]')?.getAttribute('aria-label') ?? ''
+    expect(label(0)).toMatch(/AgentCore €107\.9k, €215\.9k, €323\.8k, €431\.8k by the end of years 1 to 4/)
+    expect(label(0)).toMatch(/Fleet starts at €61\.9k for the servers and reaches €131\.9–134\.9k, €202–208k, €272–281k, €342–354k/)
+    expect(label(2)).toMatch(/€3\.52M by the end/)
+    // Where the lines cross: the servers over what Fleet saves a year.
+    expect(charts.map((c) => c.querySelector('.cmp-cum-note')?.textContent)).toEqual([
+      'Fleet costs less from about month 20.',
+      'Fleet costs less from about month 5.',
+      'Fleet costs less from about month 3.',
     ])
-    // The bars are drawn against the larger first-year bill.
-    const bar = (r: number, c: number) =>
-      parseFloat((document.querySelectorAll('.cmp-worked tbody tr')[r].querySelectorAll('td')[c].querySelector('.cmp-amount-bar') as HTMLElement).style.width)
-    expect(bar(4, 1)).toBeCloseTo(100, 6)
-    expect(bar(4, 2)).toBeCloseTo((73_018 / 134_946) * 100, 1)
-
-    await user.click(screen.getByRole('tab', { name: '5 minutes in 15' }))
-    expect(rows()[0]).toEqual(['AgentCore', '€337.8k', '€337.8k'])
-    expect(rows()[4]).toEqual(['Fleet', '€175.9–180.9k', '€72.7–77.7k'])
-    expect(rows()[8]).toEqual(['Fleet against AgentCore', '€156.9–161.9k less', '€260.1–265.1k less'])
-
-    await user.click(screen.getByRole('tab', { name: 'All the time' }))
-    expect(rows()[3]).toEqual(['Memory while idle (0% of the bill)', '€0k', '€0k'])
-    expect(rows()[6]).toEqual(['11 servers, bought once', '€227.1k', '–'])
-    expect(rows()[8]).toEqual(['Fleet against AgentCore', '€560.1–571.1k less', '€787.1–798.1k less'])
+    // Each line has the start and the 4 year ends.
+    for (const c of charts) {
+      expect(c.querySelector('.cmp-chart-line--aws')?.getAttribute('points')?.split(' ')).toHaveLength(5)
+      expect(c.querySelector('.cmp-chart-line--igni')?.getAttribute('points')?.split(' ')).toHaveLength(5)
+    }
   })
 
   test('AgentCore: CPU only while working, memory reclaimed after 120 s down to 128 MB', () => {

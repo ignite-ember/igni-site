@@ -1167,6 +1167,10 @@
 /* ── Narrower screens ─────────────────────────────────────────── */
 
 @media (max-width: 960px) {
+  .cmp-cums-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .cmp-grid--3,
   .cmp-arch,
   .cmp-gpu {
@@ -1386,10 +1390,6 @@
   color: var(--fgColor-default);
 }
 
-.cmp-worked .cmp-cell-sub {
-  white-space: normal;
-}
-
 .cmp-calc .cmp-calc-quote {
   /* The landing pins its one quote while the controls scroll; two pinned
      quotes would overlap, so these stay in the flow. */
@@ -1403,64 +1403,35 @@
   white-space: nowrap;
 }
 
-/* Cost by usage: each amount in the worked cases has a thin bar under it. */
-.cmp-amount {
-  display: flex;
-  flex-direction: column;
-  gap: var(--base-size-4);
-  min-width: var(--base-size-112);
+/* Cost by usage: the total over 4 years, one small line chart per case. */
+.cmp-cums-legend {
+  margin: 0 0 var(--base-size-12);
 }
 
-.cmp-amount-text {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--base-size-8);
-  font-weight: var(--base-text-weight-semibold);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+.cmp-cums-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--base-size-16);
 }
 
-.cmp-amount-track {
-  display: block;
-  height: var(--base-size-8);
-  border-radius: var(--borderRadius-full);
-  background-color: var(--bgColor-muted);
-  overflow: hidden;
-}
-
-.cmp-amount-bar {
-  display: block;
-  height: 100%;
-  border-radius: var(--borderRadius-full);
-}
-
-/* Fixed columns, so switching cases does not move them. */
-.cmp-worked .cmp-table {
-  table-layout: fixed;
-}
-
-.cmp-worked th:first-child {
-  width: 40%;
-}
-
-.cmp-worked-what {
-  margin: var(--base-size-12) 0;
-  color: var(--fgColor-muted);
-}
-
-/* What each bill is made of: indented, muted, under its total. */
-.cmp-worked-part {
-  padding-left: var(--base-size-16);
+.cmp-cum {
+  margin: 0;
+  padding: var(--base-size-12);
+  border: var(--borderWidth-thin) solid var(--borderColor-muted);
+  border-radius: var(--borderRadius-large);
   font-size: var(--text-body-size-small);
+}
+
+.cmp-cum-title {
+  margin-bottom: var(--base-size-8);
+  font-size: var(--text-body-size-medium);
+  font-weight: var(--base-text-weight-semibold);
+  color: var(--fgColor-default);
+}
+
+.cmp-cum-note {
+  margin: var(--base-size-8) 0 0;
   color: var(--fgColor-muted);
-}
-
-.cmp-worked td:not(:first-child) .cmp-worked-part {
-  padding-left: 0;
-}
-
-.cmp-worked-diff {
-  color: var(--cmp-igni);
 }
 
 .cmp-calc-owned-row label {
