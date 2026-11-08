@@ -2609,7 +2609,54 @@
 /* Where each piece of an app runs: three areas, the pieces in them, and
    the numbered links the tabs below explain. */
 .lp-map {
+  position: relative;
   margin: 0 0 var(--base-size-16);
+}
+
+/* Each part of the diagram explains itself: a tooltip above the part
+   hovered or focused. */
+.lp-arch-node,
+.lp-arch-tag {
+  cursor: help;
+  outline: none;
+}
+
+.lp-arch-node:hover .lp-arch-tile,
+.lp-arch-node:focus-visible .lp-arch-tile,
+.lp-arch-tag:hover rect,
+.lp-arch-tag:focus-visible rect {
+  stroke: var(--lp-orange);
+  stroke-width: 2;
+}
+
+.lp-arch-tip {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-4);
+  width: max-content;
+  max-width: 20rem;
+  padding: var(--base-size-8) var(--base-size-12);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+  background-color: var(--bgColor-default);
+  box-shadow: var(--shadow-floating-small);
+  font-size: var(--text-body-size-small);
+  color: var(--fgColor-muted);
+  text-align: left;
+  transform: translate(-50%, calc(-100% - var(--base-size-8)));
+  pointer-events: none;
+}
+
+.lp-arch-tip strong {
+  color: var(--fgColor-default);
+}
+
+.lp-map-hint {
+  flex-basis: 100%;
+  font-style: italic;
+  text-align: center;
 }
 
 .lp-map-scroll {
@@ -2619,9 +2666,9 @@
 .lp-map svg {
   display: block;
   width: 100%;
-  max-width: 60rem;
+  max-width: 66rem;
   margin: 0 auto;
-  min-width: 48rem;
+  min-width: 52rem;
   height: auto;
   font-family: inherit;
 }
@@ -2630,6 +2677,10 @@
   fill: none;
   stroke: var(--borderColor-default);
   stroke-dasharray: 6 5;
+}
+
+.lp-arch-area--group {
+  stroke-dasharray: 3 4;
 }
 
 .lp-arch-area--inner {
@@ -2738,8 +2789,15 @@
   cursor: pointer;
 }
 
-.lp-map-legend-item--static {
-  cursor: default;
+.lp-arch-tag rect {
+  fill: var(--bgColor-default);
+  stroke: var(--fgColor-muted);
+}
+
+.lp-arch-tag text {
+  font-size: 0.6875rem;
+  font-weight: var(--base-text-weight-semibold);
+  fill: var(--fgColor-default);
 }
 
 .lp-map-legend-n {
@@ -2751,12 +2809,6 @@
   background-color: var(--lp-orange);
   color: var(--fgColor-onEmphasis);
   font-weight: var(--base-text-weight-semibold);
-}
-
-.lp-map-legend-dots {
-  display: inline-block;
-  width: var(--base-size-24);
-  border-top: var(--borderWidth-thick) dotted var(--fgColor-muted);
 }
 
 .lp-wire-intro {

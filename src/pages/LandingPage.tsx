@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import {
   ArrowRightIcon,
@@ -773,44 +773,85 @@ async def new_claim(event: ServiceEvent) -> None:
 /** The four ways an app reaches igni, one shown at a time. */
 type WireLane = 'host' | 'message' | 'event' | 'client'
 const WIRE_LANES: { id: WireLane; label: string }[] = [
-  { id: 'host', label: 'Extension → igni app' },
+  { id: 'host', label: 'Extension ↔ igni backend' },
   { id: 'message', label: 'Extension’s backend service → agent' },
   { id: 'event', label: 'Extension’s backend service → extension' },
   { id: 'client', label: 'Your code → igni in Fleet' },
 ]
 
+/** What each part of the diagram is: shown in a tooltip on hover or focus. */
+const WIRE_TIPS: Record<string, { title: string; text: string }> = {
+  app: { title: 'igni app', text: 'igni’s front end on the person’s device: the window for chats, approvals and extension pages. It does no agent work. It starts the igni backend on the device, or attaches to one already running.' },
+  page: { title: 'Extension’s page', text: 'The extension’s own screen, if it has one: a web page in a sandboxed frame inside the igni app. It works with an igni backend on the device only; not yet in Fleet.' },
+  process: { title: 'Extension’s process', text: 'The extension’s code, usually Python (igni-extension). The igni backend starts it beside itself in an OS sandbox. It gives the agent tools, reacts to what happens in igni, and handles events from its backend service.' },
+  backend: { title: 'igni backend', text: 'The agent itself: it runs the sessions, calls the models and tools, and starts the extension’s process. A person can have one on their device, in Fleet, or both.' },
+  server: { title: 'igni server', text: 'Run by your organisation, in its own cloud or data centre; Ignite Ember hosts nothing. Sign-in for people and apps, and approval of extension backend services. It is also the post office: it holds the messages and events a backend service sends, up to 14 days, until they are collected (D, E). It hands out the extensions switched on for each group.' },
+  gateway: { title: 'Fleet gateway', text: 'The way into Fleet: it checks who is calling, has the VM woken if it is asleep, and connects the call to the igni backend in it.' },
+  vmBackend: { title: 'igni backend, in Fleet', text: 'The same igni backend, in a VM of its own: a person’s or an app’s. There is no igni app in front of it yet; programs reach it with igni-client (4).' },
+  vmProcess: { title: 'Extension’s process, in Fleet', text: 'Started by the igni backend in the VM, as on a device. In an app’s VM it acts as the app, not as a person.' },
+  service: { title: 'Extension’s backend service', text: 'The extension’s backend (igni-service), run in your organisation’s own cloud or data centre like igni, with its own key, approved by a super admin. It uploads the extension to igni server, and sends messages and events for people’s and apps’ agents (2, 3).' },
+  code: { title: 'Your other code', text: 'Any other program (igni-client): a script, a backend, CI. It drives one igni backend: in Fleet through the gateway, as a person (their API key), as an app, or as one of an app’s users; or one on the same machine.' },
+  A: { title: 'A · igni app ↔ igni backend', text: 'A local connection, with a token, on the same device only.' },
+  B: { title: 'B · the page in the igni app', text: 'The igni app shows the page in a sandboxed frame. The page’s calls to igni go through the window, which forwards them under the extension’s name.' },
+  C: { title: 'C · page → process', text: 'There is no direct line. The page calls its process’s tools (bridge.rpc): through the window (B, A), and the igni backend passes the call on to the process, checking it is allowed.' },
+  D: { title: 'D · the igni backend pulls its mail', text: 'The igni backend on the device asks igni server for its messages and events, about once a minute, with the person’s session. Nothing connects in to the device.' },
+  E: { title: 'E · the gateway pulls for Fleet', text: 'The gateway asks igni server for the items of an igni backend in Fleet, has the VM woken, and hands them over. If a person has igni on the device and in Fleet, an item normally reaches only the one that asks first.' },
+  F: { title: 'F · extension → its backend service', text: 'The page (bridge.service) and the process (ext.service) call the backend service directly, as the signed-in person (in an app’s VM, as the app), with a ten-minute token the igni backend gets for it. The process’s sandbox lets it reach only that service and the hosts its manifest declares (macOS, Linux). From Fleet, a service on your internal servers is reachable only if Fleet’s network configuration lists it.' },
+  r1: { title: '1 · the host API', text: 'The extension sees what happens in the igni backend and acts in it: a run finishing, a chat to post in. The process uses ext.host; the page reaches it through the window (B). Only what an administrator granted. Click to open the tab.' },
+  r2: { title: '2 · a message for the agent', text: 'The backend service posts it to igni server, which holds it; it is collected (D or E) and posted in the chat exactly as sent. No reply comes back to the backend service. Click to open the tab.' },
+  r3: { title: '3 · an event for the extension', text: 'The backend service posts it to igni server; it is collected (D or E) and handed to the extension’s handler, which decides what to do. igni posts nothing on its own. Click to open the tab.' },
+  r4: { title: '4 · your code → an igni backend in Fleet', text: 'A live conversation through the gateway: your code opens a session, asks, and gets the answer back. Click to open the tab.' },
+}
+
 /**
- * Where each piece of an app runs, and which talks to which, drawn as an
+ * Where each piece runs, and which talks to which, drawn as an
  * architecture diagram: the person's device, the organisation's network
- * (igni server, Fleet and a person's VM in it), and your own servers. The
- * numbered links are the four tabs below it; a number opens its tab.
+ * (igni server, Fleet and a VM in it), and the extension maker's servers.
+ * Every part explains itself in a tooltip on hover or focus; a numbered
+ * route also opens its tab below.
  */
 function WireMap({ onPick }: { onPick: (lane: WireLane) => void }) {
-  /** An icon tile centred on (x, y), its name and a line under it, or to its right. */
+  const [tip, setTip] = useState<{ id: string; x: number; y: number } | null>(null)
+  const figure = useRef<HTMLElement>(null)
+  /** Hover and focus show the part's tooltip, placed above it. */
+  const tipFor = (id: string) => {
+    const show = (e: { currentTarget: SVGGElement }) => {
+      const box = figure.current?.getBoundingClientRect()
+      const r = e.currentTarget.getBoundingClientRect()
+      // Centred above the part, but kept inside the figure near its edges.
+      const half = Math.min(170, box ? box.width / 2 : 170)
+      if (box) setTip({ id, x: Math.min(Math.max(r.left + r.width / 2 - box.left, half), box.width - half), y: r.top - box.top })
+    }
+    const hide = () => setTip((t) => (t?.id === id ? null : t))
+    return {
+      tabIndex: 0,
+      'data-tip': id,
+      'aria-label': `${WIRE_TIPS[id].title}: ${WIRE_TIPS[id].text}`,
+      onMouseEnter: show,
+      onFocus: show,
+      onMouseLeave: hide,
+      onBlur: hide,
+    }
+  }
+  /** An icon tile centred on (x, y), with its name and a line under it, or beside it. */
   const tile = (
+    id: string,
     x: number,
     y: number,
     icon: ReactNode,
     name: string,
     sub: string,
-    opts: { igni?: boolean; maybe?: boolean; side?: boolean } = {},
+    opts: { igni?: boolean; left?: boolean } = {},
   ) => (
-    <g className="lp-arch-node">
-      <rect
-        x={x - 28}
-        y={y - 28}
-        width={56}
-        height={56}
-        rx={14}
-        className={`lp-arch-tile${opts.igni ? ' lp-arch-tile--igni' : ''}${opts.maybe ? ' lp-arch-tile--maybe' : ''}`}
-      />
+    <g className="lp-arch-node" {...tipFor(id)}>
+      <rect x={x - 28} y={y - 28} width={56} height={56} rx={14} className={`lp-arch-tile${opts.igni ? ' lp-arch-tile--igni' : ''}`} />
       <g transform={`translate(${x - 12} ${y - 12})`} className={opts.igni ? 'lp-arch-icon lp-arch-icon--igni' : 'lp-arch-icon'}>
         {icon}
       </g>
-      {opts.side ? (
+      {opts.left ? (
         <>
-          <text x={x + 38} y={y - 2} className="lp-arch-name">{name}</text>
-          <text x={x + 38} y={y + 15} className="lp-arch-sub">{sub}</text>
+          <text x={x - 38} y={y - 2} textAnchor="end" className="lp-arch-name">{name}</text>
+          <text x={x - 38} y={y + 15} textAnchor="end" className="lp-arch-sub">{sub}</text>
         </>
       ) : (
         <>
@@ -821,30 +862,49 @@ function WireMap({ onPick }: { onPick: (lane: WireLane) => void }) {
     </g>
   )
   /** A boundary: a dashed area with an icon and a title. */
-  const area = (x: number, y: number, w: number, h: number, icon: ReactNode | null, title: string, inner = false, right = false) => (
+  const area = (
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    icon: ReactNode | null,
+    title: string,
+    inner = false,
+    right = false,
+    group = false,
+  ) => (
     <g>
-      <rect x={x} y={y} width={w} height={h} rx={16} className={inner ? 'lp-arch-area lp-arch-area--inner' : 'lp-arch-area'} />
+      <rect
+        x={x}
+        y={y}
+        width={w}
+        height={h}
+        rx={16}
+        className={`lp-arch-area${inner ? ' lp-arch-area--inner' : ''}${group ? ' lp-arch-area--group' : ''}`}
+      />
       {icon && (
         <g transform={`translate(${x + 14} ${y + 13})`} className="lp-arch-area-icon">
           {icon}
         </g>
       )}
-      <text
-        x={right ? x + w - 16 : x + (icon ? 38 : 16)}
-        y={y + 26}
-        textAnchor={right ? 'end' : 'start'}
-        className="lp-arch-area-title"
-      >
+      <text x={right ? x + w - 16 : x + (icon ? 38 : 16)} y={y + 26} textAnchor={right ? 'end' : 'start'} className="lp-arch-area-title">
         {title}
       </text>
     </g>
   )
+  /** A lettered tag on a link. */
+  const tag = (x: number, y: number, letter: string) => (
+    <g className="lp-arch-tag" {...tipFor(letter)}>
+      <rect x={x - 10} y={y - 10} width={20} height={20} rx={4} />
+      <text x={x} y={y + 4} textAnchor="middle">{letter}</text>
+    </g>
+  )
+  /** A numbered route; a click opens its tab. */
   const badge = (x: number, y: number, n: number, lane: WireLane) => (
     <g
       className="lp-map-badge"
       role="button"
-      tabIndex={0}
-      aria-label={`Show route ${n}: ${WIRE_LANES.find((l) => l.id === lane)?.label}`}
+      {...tipFor(`r${n}`)}
       onClick={() => onPick(lane)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -859,13 +919,14 @@ function WireMap({ onPick }: { onPick: (lane: WireLane) => void }) {
   )
   const arrow = { markerEnd: 'url(#lp-arch-arrow)' }
   const both = { markerStart: 'url(#lp-arch-arrow)', markerEnd: 'url(#lp-arch-arrow)' }
+  const shown = tip ? WIRE_TIPS[tip.id] : null
   return (
-    <figure className="lp-map">
-      <div className="lp-map-scroll">
+    <figure className="lp-map" ref={figure}>
+      <div className="lp-map-scroll" onScroll={() => setTip(null)}>
         <svg
-          viewBox="0 0 1000 540"
-          role="img"
-          aria-label="Where the parts of an app run. On the person's device: the igni app with the extension's page, and igni with the extension's process when it runs there. In your organisation's network: igni server, and Fleet with its gateway and the person's igni in a VM with the extension's process. On your own servers: the extension's backend service, and any other code of yours."
+          viewBox="0 0 1100 560"
+          role="group"
+          aria-label="Where the parts run, and how they connect: the person's device, and your organisation's cloud or data centre with igni and your services in it. Each part describes itself."
         >
           <defs>
             <marker id="lp-arch-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -873,60 +934,72 @@ function WireMap({ onPick }: { onPick: (lane: WireLane) => void }) {
             </marker>
           </defs>
 
-          {area(20, 20, 290, 500, <DeviceDesktopIcon size={16} />, 'The person’s device')}
-          {area(340, 20, 320, 500, <ShieldLockIcon size={16} />, 'Your organisation’s network')}
-          {area(360, 206, 280, 296, <ContainerIcon size={16} />, 'Fleet', true)}
-          {area(378, 362, 244, 128, null, 'The person’s VM', true, true)}
-          {area(690, 20, 290, 500, <CloudIcon size={16} />, 'Your own servers')}
+          {area(20, 20, 380, 520, <DeviceDesktopIcon size={16} />, 'The person’s device')}
+          {area(430, 20, 650, 520, <CloudIcon size={16} />, 'Your organisation’s cloud or data centre · can be air-gapped')}
+          {area(442, 52, 324, 476, <ShieldLockIcon size={16} />, 'igni', false, false, true)}
+          {area(452, 236, 280, 290, <ContainerIcon size={16} />, 'Fleet', true)}
+          {area(468, 376, 244, 140, null, 'A person’s or an app’s VM', true, true)}
+          {area(782, 52, 286, 476, <StackIcon size={16} />, 'Your services', false, false, true)}
 
           {/* Links first, so the tiles sit on top of them. */}
-          {/* 1: the extension and igni, on the same device or in the same VM */}
-          <line x1={123} y1={120} x2={207} y2={120} className="lp-map-link" {...both} />
-          <line x1={123} y1={316} x2={207} y2={316} className="lp-map-link" {...both} />
-          <line x1={478} y1={418} x2={542} y2={418} className="lp-map-link" {...both} />
-          {/* 2 and 3: messages and events, from the backend service through igni server */}
-          <line x1={807} y1={104} x2={528} y2={104} className="lp-map-link" {...arrow} />
-          <polyline points="472,126 322,126 322,316 263,316" className="lp-map-link" {...arrow} />
-          <polyline points="528,126 628,126 628,394 622,394" className="lp-map-link" {...arrow} />
-          {/* 4: your other code, through the gateway, to an igni in Fleet */}
-          <polyline points="807,316 676,316 676,226 500,226 500,240" className="lp-map-link" {...arrow} />
-          <polyline points="500,296 500,340 450,340 450,390" className="lp-map-link" {...arrow} />
-          {/* The extension's process calls its backend service as the person */}
-          <polyline points="598,434 664,434 664,132 807,132" className="lp-map-link lp-map-link--dotted" {...arrow} />
+          <line x1={310} y1={186} x2={310} y2={300} className="lp-map-link" {...both} />
+          <line x1={128} y1={112} x2={282} y2={112} className="lp-map-link" {...both} />
+          <line x1={128} y1={330} x2={282} y2={330} className="lp-map-link" {...both} />
+          <line x1={568} y1={446} x2={632} y2={446} className="lp-map-link" {...both} />
+          {/* 2 and 3: the backend service posts to igni server */}
+          <polyline points="902,200 796,200 796,112 618,112" className="lp-map-link" {...arrow} />
+          {/* D and E: the igni backend and the gateway ask igni server; nothing connects in */}
+          <polyline points="338,342 416,342 416,126 562,126" className="lp-map-link" {...arrow} />
+          <polyline points="618,292 706,292 706,126 618,126" className="lp-map-link" {...arrow} />
+          <text x={426} y={226} className="lp-arch-sub">pulls</text>
+          <text x={716} y={226} className="lp-arch-sub">pulls</text>
+          {/* The gateway into the VM, and 4: your other code through it */}
+          <polyline points="902,430 754,430 754,308 618,308" className="lp-map-link" {...arrow} />
+          <polyline points="590,328 590,360 540,360 540,418" className="lp-map-link" {...arrow} />
+          {/* F: the extension calls its backend service, from the device and from a VM */}
+          <polyline points="100,84 100,62 930,62 930,172" className="lp-map-link lp-map-link--dotted" {...arrow} />
+          <polyline points="72,330 44,330 44,62 100,62" className="lp-map-link lp-map-link--dotted" />
+          <polyline points="688,446 772,446 772,214 902,214" className="lp-map-link lp-map-link--dotted" {...arrow} />
 
-          {tile(95, 120, <BrowserIcon size={24} />, 'Extension’s page', 'inside the igni app')}
-          {tile(235, 120, <IgniLogo size={24} />, 'igni app', 'the window', { igni: true })}
-          {tile(95, 316, <TerminalIcon size={24} />, 'Extension’s process', 'beside igni')}
-          {tile(235, 316, <IgniLogo size={24} />, 'igni', 'when it runs here', { igni: true, maybe: true })}
-          <text x={36} y={474} className="lp-arch-sub">The extension runs wherever the</text>
-          <text x={36} y={491} className="lp-arch-sub">person&rsquo;s igni runs: here, or in Fleet.</text>
+          {tile('page', 100, 112, <BrowserIcon size={24} />, 'Extension’s page', 'its screen, optional')}
+          {tile('app', 310, 112, <IgniLogo size={24} />, 'igni app', 'front end: the window')}
+          {tile('process', 100, 330, <TerminalIcon size={24} />, 'Extension’s process', 'its code')}
+          {tile('backend', 310, 330, <IgniLogo size={24} />, 'igni backend', 'the agent', { igni: true })}
 
-          {tile(500, 112, <ServerIcon size={24} />, 'igni server', 'registers, installs, delivers')}
-          {tile(500, 268, <ZapIcon size={24} />, 'Fleet gateway', 'wakes the VM', { side: true })}
-          {tile(450, 418, <IgniLogo size={24} />, 'igni', 'the person’s', { igni: true })}
-          {tile(570, 418, <TerminalIcon size={24} />, 'Extension’s process', '')}
+          {tile('server', 590, 112, <ServerIcon size={24} />, 'igni server', 'sign-in, approvals, mail')}
+          {tile('gateway', 590, 300, <ZapIcon size={24} />, 'Fleet gateway', 'has the VM woken', { left: true })}
+          {tile('vmBackend', 540, 446, <IgniLogo size={24} />, 'igni backend', 'the agent', { igni: true })}
+          {tile('vmProcess', 660, 446, <TerminalIcon size={24} />, 'Extension’s process', '')}
 
-          {tile(835, 112, <StackIcon size={24} />, 'Extension’s backend service', 'igni-service · its own key')}
-          {tile(835, 316, <CodeIcon size={24} />, 'Your other code', 'igni-client · as a person or the app')}
-          <text x={706} y={500} className="lp-arch-sub">in your cloud or your data centre</text>
+          {tile('service', 930, 200, <StackIcon size={24} />, 'Extension’s backend service', 'SDK: igni-service')}
+          {tile('code', 930, 430, <CodeIcon size={24} />, 'Your other code', 'SDK: igni-client')}
 
-          {badge(165, 120, 1, 'host')}
-          {badge(165, 316, 1, 'host')}
-          {badge(510, 418, 1, 'host')}
-          {badge(612, 104, 2, 'message')}
-          {badge(640, 104, 3, 'event')}
-          {badge(744, 316, 4, 'client')}
+          {tag(310 + 16, 243, 'A')}
+          {tag(205, 112, 'B')}
+          {tag(240, 330, 'C')}
+          {tag(416, 270, 'D')}
+          {tag(706, 270, 'E')}
+          {tag(515, 62, 'F')}
+          {badge(170, 330, 1, 'host')}
+          {badge(600, 446, 1, 'host')}
+          {badge(846, 200, 2, 'message')}
+          {badge(874, 200, 3, 'event')}
+          {badge(830, 430, 4, 'client')}
         </svg>
       </div>
+      {tip && shown && (
+        <div className="lp-arch-tip" role="tooltip" style={{ left: tip.x, top: tip.y }}>
+          <strong>{shown.title}</strong>
+          <span>{shown.text}</span>
+        </div>
+      )}
       <figcaption className="lp-map-legend">
+        <span className="lp-map-hint">Hover over any part, letter or number to see what it is.</span>
         {WIRE_LANES.map((l, i) => (
           <button key={l.id} type="button" className="lp-map-legend-item" onClick={() => onPick(l.id)}>
             <span className="lp-map-legend-n">{i + 1}</span> {l.label}
           </button>
         ))}
-        <span className="lp-map-legend-item lp-map-legend-item--static">
-          <span className="lp-map-legend-dots" /> The extension&rsquo;s process calls its backend service as the signed-in person (<code>ext.service</code>)
-        </span>
       </figcaption>
     </figure>
   )
@@ -1343,12 +1416,12 @@ export function LandingPage() {
         <div className="lp-wire">
           <h4>How an app talks to igni</h4>
           <p className="lp-wire-intro">
-            An app has up to two parts: an <strong>extension</strong>, which igni installs and
-            runs inside the person&rsquo;s igni (a page in igni, and a process beside it), and
+            An app has up to two parts: an <strong>extension</strong>, which runs with the
+            person&rsquo;s igni (a page in the igni app, and a process beside the igni backend), and
             the <strong>extension&rsquo;s backend service</strong>: your backend on your own
             servers, registered with igni as that extension&rsquo;s service, with its own key
             (<code>igni-service</code>). Any other code of yours reaches igni with{' '}
-            <code>igni-client</code>, as a person or as the app (the last tab).
+            <code>igni-client</code>, as a person or as an app (the last tab).
           </p>
           <WireMap onPick={setWire} />
           <PillTabs
@@ -1370,14 +1443,15 @@ export function LandingPage() {
               <code>ext.host</code>
             </div>
             <div className="lp-wire-node lp-wire-node--igni">
-              <strong>igni app</strong>
-              <span>on the person&rsquo;s machine</span>
+              <strong>igni backend</strong>
+              <span>on the person&rsquo;s device, or in Fleet</span>
             </div>
             <p>
               Your extension, its page or its process, sees what happens in igni, such as
               a session opening or an agent finishing a run, and can act on it: open a page,
               show a card or post a message under its own name. It reaches only the parts
               an administrator granted. The extension&rsquo;s backend service is not involved.
+              With the igni backend in Fleet only the process runs; pages need it on the device.
             </p>
             <div className="lp-wire-demo">
               <CodeWindow file="claims_extension.py" lang="Python · igni-extension" code={WIRE_HOST_CODE} />

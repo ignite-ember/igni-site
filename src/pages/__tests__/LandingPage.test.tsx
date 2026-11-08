@@ -24,7 +24,7 @@
  */
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
-import { act, cleanup, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { Route, Routes } from 'react-router-dom'
 import { renderWithProviders } from '../../test/render'
 import { LandingPage } from '../LandingPage'
@@ -673,9 +673,9 @@ describe('how an app talks to igni', () => {
   test('says which part of an app each route uses: the extension or the service', () => {
     renderLanding()
     const wire = document.querySelector('.lp-wire')?.textContent ?? ''
-    expect(wire).toMatch(/An app has up to two parts: an extension, which igni installs and\s+runs inside the person’s igni/)
+    expect(wire).toMatch(/An app has up to two parts: an extension, which runs with the\s+person’s igni \(a page in the igni app, and a process beside the igni backend\)/)
     expect(wire).toMatch(/the extension’s backend service: your backend on your own\s+servers, registered with igni as that extension’s service, with its own key/)
-    expect(wire).toMatch(/Any other code of yours reaches igni with\s+igni-client, as a person or as the app/)
+    expect(wire).toMatch(/Any other code of yours reaches igni with\s+igni-client, as a person or as an app/)
     expect(wire).toMatch(/Your extension, its page or its process, sees what happens in igni/)
     expect(wire).toMatch(/The extension’s backend service is not involved/)
     // Never a bare "the service" or "your service": it is always the extension's backend service.
@@ -683,22 +683,52 @@ describe('how an app talks to igni', () => {
     expect(wire).not.toMatch(/The app sees what happens/)
   })
 
-  test('a map shows where each part runs, and its numbers open their tabs', async () => {
+  test('a map shows where each part runs; every part explains itself on hover, and numbers open their tabs', async () => {
     const user = userEvent.setup()
     renderLanding()
     const map = document.querySelector('.lp-map') as HTMLElement
-    const label = map.querySelector('svg')?.getAttribute('aria-label') ?? ''
-    expect(label).toMatch(/On the person's device: the igni app with the extension's page, and igni with the extension's process when it runs there/)
-    expect(label).toMatch(/In your organisation's network: igni server, and Fleet with its gateway and the person's igni in a VM with the extension's process/)
-    expect(label).toMatch(/On your own servers: the extension's backend service, and any other code of yours/)
-    expect(map.textContent).toMatch(/The extension’s process calls its backend service as the signed-in person/)
+    // Two places: the person's device, and the organisation's own cloud or data centre with igni and your services in it.
+    const titles = Array.from(map.querySelectorAll('.lp-arch-area-title')).map((x) => x.textContent)
+    expect(titles).toEqual([
+      'The person’s device',
+      'Your organisation’s cloud or data centre · can be air-gapped',
+      'igni',
+      'Fleet',
+      'A person’s or an app’s VM',
+      'Your services',
+    ])
+    // No text key: each part has a tooltip instead.
+    expect(map.querySelector('.lp-arch-key')).toBeNull()
+    const parts = Array.from(map.querySelectorAll('[data-tip]')).map((x) => x.getAttribute('data-tip'))
+    expect(parts).toEqual(expect.arrayContaining(['app', 'page', 'process', 'backend', 'server', 'gateway', 'vmBackend', 'vmProcess', 'service', 'code', 'A', 'B', 'C', 'D', 'E', 'F', 'r1', 'r2', 'r3', 'r4']))
+    const tip = () => map.querySelector('[role="tooltip"]')?.textContent ?? ''
+    expect(map.querySelector('[role="tooltip"]')).toBeNull()
+    await user.hover(map.querySelector('[data-tip="D"]') as Element)
+    expect(tip()).toMatch(/D · the igni backend pulls its mail.*asks igni server for its messages and events, about once a minute.*Nothing connects in to the device/)
+    await user.unhover(map.querySelector('[data-tip="D"]') as Element)
+    expect(map.querySelector('[role="tooltip"]')).toBeNull()
+    await user.hover(map.querySelector('[data-tip="C"]') as Element)
+    expect(tip()).toMatch(/There is no direct line\. The page calls its process’s tools \(bridge\.rpc\)/)
+    await user.hover(map.querySelector('[data-tip="app"]') as Element)
+    expect(tip()).toMatch(/igni’s front end on the person’s device.*It does no agent work/)
+    await user.hover(map.querySelector('[data-tip="backend"]') as Element)
+    expect(tip()).toMatch(/igni backendThe agent itself/)
+    await user.hover(map.querySelector('[data-tip="F"]') as Element)
+    expect(tip()).toMatch(/The page \(bridge\.service\) and the process \(ext\.service\) call the backend service directly/)
+    expect(tip()).toMatch(/From Fleet, a service on your internal servers is reachable only if Fleet’s network configuration lists it/)
+    // Keyboard: focus shows it too, and every part has a label for screen readers.
+    await user.unhover(map.querySelector('[data-tip="F"]') as Element)
+    fireEvent.focus(map.querySelector('[data-tip="server"]') as Element)
+    expect(tip()).toMatch(/Run by your organisation, in its own cloud or data centre; Ignite Ember hosts nothing/)
+    expect(map.querySelector('[data-tip="E"]')?.getAttribute('aria-label')).toMatch(/^E · the gateway pulls for Fleet: /)
+    // A number opens its tab.
     const shown = () =>
       Array.from(document.querySelectorAll<HTMLElement>('.lp-wire-lane'))
         .filter((l) => !l.hidden)
         .map((l) => l.dataset.lane)
-    await user.click(within(map).getByRole('button', { name: /Show route 4/ }))
+    await user.click(map.querySelector('[data-tip="r4"]') as Element)
     expect(shown()).toEqual(['client'])
-    await user.click(within(map).getByRole('button', { name: '2 Extension’s backend service → agent' }))
+    await user.click(within(map).getByRole('button', { name: /^2 Extension’s backend service → agent$/ }))
     expect(shown()).toEqual(['message'])
   })
 
@@ -711,7 +741,7 @@ describe('how an app talks to igni', () => {
         .map((l) => l.dataset.lane)
     const tabs = within(document.querySelector('.lp-wire') as HTMLElement).getAllByRole('tab')
     expect(tabs.map((t) => t.textContent)).toEqual([
-      'Extension → igni app',
+      'Extension ↔ igni backend',
       'Extension’s backend service → agent',
       'Extension’s backend service → extension',
       'Your code → igni in Fleet',
