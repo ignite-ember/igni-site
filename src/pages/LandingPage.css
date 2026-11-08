@@ -2757,6 +2757,15 @@
   fill: var(--lp-orange);
 }
 
+.lp-map-badge--end circle {
+  stroke: var(--bgColor-default);
+  stroke-width: 2;
+}
+
+.lp-map-badge--end text {
+  font-size: 0.6875rem;
+}
+
 .lp-map-badge text {
   font-size: 0.8125rem;
   font-weight: var(--base-text-weight-semibold);

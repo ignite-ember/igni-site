@@ -716,8 +716,16 @@ describe('how an app talks to igni', () => {
     await user.hover(map.querySelector('[data-tip="F"]') as Element)
     expect(tip()).toMatch(/The page \(bridge\.service\) and the process \(ext\.service\) call the backend service directly/)
     expect(tip()).toMatch(/From Fleet, a service on your internal servers is reachable only if Fleet’s network configuration lists it/)
-    // Keyboard: focus shows it too, and every part has a label for screen readers.
+    // 2 and 3 share a road but end in different places: a message at the igni backend, an event at the extension's process.
+    expect(map.querySelectorAll('[data-tip="r2end"]')).toHaveLength(2)
+    expect(map.querySelectorAll('[data-tip="r3end"]')).toHaveLength(2)
     await user.unhover(map.querySelector('[data-tip="F"]') as Element)
+    await user.hover(map.querySelector('[data-tip="r2end"]') as Element)
+    expect(tip()).toMatch(/2 · a message arrives here.*The igni backend posts it in the chat.*No extension code runs/)
+    await user.hover(map.querySelector('[data-tip="r3end"]') as Element)
+    expect(tip()).toMatch(/3 · an event arrives here.*hands it to the extension’s process, to its handler/)
+    await user.unhover(map.querySelector('[data-tip="r3end"]') as Element)
+    // Keyboard: focus shows it too, and every part has a label for screen readers.
     fireEvent.focus(map.querySelector('[data-tip="server"]') as Element)
     expect(tip()).toMatch(/Run by your organisation, in its own cloud or data centre; Ignite Ember hosts nothing/)
     expect(map.querySelector('[data-tip="E"]')?.getAttribute('aria-label')).toMatch(/^E · the gateway pulls for Fleet: /)

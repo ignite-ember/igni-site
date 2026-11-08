@@ -798,8 +798,10 @@ const WIRE_TIPS: Record<string, { title: string; text: string }> = {
   E: { title: 'E · the gateway pulls for Fleet', text: 'The gateway asks igni server for the items of an igni backend in Fleet, has the VM woken, and hands them over. If a person has igni on the device and in Fleet, an item normally reaches only the one that asks first.' },
   F: { title: 'F · extension → its backend service', text: 'The page (bridge.service) and the process (ext.service) call the backend service directly, as the signed-in person (in an app’s VM, as the app), with a ten-minute token the igni backend gets for it. The process’s sandbox lets it reach only that service and the hosts its manifest declares (macOS, Linux). From Fleet, a service on your internal servers is reachable only if Fleet’s network configuration lists it.' },
   r1: { title: '1 · the host API', text: 'The extension sees what happens in the igni backend and acts in it: a run finishing, a chat to post in. The process uses ext.host; the page reaches it through the window (B). Only what an administrator granted. Click to open the tab.' },
-  r2: { title: '2 · a message for the agent', text: 'The backend service posts it to igni server, which holds it; it is collected (D or E) and posted in the chat exactly as sent. No reply comes back to the backend service. Click to open the tab.' },
-  r3: { title: '3 · an event for the extension', text: 'The backend service posts it to igni server; it is collected (D or E) and handed to the extension’s handler, which decides what to do. igni posts nothing on its own. Click to open the tab.' },
+  r2: { title: '2 · a message for the agent', text: 'The backend service posts it to igni server, which holds it until it is collected (D or E). It ends at the igni backend (2), which posts it in the chat for the agent. No reply comes back to the backend service. Click to open the tab.' },
+  r3: { title: '3 · an event for the extension', text: 'It travels as a message does: to igni server, collected by D or E. It ends at the extension’s process (3), whose handler decides what to do; igni posts nothing on its own. Click to open the tab.' },
+  r2end: { title: '2 · a message arrives here', text: 'The igni backend posts it in the chat its thread names, or the extension’s own chat, exactly as sent, and the agent works on it. No extension code runs. Same road as 3 until here. Click to open the tab.' },
+  r3end: { title: '3 · an event arrives here', text: 'The igni backend hands it to the extension’s process, to its handler for that event type. The handler decides what to do; igni posts nothing on its own. Same road as 2 until here. Click to open the tab.' },
   r4: { title: '4 · your code → an igni backend in Fleet', text: 'A live conversation through the gateway: your code opens a session, asks, and gets the answer back. Click to open the tab.' },
 }
 
@@ -899,12 +901,12 @@ function WireMap({ onPick }: { onPick: (lane: WireLane) => void }) {
       <text x={x} y={y + 4} textAnchor="middle">{letter}</text>
     </g>
   )
-  /** A numbered route; a click opens its tab. */
-  const badge = (x: number, y: number, n: number, lane: WireLane) => (
+  /** A numbered route, or (small) where it ends; a click opens its tab. */
+  const badge = (x: number, y: number, n: number, lane: WireLane, end = false) => (
     <g
-      className="lp-map-badge"
+      className={end ? 'lp-map-badge lp-map-badge--end' : 'lp-map-badge'}
       role="button"
-      {...tipFor(`r${n}`)}
+      {...tipFor(end ? `r${n}end` : `r${n}`)}
       onClick={() => onPick(lane)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -913,7 +915,7 @@ function WireMap({ onPick }: { onPick: (lane: WireLane) => void }) {
         }
       }}
     >
-      <circle cx={x} cy={y} r={11} />
+      <circle cx={x} cy={y} r={end ? 9 : 11} />
       <text x={x} y={y + 4} textAnchor="middle">{n}</text>
     </g>
   )
@@ -985,6 +987,11 @@ function WireMap({ onPick }: { onPick: (lane: WireLane) => void }) {
           {badge(846, 200, 2, 'message')}
           {badge(874, 200, 3, 'event')}
           {badge(830, 430, 4, 'client')}
+          {/* Where 2 and 3 end: a message at the igni backend, an event at the extension's process */}
+          {badge(336, 304, 2, 'message', true)}
+          {badge(126, 304, 3, 'event', true)}
+          {badge(566, 420, 2, 'message', true)}
+          {badge(686, 420, 3, 'event', true)}
         </svg>
       </div>
       {tip && shown && (
