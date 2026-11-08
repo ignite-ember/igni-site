@@ -667,15 +667,19 @@ describe('how an app talks to igni', () => {
     expect(client).toMatch(/# auth = Person\.from_api_key\("igpak1\.…", server=IGNI_URL\)/)
     // The difference from a service's message: who gets the answer.
     expect(client).toMatch(/this is a live conversation: the answer comes back to your code/)
-    expect(lanes[1].textContent).toMatch(/your\s+service does not get it back/)
+    expect(lanes[1].textContent).toMatch(/the\s+backend service does not get it back/)
   })
 
   test('says which part of an app each route uses: the extension or the service', () => {
     renderLanding()
     const wire = document.querySelector('.lp-wire')?.textContent ?? ''
     expect(wire).toMatch(/An app has up to two parts: an extension, which igni installs and\s+runs inside the person’s igni/)
+    expect(wire).toMatch(/the extension’s backend service: your backend on your own\s+servers, registered with igni as that extension’s service, with its own key/)
+    expect(wire).toMatch(/Any other code of yours reaches igni with\s+igni-client, as a person or as the app/)
     expect(wire).toMatch(/Your extension, its page or its process, sees what happens in igni/)
-    expect(wire).toMatch(/Your service is not involved/)
+    expect(wire).toMatch(/The extension’s backend service is not involved/)
+    // Never a bare "the service" or "your service": it is always the extension's backend service.
+    expect(wire).not.toMatch(/\b(The|the|Your|your) service\b/)
     expect(wire).not.toMatch(/The app sees what happens/)
   })
 
@@ -689,8 +693,8 @@ describe('how an app talks to igni', () => {
     const tabs = within(document.querySelector('.lp-wire') as HTMLElement).getAllByRole('tab')
     expect(tabs.map((t) => t.textContent)).toEqual([
       'Extension → igni app',
-      'Service → agent: a message',
-      'Service → extension: an event',
+      'Extension’s backend service → agent',
+      'Extension’s backend service → extension',
       'Your code → igni in Fleet',
     ])
     expect(shown()).toEqual(['host'])

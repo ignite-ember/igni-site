@@ -766,8 +766,8 @@ async def new_claim(event: ServiceEvent) -> None:
 type WireLane = 'host' | 'message' | 'event' | 'client'
 const WIRE_LANES: { id: WireLane; label: string }[] = [
   { id: 'host', label: 'Extension → igni app' },
-  { id: 'message', label: 'Service → agent: a message' },
-  { id: 'event', label: 'Service → extension: an event' },
+  { id: 'message', label: 'Extension’s backend service → agent' },
+  { id: 'event', label: 'Extension’s backend service → extension' },
   { id: 'client', label: 'Your code → igni in Fleet' },
 ]
 
@@ -1183,8 +1183,11 @@ export function LandingPage() {
           <h4>How an app talks to igni</h4>
           <p className="lp-wire-intro">
             An app has up to two parts: an <strong>extension</strong>, which igni installs and
-            runs inside the person&rsquo;s igni (a page in igni, and a process beside it), and a{' '}
-            <strong>service</strong>, your own backend on your servers.
+            runs inside the person&rsquo;s igni (a page in igni, and a process beside it), and
+            the <strong>extension&rsquo;s backend service</strong>: your backend on your own
+            servers, registered with igni as that extension&rsquo;s service, with its own key
+            (<code>igni-service</code>). Any other code of yours reaches igni with{' '}
+            <code>igni-client</code>, as a person or as the app (the last tab).
           </p>
           <PillTabs
             label="How an app talks to igni"
@@ -1212,7 +1215,7 @@ export function LandingPage() {
               Your extension, its page or its process, sees what happens in igni, such as
               a session opening or an agent finishing a run, and can act on it: open a page,
               show a card or post a message under its own name. It reaches only the parts
-              an administrator granted. Your service is not involved.
+              an administrator granted. The extension&rsquo;s backend service is not involved.
             </p>
             <div className="lp-wire-demo">
               <CodeWindow file="claims_extension.py" lang="Python · igni-extension" code={WIRE_HOST_CODE} />
@@ -1249,8 +1252,8 @@ export function LandingPage() {
           </div>
           <div className="lp-wire-lane" data-lane="message" hidden={wire !== 'message'}>
             <div className="lp-wire-node">
-              <strong>Your app&rsquo;s service</strong>
-              <span>on your servers</span>
+              <strong>Your extension&rsquo;s backend service</strong>
+              <span>on your servers, registered with igni</span>
             </div>
             <div className="lp-wire-link">
               <span>igni SDK</span>
@@ -1261,11 +1264,12 @@ export function LandingPage() {
               <span>in Fleet, or on their desktop</span>
             </div>
             <p>
-              The service talks to igni directly. It sends a message with files, opens a
+              The extension&rsquo;s backend service talks to igni directly, with its own key.
+              It sends a message with files, opens a
               chat or queues work for a person&rsquo;s or an app&rsquo;s agent, and igni
               posts exactly what it sent, whether or not anybody is watching. No extension
-              code runs. The agent&rsquo;s answer stays in the person&rsquo;s chat; your
-              service does not get it back.
+              code runs. The agent&rsquo;s answer stays in the person&rsquo;s chat; the
+              backend service does not get it back.
             </p>
             <div className="lp-wire-demo">
               <CodeWindow file="claims_service.py" lang="Python · igni-service" code={WIRE_DIRECT_CODE} />
@@ -1300,8 +1304,8 @@ export function LandingPage() {
           </div>
           <div className="lp-wire-lane" data-lane="event" hidden={wire !== 'event'}>
             <div className="lp-wire-node">
-              <strong>Your app&rsquo;s service</strong>
-              <span>on your servers</span>
+              <strong>Your extension&rsquo;s backend service</strong>
+              <span>on your servers, registered with igni</span>
             </div>
             <div className="lp-wire-link">
               <span>igni SDK</span>
@@ -1312,7 +1316,7 @@ export function LandingPage() {
               <span>inside the person&rsquo;s igni</span>
             </div>
             <p>
-              The service hands an event to your extension, and the extension decides what
+              The extension&rsquo;s backend service hands an event to the extension, and the extension decides what
               to do with it through the host API, like any other extension code. igni posts
               nothing on its own.
             </p>
@@ -1342,8 +1346,8 @@ export function LandingPage() {
                   </div>
                 </div>
                 <p className="lp-wire-note">
-                  <strong>If nothing handles it,</strong> nothing is posted, and the service
-                  sees the event marked <code>not_handled</code>.
+                  <strong>If nothing handles it,</strong> nothing is posted, and the backend
+                  service sees the event marked <code>not_handled</code>.
                 </p>
               </div>
             </div>
@@ -1365,8 +1369,8 @@ export function LandingPage() {
               Your code drives an igni from outside, the way the igni app does: it opens
               sessions, sends prompts, follows the answer as it streams and answers
               approvals. The gateway wakes the VM if it is asleep; your code sees a short
-              pause, not an error. No extension is needed. Unlike a message from your
-              service, this is a live conversation: the answer comes back to your code.
+              pause, not an error. No extension is needed. Unlike a message from the
+              extension&rsquo;s backend service, this is a live conversation: the answer comes back to your code.
             </p>
             <div className="lp-wire-demo">
               <CodeWindow file="claims_backend.py" lang="Python · igni-client" code={WIRE_CLIENT_CODE} />
