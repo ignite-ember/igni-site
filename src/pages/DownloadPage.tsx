@@ -234,8 +234,12 @@ export function DownloadPage() {
 
         {failed && (
           <p className="dl-warn">
-            <AlertIcon size={16} /> Could not reach GitHub to list the files — every build is on{' '}
-            <a href={RELEASES_URL}>the releases page</a>.
+            <AlertIcon size={16} />
+            {/* One span, so the link sits inside the sentence rather than becoming a flex item of its own. */}
+            <span>
+              Could not reach GitHub to list the files — every build is on{' '}
+              <a href={RELEASES_URL}>the releases page</a>.
+            </span>
           </p>
         )}
       </header>
