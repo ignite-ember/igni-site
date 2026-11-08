@@ -1181,6 +1181,11 @@ export function LandingPage() {
             driving an igni in Fleet from outside, through the gateway. */}
         <div className="lp-wire">
           <h4>How an app talks to igni</h4>
+          <p className="lp-wire-intro">
+            An app has up to two parts: an <strong>extension</strong>, which igni installs and
+            runs inside the person&rsquo;s igni (a page in igni, and a process beside it), and a{' '}
+            <strong>service</strong>, your own backend on your servers.
+          </p>
           <PillTabs
             label="How an app talks to igni"
             tabs={WIRE_LANES.map((l) => ({ id: l.id, label: l.label }))}
@@ -1193,7 +1198,7 @@ export function LandingPage() {
           <div className="lp-wire-lane" data-lane="host" hidden={wire !== 'host'}>
             <div className="lp-wire-node">
               <strong>Your app&rsquo;s extension</strong>
-              <span>its page and its process</span>
+              <span>its page in igni, and its process beside it</span>
             </div>
             <div className="lp-wire-link">
               <span>Host API</span>
@@ -1204,10 +1209,10 @@ export function LandingPage() {
               <span>on the person&rsquo;s machine</span>
             </div>
             <p>
-              The app sees what happens in igni, such as a session opening or an agent
-              finishing a run, and can act on it: open a page, show a card or post a
-              message under its own name. It reaches only the parts an administrator
-              granted.
+              Your extension, its page or its process, sees what happens in igni, such as
+              a session opening or an agent finishing a run, and can act on it: open a page,
+              show a card or post a message under its own name. It reaches only the parts
+              an administrator granted. Your service is not involved.
             </p>
             <div className="lp-wire-demo">
               <CodeWindow file="claims_extension.py" lang="Python · igni-extension" code={WIRE_HOST_CODE} />
@@ -1236,7 +1241,7 @@ export function LandingPage() {
                 <p className="lp-wire-note">
                   <strong>Which chat?</strong> No chat ID is needed: the extension runs in the
                   person&rsquo;s igni, so <code>ext.host.chat</code> is the chat they have
-                  open. The message is labelled with the app&rsquo;s name, and the agent
+                  open. The message is labelled with the extension&rsquo;s name, and the agent
                   answers it.
                 </p>
               </div>
@@ -1287,7 +1292,7 @@ export function LandingPage() {
                 <p className="lp-wire-note">
                   <strong>Which chat?</strong> The thread decides. The first message for{' '}
                   <code>claim:CL-20431</code> opens a chat with that title, and later ones go
-                  back to it. Without a thread, messages go to the app&rsquo;s own chat. Your
+                  back to it. Without a thread, messages go to your extension&rsquo;s own chat. Your
                   extension can see these messages but cannot change them.
                 </p>
               </div>

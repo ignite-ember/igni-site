@@ -2601,9 +2601,16 @@
 }
 
 .lp-wire h4 {
-  margin: 0 0 16px;
+  margin: 0 0 8px;
   font-size: 18px;
   text-align: center;
+}
+
+.lp-wire-intro {
+  max-width: 40rem;
+  margin: 0 auto var(--base-size-16);
+  text-align: center;
+  color: var(--fgColor-muted);
 }
 
 .lp-wire-lane {

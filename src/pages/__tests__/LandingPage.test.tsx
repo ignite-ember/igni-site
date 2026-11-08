@@ -670,6 +670,15 @@ describe('how an app talks to igni', () => {
     expect(lanes[1].textContent).toMatch(/your\s+service does not get it back/)
   })
 
+  test('says which part of an app each route uses: the extension or the service', () => {
+    renderLanding()
+    const wire = document.querySelector('.lp-wire')?.textContent ?? ''
+    expect(wire).toMatch(/An app has up to two parts: an extension, which igni installs and\s+runs inside the person’s igni/)
+    expect(wire).toMatch(/Your extension, its page or its process, sees what happens in igni/)
+    expect(wire).toMatch(/Your service is not involved/)
+    expect(wire).not.toMatch(/The app sees what happens/)
+  })
+
   test('shows one lane at a time, switched by its tabs', async () => {
     const user = userEvent.setup()
     renderLanding()
