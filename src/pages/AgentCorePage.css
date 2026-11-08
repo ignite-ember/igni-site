@@ -1454,17 +1454,27 @@
   color: var(--fgColor-muted);
 }
 
-/* An on/off switch: the knob slides right and the track turns orange. */
+/* An on/off switch: the knob slides right and the track turns orange.
+   The button is a full 40×40 tap target; the track is drawn inside it. */
 .cmp-switch {
-  position: relative;
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
   width: var(--base-size-40);
-  height: var(--base-size-24);
+  height: var(--base-size-40);
   padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.cmp-switch-track {
+  position: relative;
+  width: var(--base-size-40);
+  height: var(--base-size-24);
   border: var(--borderWidth-thin) solid var(--borderColor-default);
   border-radius: var(--borderRadius-full);
   background-color: var(--bgColor-muted);
-  cursor: pointer;
   transition: background-color 0.15s ease;
 }
 
@@ -1480,7 +1490,7 @@
   transition: transform 0.15s ease;
 }
 
-.cmp-switch[aria-checked='true'] {
+.cmp-switch[aria-checked='true'] .cmp-switch-track {
   border-color: var(--cmp-igni);
   background-color: var(--cmp-igni);
 }
@@ -1491,6 +1501,10 @@
 }
 
 .cmp-switch:focus-visible {
+  outline: none;
+}
+
+.cmp-switch:focus-visible .cmp-switch-track {
   outline: var(--borderWidth-thick) solid var(--focus-outlineColor);
   outline-offset: var(--base-size-2);
 }

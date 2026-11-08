@@ -859,7 +859,9 @@ export function UsageCalculator() {
                 className="cmp-switch"
                 onClick={() => setOwned((v) => !v)}
               >
-                <span className="cmp-switch-knob" />
+                <span className="cmp-switch-track">
+                  <span className="cmp-switch-knob" />
+                </span>
               </button>
             </li>
             <li>

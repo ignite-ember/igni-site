@@ -2750,7 +2750,8 @@
 }
 
 .lp-map-badge {
-  cursor: pointer;
+  cursor: help;
+  outline: none;
 }
 
 .lp-map-badge circle {
@@ -2790,7 +2791,8 @@
   display: inline-flex;
   align-items: center;
   gap: var(--base-size-6);
-  padding: 0;
+  min-height: var(--base-size-40);
+  padding: 0 var(--base-size-4);
   border: 0;
   background: none;
   color: inherit;

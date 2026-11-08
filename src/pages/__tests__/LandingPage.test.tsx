@@ -734,7 +734,9 @@ describe('how an app talks to igni', () => {
       Array.from(document.querySelectorAll<HTMLElement>('.lp-wire-lane'))
         .filter((l) => !l.hidden)
         .map((l) => l.dataset.lane)
-    await user.click(map.querySelector('[data-tip="r4"]') as Element)
+    // The numbers in the diagram only explain; the legend's buttons open the tabs.
+    expect(map.querySelector('svg [role="button"]')).toBeNull()
+    await user.click(within(map).getByRole('button', { name: /^4 Your code → igni in Fleet$/ }))
     expect(shown()).toEqual(['client'])
     await user.click(within(map).getByRole('button', { name: /^2 Extension’s backend service → agent$/ }))
     expect(shown()).toEqual(['message'])
