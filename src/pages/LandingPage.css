@@ -2617,8 +2617,23 @@
   background-color: var(--bgColor-default);
 }
 
-.lp-wire-lane + .lp-wire-lane {
-  margin-top: 12px;
+/* One lane at a time, chosen by the tabs above them. All four share one
+   grid cell, so the panel is as tall as the tallest and switching never
+   moves the page; a hidden lane is invisible and out of the reading order. */
+.lp-wire-panel {
+  display: grid;
+}
+
+.lp-wire-panel > .lp-wire-lane {
+  grid-area: 1 / 1;
+}
+
+.lp-wire-lane[hidden] {
+  visibility: hidden;
+}
+
+.lp-wire .lp-scn-tabs {
+  margin-bottom: 16px;
 }
 
 .lp-wire-node {

@@ -80,7 +80,7 @@ function bandTarget(i: number): number {
   return i === UNLIMITED ? FLAT_FROM : SEAT_CEILINGS[i]
 }
 import { SiteFooter, SiteNav } from './site/SiteChrome'
-import { SectionHead, StatRow } from './site/Sections'
+import { PillTabs, SectionHead, StatRow } from './site/Sections'
 import { Scenarios } from './site/Scenarios'
 import './landing-shared.css'
 import './LandingPage.css'
@@ -762,8 +762,21 @@ async def new_claim(event: ServiceEvent) -> None:
         f"Claim {claim.id} needs a first reply. Use the claims tools."
     )`
 
-const WIRE_CLIENT_CODE = `app = App("claims-desk", server=IGNI_URL, key_file="claims.pem")
-gateway = Fleet(GATEWAY_URL, auth=app)
+/** The four ways an app reaches igni, one shown at a time. */
+type WireLane = 'host' | 'message' | 'event' | 'client'
+const WIRE_LANES: { id: WireLane; label: string }[] = [
+  { id: 'host', label: 'Extension → igni app' },
+  { id: 'message', label: 'Service → agent: a message' },
+  { id: 'event', label: 'Service → extension: an event' },
+  { id: 'client', label: 'Your code → igni in Fleet' },
+]
+
+const WIRE_CLIENT_CODE = `# as the app, with its own key
+auth = App("claims-desk", server=IGNI_URL, key_file="claims.pem")
+# or as a person, with the API key they made on the portal:
+# auth = Person.from_api_key("igpak1.…", server=IGNI_URL)
+
+gateway = Fleet(GATEWAY_URL, auth=auth)
 
 async with IgniClient(gateway) as igni:
     session = await igni.sessions.create()
@@ -876,6 +889,7 @@ const OBJECTIONS: { q: string; a: string }[] = [
 /* ── Component ───────────────────────────────────────────────────── */
 
 export function LandingPage() {
+  const [wire, setWire] = useState<WireLane>('host')
   useDocumentTitle(
     'AI agents that run inside your network',
     'igni is AI agent software that runs inside your network, air-gapped or on dedicated GPUs you rent. Ignite Ember hosts nothing and has no route into your network. The base is free under Apache-2.0, and paid modules are sold separately from €160 a person a year with nothing metered.',
@@ -1167,7 +1181,16 @@ export function LandingPage() {
             driving an igni in Fleet from outside, through the gateway. */}
         <div className="lp-wire">
           <h4>How an app talks to igni</h4>
-          <div className="lp-wire-lane">
+          <PillTabs
+            label="How an app talks to igni"
+            tabs={WIRE_LANES.map((l) => ({ id: l.id, label: l.label }))}
+            active={wire}
+            onSelect={setWire}
+            idPrefix="lp-wire-tab"
+            panelId="lp-wire-panel"
+          />
+          <div className="lp-wire-panel" role="tabpanel" id="lp-wire-panel" aria-labelledby={`lp-wire-tab-${wire}`}>
+          <div className="lp-wire-lane" data-lane="host" hidden={wire !== 'host'}>
             <div className="lp-wire-node">
               <strong>Your app&rsquo;s extension</strong>
               <span>its page and its process</span>
@@ -1219,7 +1242,7 @@ export function LandingPage() {
               </div>
             </div>
           </div>
-          <div className="lp-wire-lane">
+          <div className="lp-wire-lane" data-lane="message" hidden={wire !== 'message'}>
             <div className="lp-wire-node">
               <strong>Your app&rsquo;s service</strong>
               <span>on your servers</span>
@@ -1236,7 +1259,8 @@ export function LandingPage() {
               The service talks to igni directly. It sends a message with files, opens a
               chat or queues work for a person&rsquo;s or an app&rsquo;s agent, and igni
               posts exactly what it sent, whether or not anybody is watching. No extension
-              code runs.
+              code runs. The agent&rsquo;s answer stays in the person&rsquo;s chat; your
+              service does not get it back.
             </p>
             <div className="lp-wire-demo">
               <CodeWindow file="claims_service.py" lang="Python · igni-service" code={WIRE_DIRECT_CODE} />
@@ -1269,7 +1293,7 @@ export function LandingPage() {
               </div>
             </div>
           </div>
-          <div className="lp-wire-lane">
+          <div className="lp-wire-lane" data-lane="event" hidden={wire !== 'event'}>
             <div className="lp-wire-node">
               <strong>Your app&rsquo;s service</strong>
               <span>on your servers</span>
@@ -1319,7 +1343,7 @@ export function LandingPage() {
               </div>
             </div>
           </div>
-          <div className="lp-wire-lane">
+          <div className="lp-wire-lane" data-lane="client" hidden={wire !== 'client'}>
             <div className="lp-wire-node">
               <strong>Your code</strong>
               <span>a script, a backend, CI</span>
@@ -1336,7 +1360,8 @@ export function LandingPage() {
               Your code drives an igni from outside, the way the igni app does: it opens
               sessions, sends prompts, follows the answer as it streams and answers
               approvals. The gateway wakes the VM if it is asleep; your code sees a short
-              pause, not an error. No extension is needed.
+              pause, not an error. No extension is needed. Unlike a message from your
+              service, this is a live conversation: the answer comes back to your code.
             </p>
             <div className="lp-wire-demo">
               <CodeWindow file="claims_backend.py" lang="Python · igni-client" code={WIRE_CLIENT_CODE} />
@@ -1344,11 +1369,11 @@ export function LandingPage() {
                 <span className="lp-wire-result-label">What happens · illustration</span>
                 <div className="lp-mock lp-wire-chat">
                   <div className="lp-mock-bar">
-                    <ServerIcon size={14} /> Fleet · the Claims desk&rsquo;s igni
+                    <ServerIcon size={14} /> Fleet · the Claims desk&rsquo;s igni, or Marieke&rsquo;s
                   </div>
                   <div className="lp-mock-body">
                     <ol className="lp-wire-steps">
-                      <li>The gateway wakes the app&rsquo;s VM from a pause (~30 ms)</li>
+                      <li>The gateway wakes that igni&rsquo;s VM from a pause (~30 ms)</li>
                       <li>A new session opens, and the agent works on CL-20431</li>
                       <li>
                         <CheckIcon size={12} /> The draft comes back to your code as{' '}
@@ -1365,6 +1390,7 @@ export function LandingPage() {
                 </p>
               </div>
             </div>
+          </div>
           </div>
         </div>
       </section>

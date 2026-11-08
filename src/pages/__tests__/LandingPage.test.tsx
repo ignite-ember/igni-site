@@ -531,10 +531,11 @@ describe('nothing unbuilt is sold as built', () => {
     const user = userEvent.setup()
     renderLanding()
 
-    for (const tab of screen.getAllByRole('tab')) {
+    const departments = within(screen.getByRole('tablist', { name: 'Departments' }))
+    for (const tab of departments.getAllByRole('tab')) {
       await user.click(tab)
       expect(
-        screen.getByRole('tabpanel').querySelector('.lp-illustrative')?.textContent,
+        document.getElementById('lp-scn-panel')?.querySelector('.lp-illustrative')?.textContent,
         tab.textContent ?? '',
       ).toMatch(/Illustration/i)
     }
@@ -568,10 +569,11 @@ describe('the scenarios', () => {
     const user = userEvent.setup()
     renderLanding()
 
-    await user.click(screen.getByRole('tab', { name: /Legal/ }))
-    const selected = screen.getAllByRole('tab').filter((t) => t.getAttribute('aria-selected') === 'true')
+    const departments = within(screen.getByRole('tablist', { name: 'Departments' }))
+    await user.click(departments.getByRole('tab', { name: /Legal/ }))
+    const selected = departments.getAllByRole('tab').filter((t) => t.getAttribute('aria-selected') === 'true')
     expect(selected.map((t) => t.textContent)).toEqual(['Legal'])
-    expect(screen.getByRole('tabpanel').textContent).toMatch(/Factory/)
+    expect(document.getElementById('lp-scn-panel')?.textContent).toMatch(/Factory/)
   })
 
   test('the Fleet animation stops when it leaves the screen', async () => {
@@ -653,12 +655,40 @@ describe('how an app talks to igni', () => {
     const client = lanes[3].textContent ?? ''
     expect(client).toMatch(/Python · igni-client/)
     expect(client).toMatch(/App\("claims-desk", server=IGNI_URL, key_file="claims\.pem"\)/)
-    expect(client).toMatch(/Fleet\(GATEWAY_URL, auth=app\)/)
+    expect(client).toMatch(/gateway = Fleet\(GATEWAY_URL, auth=auth\)/)
     expect(client).toMatch(/IgniClient\(gateway\) as igni/)
     expect(client).toMatch(/igni\.sessions\.create\(\)/)
     expect(client).toMatch(/reply = await session\.ask\(/)
     expect(client).toMatch(/"Draft the assessment for CL-20431\.", approve=False/)
     expect(client).toMatch(/The gateway wakes the VM if it is asleep/)
     expect(client).toMatch(/A person’s API key, made on the portal, reaches their igni as them/)
+    // Both hats: the app's own key, or a person's API key.
+    expect(client).toMatch(/auth = App\("claims-desk", server=IGNI_URL, key_file="claims\.pem"\)/)
+    expect(client).toMatch(/# auth = Person\.from_api_key\("igpak1\.…", server=IGNI_URL\)/)
+    // The difference from a service's message: who gets the answer.
+    expect(client).toMatch(/this is a live conversation: the answer comes back to your code/)
+    expect(lanes[1].textContent).toMatch(/your\s+service does not get it back/)
+  })
+
+  test('shows one lane at a time, switched by its tabs', async () => {
+    const user = userEvent.setup()
+    renderLanding()
+    const shown = () =>
+      Array.from(document.querySelectorAll<HTMLElement>('.lp-wire-lane'))
+        .filter((l) => !l.hidden)
+        .map((l) => l.dataset.lane)
+    const tabs = within(document.querySelector('.lp-wire') as HTMLElement).getAllByRole('tab')
+    expect(tabs.map((t) => t.textContent)).toEqual([
+      'Extension → igni app',
+      'Service → agent: a message',
+      'Service → extension: an event',
+      'Your code → igni in Fleet',
+    ])
+    expect(shown()).toEqual(['host'])
+    await user.click(tabs[3])
+    expect(shown()).toEqual(['client'])
+    expect(tabs[3]).toHaveAttribute('aria-selected', 'true')
+    await user.click(tabs[1])
+    expect(shown()).toEqual(['message'])
   })
 })
