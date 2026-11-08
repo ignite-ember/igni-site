@@ -683,6 +683,25 @@ describe('how an app talks to igni', () => {
     expect(wire).not.toMatch(/The app sees what happens/)
   })
 
+  test('a map shows where each part runs, and its numbers open their tabs', async () => {
+    const user = userEvent.setup()
+    renderLanding()
+    const map = document.querySelector('.lp-map') as HTMLElement
+    const label = map.querySelector('svg')?.getAttribute('aria-label') ?? ''
+    expect(label).toMatch(/On the person's device: the igni app with the extension's page, and igni with the extension's process when it runs there/)
+    expect(label).toMatch(/In your organisation's network: igni server, and Fleet with its gateway and the person's igni in a VM with the extension's process/)
+    expect(label).toMatch(/On your own servers: the extension's backend service, and any other code of yours/)
+    expect(map.textContent).toMatch(/The extension’s process calls its backend service as the signed-in person/)
+    const shown = () =>
+      Array.from(document.querySelectorAll<HTMLElement>('.lp-wire-lane'))
+        .filter((l) => !l.hidden)
+        .map((l) => l.dataset.lane)
+    await user.click(within(map).getByRole('button', { name: /Show route 4/ }))
+    expect(shown()).toEqual(['client'])
+    await user.click(within(map).getByRole('button', { name: '2 Extension’s backend service → agent' }))
+    expect(shown()).toEqual(['message'])
+  })
+
   test('shows one lane at a time, switched by its tabs', async () => {
     const user = userEvent.setup()
     renderLanding()

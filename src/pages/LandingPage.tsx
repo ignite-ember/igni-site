@@ -2,6 +2,14 @@ import { useMemo, useState, type ReactNode } from 'react'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import {
   ArrowRightIcon,
+  BrowserIcon,
+  CloudIcon,
+  CodeIcon,
+  ContainerIcon,
+  DeviceDesktopIcon,
+  StackIcon,
+  TerminalIcon,
+  ZapIcon,
   MailIcon,
   AppsIcon,
   BookIcon,
@@ -771,6 +779,159 @@ const WIRE_LANES: { id: WireLane; label: string }[] = [
   { id: 'client', label: 'Your code → igni in Fleet' },
 ]
 
+/**
+ * Where each piece of an app runs, and which talks to which, drawn as an
+ * architecture diagram: the person's device, the organisation's network
+ * (igni server, Fleet and a person's VM in it), and your own servers. The
+ * numbered links are the four tabs below it; a number opens its tab.
+ */
+function WireMap({ onPick }: { onPick: (lane: WireLane) => void }) {
+  /** An icon tile centred on (x, y), its name and a line under it, or to its right. */
+  const tile = (
+    x: number,
+    y: number,
+    icon: ReactNode,
+    name: string,
+    sub: string,
+    opts: { igni?: boolean; maybe?: boolean; side?: boolean } = {},
+  ) => (
+    <g className="lp-arch-node">
+      <rect
+        x={x - 28}
+        y={y - 28}
+        width={56}
+        height={56}
+        rx={14}
+        className={`lp-arch-tile${opts.igni ? ' lp-arch-tile--igni' : ''}${opts.maybe ? ' lp-arch-tile--maybe' : ''}`}
+      />
+      <g transform={`translate(${x - 12} ${y - 12})`} className={opts.igni ? 'lp-arch-icon lp-arch-icon--igni' : 'lp-arch-icon'}>
+        {icon}
+      </g>
+      {opts.side ? (
+        <>
+          <text x={x + 38} y={y - 2} className="lp-arch-name">{name}</text>
+          <text x={x + 38} y={y + 15} className="lp-arch-sub">{sub}</text>
+        </>
+      ) : (
+        <>
+          <text x={x} y={y + 46} textAnchor="middle" className="lp-arch-name">{name}</text>
+          <text x={x} y={y + 62} textAnchor="middle" className="lp-arch-sub">{sub}</text>
+        </>
+      )}
+    </g>
+  )
+  /** A boundary: a dashed area with an icon and a title. */
+  const area = (x: number, y: number, w: number, h: number, icon: ReactNode | null, title: string, inner = false, right = false) => (
+    <g>
+      <rect x={x} y={y} width={w} height={h} rx={16} className={inner ? 'lp-arch-area lp-arch-area--inner' : 'lp-arch-area'} />
+      {icon && (
+        <g transform={`translate(${x + 14} ${y + 13})`} className="lp-arch-area-icon">
+          {icon}
+        </g>
+      )}
+      <text
+        x={right ? x + w - 16 : x + (icon ? 38 : 16)}
+        y={y + 26}
+        textAnchor={right ? 'end' : 'start'}
+        className="lp-arch-area-title"
+      >
+        {title}
+      </text>
+    </g>
+  )
+  const badge = (x: number, y: number, n: number, lane: WireLane) => (
+    <g
+      className="lp-map-badge"
+      role="button"
+      tabIndex={0}
+      aria-label={`Show route ${n}: ${WIRE_LANES.find((l) => l.id === lane)?.label}`}
+      onClick={() => onPick(lane)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onPick(lane)
+        }
+      }}
+    >
+      <circle cx={x} cy={y} r={11} />
+      <text x={x} y={y + 4} textAnchor="middle">{n}</text>
+    </g>
+  )
+  const arrow = { markerEnd: 'url(#lp-arch-arrow)' }
+  const both = { markerStart: 'url(#lp-arch-arrow)', markerEnd: 'url(#lp-arch-arrow)' }
+  return (
+    <figure className="lp-map">
+      <div className="lp-map-scroll">
+        <svg
+          viewBox="0 0 1000 540"
+          role="img"
+          aria-label="Where the parts of an app run. On the person's device: the igni app with the extension's page, and igni with the extension's process when it runs there. In your organisation's network: igni server, and Fleet with its gateway and the person's igni in a VM with the extension's process. On your own servers: the extension's backend service, and any other code of yours."
+        >
+          <defs>
+            <marker id="lp-arch-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" className="lp-map-head" />
+            </marker>
+          </defs>
+
+          {area(20, 20, 290, 500, <DeviceDesktopIcon size={16} />, 'The person’s device')}
+          {area(340, 20, 320, 500, <ShieldLockIcon size={16} />, 'Your organisation’s network')}
+          {area(360, 206, 280, 296, <ContainerIcon size={16} />, 'Fleet', true)}
+          {area(378, 362, 244, 128, null, 'The person’s VM', true, true)}
+          {area(690, 20, 290, 500, <CloudIcon size={16} />, 'Your own servers')}
+
+          {/* Links first, so the tiles sit on top of them. */}
+          {/* 1: the extension and igni, on the same device or in the same VM */}
+          <line x1={123} y1={120} x2={207} y2={120} className="lp-map-link" {...both} />
+          <line x1={123} y1={316} x2={207} y2={316} className="lp-map-link" {...both} />
+          <line x1={478} y1={418} x2={542} y2={418} className="lp-map-link" {...both} />
+          {/* 2 and 3: messages and events, from the backend service through igni server */}
+          <line x1={807} y1={104} x2={528} y2={104} className="lp-map-link" {...arrow} />
+          <polyline points="472,126 322,126 322,316 263,316" className="lp-map-link" {...arrow} />
+          <polyline points="528,126 628,126 628,394 622,394" className="lp-map-link" {...arrow} />
+          {/* 4: your other code, through the gateway, to an igni in Fleet */}
+          <polyline points="807,316 676,316 676,226 500,226 500,240" className="lp-map-link" {...arrow} />
+          <polyline points="500,296 500,340 450,340 450,390" className="lp-map-link" {...arrow} />
+          {/* The extension's process calls its backend service as the person */}
+          <polyline points="598,434 664,434 664,132 807,132" className="lp-map-link lp-map-link--dotted" {...arrow} />
+
+          {tile(95, 120, <BrowserIcon size={24} />, 'Extension’s page', 'inside the igni app')}
+          {tile(235, 120, <IgniLogo size={24} />, 'igni app', 'the window', { igni: true })}
+          {tile(95, 316, <TerminalIcon size={24} />, 'Extension’s process', 'beside igni')}
+          {tile(235, 316, <IgniLogo size={24} />, 'igni', 'when it runs here', { igni: true, maybe: true })}
+          <text x={36} y={474} className="lp-arch-sub">The extension runs wherever the</text>
+          <text x={36} y={491} className="lp-arch-sub">person&rsquo;s igni runs: here, or in Fleet.</text>
+
+          {tile(500, 112, <ServerIcon size={24} />, 'igni server', 'registers, installs, delivers')}
+          {tile(500, 268, <ZapIcon size={24} />, 'Fleet gateway', 'wakes the VM', { side: true })}
+          {tile(450, 418, <IgniLogo size={24} />, 'igni', 'the person’s', { igni: true })}
+          {tile(570, 418, <TerminalIcon size={24} />, 'Extension’s process', '')}
+
+          {tile(835, 112, <StackIcon size={24} />, 'Extension’s backend service', 'igni-service · its own key')}
+          {tile(835, 316, <CodeIcon size={24} />, 'Your other code', 'igni-client · as a person or the app')}
+          <text x={706} y={500} className="lp-arch-sub">in your cloud or your data centre</text>
+
+          {badge(165, 120, 1, 'host')}
+          {badge(165, 316, 1, 'host')}
+          {badge(510, 418, 1, 'host')}
+          {badge(612, 104, 2, 'message')}
+          {badge(640, 104, 3, 'event')}
+          {badge(744, 316, 4, 'client')}
+        </svg>
+      </div>
+      <figcaption className="lp-map-legend">
+        {WIRE_LANES.map((l, i) => (
+          <button key={l.id} type="button" className="lp-map-legend-item" onClick={() => onPick(l.id)}>
+            <span className="lp-map-legend-n">{i + 1}</span> {l.label}
+          </button>
+        ))}
+        <span className="lp-map-legend-item lp-map-legend-item--static">
+          <span className="lp-map-legend-dots" /> The extension&rsquo;s process calls its backend service as the signed-in person (<code>ext.service</code>)
+        </span>
+      </figcaption>
+    </figure>
+  )
+}
+
 const WIRE_CLIENT_CODE = `# as the app, with its own key
 auth = App("claims-desk", server=IGNI_URL, key_file="claims.pem")
 # or as a person, with the API key they made on the portal:
@@ -1189,6 +1350,7 @@ export function LandingPage() {
             (<code>igni-service</code>). Any other code of yours reaches igni with{' '}
             <code>igni-client</code>, as a person or as the app (the last tab).
           </p>
+          <WireMap onPick={setWire} />
           <PillTabs
             label="How an app talks to igni"
             tabs={WIRE_LANES.map((l) => ({ id: l.id, label: l.label }))}

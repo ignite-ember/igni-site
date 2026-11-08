@@ -2606,6 +2606,159 @@
   text-align: center;
 }
 
+/* Where each piece of an app runs: three areas, the pieces in them, and
+   the numbered links the tabs below explain. */
+.lp-map {
+  margin: 0 0 var(--base-size-16);
+}
+
+.lp-map-scroll {
+  overflow-x: auto;
+}
+
+.lp-map svg {
+  display: block;
+  width: 100%;
+  max-width: 60rem;
+  margin: 0 auto;
+  min-width: 48rem;
+  height: auto;
+  font-family: inherit;
+}
+
+.lp-arch-area {
+  fill: none;
+  stroke: var(--borderColor-default);
+  stroke-dasharray: 6 5;
+}
+
+.lp-arch-area--inner {
+  fill: var(--bgColor-muted);
+  stroke-dasharray: none;
+}
+
+.lp-arch-area-icon {
+  color: var(--fgColor-muted);
+}
+
+.lp-arch-area-title {
+  font-size: 0.75rem;
+  font-weight: var(--base-text-weight-semibold);
+  fill: var(--fgColor-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lp-arch-tile {
+  fill: var(--bgColor-default);
+  stroke: var(--borderColor-default);
+  stroke-width: 1.5;
+}
+
+.lp-arch-tile--igni {
+  fill: var(--lp-orange-soft);
+  stroke: var(--lp-orange);
+}
+
+.lp-arch-tile--maybe {
+  stroke-dasharray: 5 4;
+}
+
+.lp-arch-icon {
+  color: var(--fgColor-default);
+}
+
+.lp-arch-name {
+  font-size: 0.8125rem;
+  font-weight: var(--base-text-weight-semibold);
+  fill: var(--fgColor-default);
+}
+
+.lp-arch-sub {
+  font-size: 0.75rem;
+  fill: var(--fgColor-muted);
+}
+
+.lp-map-link {
+  fill: none;
+  stroke: var(--fgColor-muted);
+  stroke-width: 1.5;
+}
+
+.lp-map-link--dotted {
+  stroke-dasharray: 3 4;
+}
+
+.lp-map-head {
+  fill: var(--fgColor-muted);
+}
+
+.lp-map-link-label {
+  font-size: 0.75rem;
+  fill: var(--fgColor-muted);
+}
+
+.lp-map-badge {
+  cursor: pointer;
+}
+
+.lp-map-badge circle {
+  fill: var(--lp-orange);
+}
+
+.lp-map-badge text {
+  font-size: 0.8125rem;
+  font-weight: var(--base-text-weight-semibold);
+  fill: var(--fgColor-onEmphasis);
+}
+
+.lp-map-badge:focus-visible {
+  outline: var(--borderWidth-thick) solid var(--focus-outlineColor);
+}
+
+.lp-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--base-size-8) var(--base-size-16);
+  margin-top: var(--base-size-12);
+  font-size: var(--text-body-size-small);
+  color: var(--fgColor-muted);
+}
+
+.lp-map-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-6);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.lp-map-legend-item--static {
+  cursor: default;
+}
+
+.lp-map-legend-n {
+  display: inline-grid;
+  place-items: center;
+  width: var(--base-size-20);
+  height: var(--base-size-20);
+  border-radius: var(--borderRadius-full);
+  background-color: var(--lp-orange);
+  color: var(--fgColor-onEmphasis);
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.lp-map-legend-dots {
+  display: inline-block;
+  width: var(--base-size-24);
+  border-top: var(--borderWidth-thick) dotted var(--fgColor-muted);
+}
+
 .lp-wire-intro {
   max-width: 40rem;
   margin: 0 auto var(--base-size-16);
