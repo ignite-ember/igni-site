@@ -637,3 +637,28 @@ describe('the page renders its sections', () => {
     expect(document.getElementById('security')?.textContent).toMatch(/Ignite Ember hosts nothing and has no route into your network/)
   })
 })
+
+describe('how an app talks to igni', () => {
+  // The four lanes and the SDK names their samples use, checked against
+  // igni-sdk: igni-extension, igni-service and igni-client.
+  test('four lanes: host API, a message, an event, and igni-client through the gateway', () => {
+    renderLanding()
+    const lanes = Array.from(document.querySelectorAll('.lp-wire-lane'))
+    expect(lanes.map((l) => l.querySelector('.lp-wire-link code')?.textContent)).toEqual([
+      'ext.host',
+      'send_message',
+      'send_event',
+      'igni-client',
+    ])
+    const client = lanes[3].textContent ?? ''
+    expect(client).toMatch(/Python · igni-client/)
+    expect(client).toMatch(/App\("claims-desk", server=IGNI_URL, key_file="claims\.pem"\)/)
+    expect(client).toMatch(/Fleet\(GATEWAY_URL, auth=app\)/)
+    expect(client).toMatch(/IgniClient\(gateway\) as igni/)
+    expect(client).toMatch(/igni\.sessions\.create\(\)/)
+    expect(client).toMatch(/reply = await session\.ask\(/)
+    expect(client).toMatch(/"Draft the assessment for CL-20431\.", approve=False/)
+    expect(client).toMatch(/The gateway wakes the VM if it is asleep/)
+    expect(client).toMatch(/A person’s API key, made on the portal, reaches their igni as them/)
+  })
+})

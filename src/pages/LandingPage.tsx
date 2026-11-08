@@ -728,8 +728,11 @@ function AppZones() {
 //
 // Which chat: `ext.host.chat` is the current session of the igni the
 // extension runs in, so the person's open chat. A service event names its
-// producer (a person or an app) and goes to that producer's main session:
-// it starts a run, or is queued for the run already going.
+// producer (a person or an app) and goes to the extension's handler, which
+// decides what to post. A service message goes to the chat its thread names,
+// or to the extension's own chat: it starts a run, or waits for the one going.
+// igni-client connects from outside, through the Fleet gateway, as a person
+// (API key), an app (its own key) or a space (one end user of an app).
 const WIRE_HOST_CODE = `ext = IgniExtension("acme.claims")
 
 @ext.on(ext.host.chat.run_completed)
@@ -758,6 +761,16 @@ async def new_claim(event: ServiceEvent) -> None:
     await ext.host.sessions.chat(chat.session_id).post(
         f"Claim {claim.id} needs a first reply. Use the claims tools."
     )`
+
+const WIRE_CLIENT_CODE = `app = App("claims-desk", server=IGNI_URL, key_file="claims.pem")
+gateway = Fleet(GATEWAY_URL, auth=app)
+
+async with IgniClient(gateway) as igni:
+    session = await igni.sessions.create()
+    reply = await session.ask(
+        "Draft the assessment for CL-20431.", approve=False
+    )
+    await claims.save_draft("CL-20431", reply.text)`
 
 /* A small, fixed highlighter for the snippets above: comments, strings,
  * decorators, keywords, JSON keys and the HTTP verb. Enough for four
@@ -1145,12 +1158,13 @@ export function LandingPage() {
         </div>
 
         {/* How an app talks to igni, from the igni extensibility, host
-            object model and cloud docs and the service / extension SDK
-            READMEs. Three lanes, each explicit: the
+            object model and cloud docs and the service / extension / client
+            SDK READMEs. Four lanes, each explicit: the
             extension acting in the app through the host API; the service
             talking to igni directly (igni posts exactly what it sends); and the
             service handing an event to the extension, which acts through the
-            host API (igni posts nothing on its own). */}
+            host API (igni posts nothing on its own); and your own code
+            driving an igni in Fleet from outside, through the gateway. */}
         <div className="lp-wire">
           <h4>How an app talks to igni</h4>
           <div className="lp-wire-lane">
@@ -1301,6 +1315,53 @@ export function LandingPage() {
                 <p className="lp-wire-note">
                   <strong>If nothing handles it,</strong> nothing is posted, and the service
                   sees the event marked <code>not_handled</code>.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="lp-wire-lane">
+            <div className="lp-wire-node">
+              <strong>Your code</strong>
+              <span>a script, a backend, CI</span>
+            </div>
+            <div className="lp-wire-link">
+              <span>igni SDK</span>
+              <code>igni-client</code>
+            </div>
+            <div className="lp-wire-node lp-wire-node--fleet">
+              <strong>An igni in Fleet</strong>
+              <span>through the gateway</span>
+            </div>
+            <p>
+              Your code drives an igni from outside, the way the igni app does: it opens
+              sessions, sends prompts, follows the answer as it streams and answers
+              approvals. The gateway wakes the VM if it is asleep; your code sees a short
+              pause, not an error. No extension is needed.
+            </p>
+            <div className="lp-wire-demo">
+              <CodeWindow file="claims_backend.py" lang="Python · igni-client" code={WIRE_CLIENT_CODE} />
+              <div className="lp-wire-result">
+                <span className="lp-wire-result-label">What happens · illustration</span>
+                <div className="lp-mock lp-wire-chat">
+                  <div className="lp-mock-bar">
+                    <ServerIcon size={14} /> Fleet · the Claims desk&rsquo;s igni
+                  </div>
+                  <div className="lp-mock-body">
+                    <ol className="lp-wire-steps">
+                      <li>The gateway wakes the app&rsquo;s VM from a pause (~30 ms)</li>
+                      <li>A new session opens, and the agent works on CL-20431</li>
+                      <li>
+                        <CheckIcon size={12} /> The draft comes back to your code as{' '}
+                        <code>reply.text</code>
+                      </li>
+                    </ol>
+                  </div>
+                </div>
+                <p className="lp-wire-note">
+                  <strong>Whose igni?</strong> The key decides. A person&rsquo;s API key,
+                  made on the portal, reaches their igni as them. An app&rsquo;s own key,
+                  registered by an administrator, reaches the app&rsquo;s. A space is one
+                  end user of your app with an igni of its own; deleting it erases its VM.
                 </p>
               </div>
             </div>
