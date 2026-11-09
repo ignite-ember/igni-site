@@ -58,7 +58,7 @@ export const markdownComponents: Components = {
     return <Callout>{children}</Callout>
   },
   /**
-   * In-site links route client-side.
+   * In-site links route client-side; `#heading` links stay on the page.
    *
    * A bare `<a href="/docs/...">` is a full page load: the whole bundle
    * is fetched again to render an article the browser already has.
@@ -94,6 +94,11 @@ export const markdownComponents: Components = {
   },
   a({ href, children }) {
     const to = href ?? ''
+    // A heading on the same page: the browser jumps to it. Opening it in
+    // a new tab, as the external-link branch below would, loses the place.
+    if (to.startsWith('#')) {
+      return <a href={to}>{children}</a>
+    }
     if (to.startsWith('/') && !to.startsWith('//')) {
       return <Link to={to} onClick={() => window.scrollTo(0, 0)}>{children}</Link>
     }

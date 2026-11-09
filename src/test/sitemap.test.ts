@@ -20,7 +20,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-import { buildSitemap, docSlugs, ORIGIN } from '../../scripts/generate-sitemap.mjs'
+import { buildSitemap, docSlugs, ORIGIN, sdkPaths } from '../../scripts/generate-sitemap.mjs'
 
 // `import.meta.url` is an http: URL under the vite dev transform, so
 // the path is resolved from the project root instead.
@@ -53,9 +53,16 @@ describe('the committed sitemap', () => {
       '/compare/agentcore',
       ...products,
       ...docSlugs().map((s) => `/docs/${s}`),
+      ...sdkPaths().map((s) => `/${s}`),
     ])
 
     expect(locs.filter((l) => !allowed.has(l))).toEqual([])
+  })
+
+  it('lists the SDK documentation, down to a reference page', () => {
+    expect(COMMITTED).toContain(`<loc>${ORIGIN}/docs/sdk</loc>`)
+    expect(COMMITTED).toContain(`<loc>${ORIGIN}/docs/sdk/igni-client</loc>`)
+    expect(COMMITTED).toContain(`<loc>${ORIGIN}/docs/sdk/igni-client/scheduler</loc>`)
   })
 
   it('lists the AgentCore comparison', () => {

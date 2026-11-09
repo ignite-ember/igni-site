@@ -1,0 +1,263 @@
+/* ── The SDK documentation ──
+ * Its pages are the documentation's articles (DocsPage.css) with a third
+ * column: the package's pages on the left. Breakpoints are in rem — a
+ * `@media` condition cannot read a custom property — at the docs' own
+ * 900px (56.25rem) and 640px (40rem), plus 75rem, below which the table
+ * of contents moves above the article to leave the article its width. */
+
+.sdk-wrapper {
+  max-width: 90rem;
+}
+
+.sdk-layout {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr) 14rem;
+  gap: var(--base-size-32);
+  align-items: start;
+}
+
+/* ── The package's pages, left ── */
+.sdk-sidebar {
+  position: sticky;
+  top: var(--base-size-16);
+  max-height: calc(100vh - var(--base-size-48));
+  overflow-y: auto;
+  font-size: var(--text-body-size-medium);
+}
+
+.sdk-sidebar-package {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  padding: var(--base-size-8);
+  font-weight: 600;
+  color: var(--fgColor-default);
+  text-decoration: none;
+}
+
+.sdk-sidebar-package:hover {
+  color: var(--fgColor-accent);
+}
+
+.sdk-sidebar-mobile {
+  display: none;
+}
+
+.sdk-article-kicker {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  margin-bottom: var(--base-size-8);
+}
+
+/* A method's name is one long word: it may break anywhere rather than
+   push the page sideways. */
+.sdk-article-body h2,
+.sdk-article-body h3 {
+  overflow-wrap: anywhere;
+  scroll-margin-top: var(--base-size-16);
+}
+
+/* ── Landing: the three packages ── */
+.sdk-packages {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: var(--base-size-12);
+}
+
+.sdk-package-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-8);
+  padding: var(--base-size-16);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+}
+
+.sdk-package-card p {
+  margin: 0;
+}
+
+.sdk-package-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--base-size-8);
+}
+
+.sdk-package-title {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  font-size: var(--text-title-size-small) !important;
+}
+
+.sdk-package-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--base-size-4) var(--base-size-16);
+  margin-top: auto;
+}
+
+.sdk-package-link,
+.sdk-hit {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-4);
+  min-height: var(--base-size-44);
+  color: var(--fgColor-accent);
+  text-decoration: none;
+}
+
+.sdk-package-link:hover .sdk-hit-title,
+.sdk-package-link:hover,
+.sdk-hit:hover .sdk-hit-title {
+  text-decoration: underline;
+}
+
+/* ── Landing: search results ── */
+.sdk-hits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: var(--borderWidth-thin) solid var(--borderColor-muted);
+}
+
+.sdk-hits li {
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted);
+}
+
+.sdk-hit {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--base-size-12);
+  padding: var(--base-size-8) 0;
+}
+
+.sdk-hit-title {
+  font-family: var(--fontStack-monospace);
+  font-size: var(--text-body-size-medium);
+  overflow-wrap: anywhere;
+}
+
+.sdk-hit-context {
+  font-size: var(--text-body-size-small);
+}
+
+/* ── The /docs index: the SDK section ── */
+.docs-sdk-title {
+  font-size: var(--text-title-size-small) !important;
+}
+
+/* ── Below 75rem: the table of contents above the article ── */
+@media (max-width: 75rem) {
+  .sdk-layout {
+    grid-template-columns: 14rem minmax(0, 1fr);
+  }
+
+  .sdk-layout .doc-toc {
+    display: none;
+  }
+
+  .sdk-layout .doc-toc-mobile {
+    display: block;
+    border: var(--borderWidth-thin) solid var(--borderColor-default);
+    border-radius: var(--borderRadius-medium);
+  }
+
+  .sdk-layout .doc-toc-mobile summary {
+    display: flex;
+    align-items: center;
+    gap: var(--base-size-8);
+    min-height: var(--base-size-44);
+    padding: 0 var(--base-size-12);
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--fgColor-muted);
+  }
+
+  .sdk-layout .doc-toc-mobile ol {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 var(--base-size-6);
+    border-top: var(--borderWidth-thin) solid var(--borderColor-muted);
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .sdk-layout .doc-toc-mobile a {
+    display: flex;
+    align-items: center;
+    min-height: var(--base-size-44);
+    padding: 0 var(--base-size-12);
+    color: var(--fgColor-default);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* ── Below 56.25rem: one column; the package's pages collapse above ── */
+@media (max-width: 56.25rem) {
+  .sdk-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sdk-sidebar {
+    display: none;
+  }
+
+  .sdk-sidebar-mobile {
+    display: block;
+    border: var(--borderWidth-thin) solid var(--borderColor-default);
+    border-radius: var(--borderRadius-medium);
+  }
+
+  .sdk-sidebar-mobile summary {
+    display: flex;
+    align-items: center;
+    gap: var(--base-size-8);
+    min-height: var(--base-size-44);
+    padding: 0 var(--base-size-12);
+    cursor: pointer;
+    list-style: none;
+    font-weight: 600;
+  }
+
+  .sdk-sidebar-mobile summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .sdk-sidebar-mobile-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sdk-sidebar-mobile nav,
+  .sdk-sidebar-mobile ul {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .sdk-sidebar-mobile a {
+    min-height: var(--base-size-44);
+  }
+}
+
+/* ── Phones: tap targets in tables ──
+ * A type or a method alone in a cell is a link with nothing around it
+ * to tap instead; it gets a finger's height. One inside a sentence
+ * keeps the line's. */
+@media (max-width: 40rem) {
+  .sdk-article-body td > a:only-child {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--base-size-44);
+    min-width: var(--base-size-44);
+  }
+}
+
+.sdk-card-title {
+  font-size: var(--text-body-size-medium) !important;
+}
