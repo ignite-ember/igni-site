@@ -173,3 +173,43 @@ describe('a page', () => {
     },
   )
 })
+
+describe('on a phone, tables and code', () => {
+  test('a table keeps its roles and every filled cell carries its column name', async () => {
+    renderAt('/docs/sdk/igni-client/scheduler')
+    await screen.findByRole('heading', { level: 1, name: 'Scheduled tasks' })
+    const body = document.querySelector('.sdk-article-body') as HTMLElement
+    await waitFor(() => expect(body.querySelector('table')).not.toBeNull())
+    const params = within(body).getAllByRole('table')[1]
+    expect(within(params).getAllByRole('columnheader').map((h) => h.textContent)).toEqual([
+      'Parameter',
+      'Type',
+      'Default',
+      'Meaning',
+    ])
+    const cells = within(params).getAllByRole('cell')
+    const labels = cells.map((c) => c.querySelector('.sdk-cell-label'))
+    expect(labels.map((l) => l?.textContent)).toEqual(['Parameter', 'Type', 'Default', 'Meaning'])
+    // Screen readers hear the header, not the visual label as well.
+    for (const label of labels) expect(label).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  test('a signature is a block per line, each knowing its indentation', async () => {
+    renderAt('/docs/sdk/igni-client/window')
+    await screen.findByRole('heading', { level: 1 })
+    await waitFor(() => expect(document.querySelector('.code-line')).not.toBeNull())
+    const lines = Array.from(document.querySelector('pre code')!.querySelectorAll(':scope > .code-line'))
+    expect(lines[0].textContent).toBe('async def model(')
+    expect(lines[1].textContent).toBe('    self,')
+    expect((lines[1] as HTMLElement).style.getPropertyValue('--indent')).toBe('4ch')
+  })
+})
+
+describe('the version shown', () => {
+  test('is the version igni-sdk generated the pages from, as its index says', async () => {
+    const meta = SDK_PACKAGES.find((p) => p.name === 'igni-service')!
+    expect(meta.version).toMatch(/^\d+\.\d+\.\d+/)
+    renderAt('/docs/sdk/igni-service')
+    expect(await screen.findByText(`igni-service ${meta.version}`)).toBeInTheDocument()
+  })
+})

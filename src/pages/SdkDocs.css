@@ -245,16 +245,103 @@
   }
 }
 
-/* ── Phones: tap targets in tables ──
- * A type or a method alone in a cell is a link with nothing around it
- * to tap instead; it gets a finger's height. One inside a sentence
- * keeps the line's. */
-@media (max-width: 40rem) {
-  .sdk-article-body td > a:only-child {
-    display: inline-flex;
-    align-items: center;
-    min-height: var(--base-size-44);
-    min-width: var(--base-size-44);
+/* ── Code: a line at a time (rehypeSdkLayout) ──
+ * Each line is a block that knows its indentation (`--indent`), so that
+ * where a line has to wrap, its continuation hangs four columns in from
+ * the line's own indentation. */
+.sdk-article-body .code-line {
+  display: block;
+}
+
+/* Column labels exist for the cards below; a table has its header. */
+.sdk-cell-label {
+  display: none;
+}
+
+/* ── Below 48rem, the docs' table breakpoint: tables become cards ──
+ * Each row a card, each cell labelled with its column, nothing off the
+ * screen and nothing to scroll sideways. The header row stays for
+ * screen readers (the roles rehypeSdkLayout adds keep it a table to
+ * them) and is hidden from view; the visible labels are hidden from them. */
+@media (max-width: 48rem) {
+  .doc-article-body.sdk-article-body table {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    overflow: visible;
+    border: 0;
+    background: none;
+    font-size: var(--text-body-size-medium);
+  }
+
+  .sdk-article-body thead {
+    position: absolute;
+    width: 0.0625rem;
+    height: 0.0625rem;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .sdk-article-body tbody,
+  .sdk-article-body tr {
+    display: block;
+  }
+
+  .sdk-article-body tr {
+    margin: 0 0 var(--base-size-8);
+    padding: var(--base-size-8) var(--base-size-12);
+    border: var(--borderWidth-thin) solid var(--borderColor-default);
+    border-radius: var(--borderRadius-medium);
+  }
+
+  /* The label in a column of its own at the cell's left, the value
+     beside it: a card as short as its content. */
+  .doc-article-body.sdk-article-body td {
+    position: relative;
+    display: block;
+    min-width: 0;
+    max-width: none;
+    min-height: var(--base-size-24);
+    padding: var(--base-size-4) 0 var(--base-size-4) 6.5rem;
+    border: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .doc-article-body.sdk-article-body td.sdk-cell-empty {
+    display: none;
+  }
+
+  .doc-article-body.sdk-article-body td code {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .sdk-cell-label {
+    position: absolute;
+    top: var(--base-size-4);
+    left: 0;
+    width: 6rem;
+    display: block;
+    overflow-wrap: anywhere;
+    line-height: 1.7;
+    font-size: var(--text-body-size-small);
+    font-weight: 600;
+    color: var(--fgColor-muted);
+  }
+
+  /* Code wraps instead of scrolling; a continuation hangs under its line. */
+  .doc-article-body.sdk-article-body pre,
+  .doc-article-body.sdk-article-body pre code {
+    white-space: pre-wrap;
+    overflow-x: visible;
+    overflow-wrap: anywhere;
+    max-width: none;
+  }
+
+  .sdk-article-body .code-line {
+    padding-left: calc(var(--indent, 0ch) + 4ch);
+    text-indent: calc(-1 * (var(--indent, 0ch) + 4ch));
   }
 }
 

@@ -3,6 +3,7 @@
  * method's own heading, on a desktop and on a phone. (Every SDK page is
  * also in `mobile-layout.spec.ts`, through `scripts/site-routes.mjs`.)
  */
+import { readFileSync } from 'node:fs'
 import { test, expect, devices } from '@playwright/test'
 
 test.describe('SDK docs', () => {
@@ -79,4 +80,57 @@ test.describe('SDK docs on a phone', () => {
     await toc.getByRole('link', { name: 'session.scheduler.start()' }).tap()
     await expect(page.locator('#session-scheduler-start')).toBeInViewport()
   })
+})
+
+/**
+ * Every SDK reference page at 360px: no table cell off the screen and
+ * nothing in the article that scrolls sideways — tables are cards and
+ * code wraps there. The page not scrolling is mobile-layout.spec.ts's
+ * check; a table or a code block scrolling inside the article passed it
+ * while its fourth column sat off the screen.
+ */
+const SDK_INDEX = JSON.parse(readFileSync('src/docs/sdk/index.json', 'utf8')) as {
+  pages: { package: string; slug: string; category: string }[]
+}
+const REFERENCE = SDK_INDEX.pages.filter((p) => p.category === 'reference')
+
+test.describe('SDK reference pages at 360px', () => {
+  test.use({
+    viewport: { width: 360, height: 780 },
+    isMobile: true,
+    hasTouch: true,
+    deviceScaleFactor: 2,
+    userAgent: devices['Pixel 7'].userAgent,
+  })
+
+  for (const p of REFERENCE) {
+    test(`${p.package}/${p.slug}`, async ({ page }) => {
+      await page.goto(`/docs/sdk/${p.package}/${p.slug}`)
+      await expect(page.locator('.sdk-article-body > *').first()).toBeAttached()
+
+      const problems = await page.evaluate((width) => {
+        const body = document.querySelector('.sdk-article-body')!
+        const out: string[] = []
+        const name = (el: Element) => `${el.tagName.toLowerCase()} "${(el.textContent || '').trim().slice(0, 40)}"`
+        for (const cell of body.querySelectorAll('td')) {
+          const r = cell.getBoundingClientRect()
+          if (r.width === 0) continue
+          if (r.left < -0.5 || r.right > width + 0.5) out.push(`cell off screen: ${name(cell)} ${Math.round(r.left)}..${Math.round(r.right)}`)
+        }
+        for (const el of body.querySelectorAll('*')) {
+          // The header row is visually hidden on purpose, for screen readers.
+          if (el.closest('thead')) continue
+          if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== 'visible') {
+            out.push(`scrolls sideways: ${name(el)} ${el.scrollWidth}>${el.clientWidth}`)
+          }
+          const r = el.getBoundingClientRect()
+          if (r.width > 0 && r.right > width + 0.5) out.push(`past the edge: ${name(el)} right=${Math.round(r.right)}`)
+          if (out.length > 8) break
+        }
+        return out
+      }, 360)
+
+      expect(problems).toEqual([])
+    })
+  }
 })

@@ -10,6 +10,7 @@ import { Blankslate } from '@primer/react/experimental'
 
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { markdownComponents } from '../docs/markdownComponents'
+import { rehypeSdkLayout } from '../docs/rehypeSdkLayout'
 import { MobileTableOfContents, TableOfContents } from '../docs/DocToc'
 import { useActiveSectionId } from '../docs/useActiveSectionId'
 import { SdkSidebar, SdkSidebarMobile } from '../docs/SdkSidebar'
@@ -124,7 +125,7 @@ export function SdkArticlePage() {
             <div className="doc-article-body sdk-article-body">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeHighlight]}
+                rehypePlugins={[rehypeHighlight, rehypeSdkLayout]}
                 components={markdownComponents}
               >
                 {body}
