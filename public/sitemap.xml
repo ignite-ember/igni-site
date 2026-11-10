@@ -561,7 +561,7 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/source-not-a-build</loc>
+    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/the-source-and-a-build-beside-it</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
@@ -636,7 +636,7 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-react/source-not-a-build</loc>
+    <loc>https://ignite-ember.sh/docs/sdk/ui-react/the-source-and-a-build-beside-it</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
