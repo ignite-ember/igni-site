@@ -199,7 +199,7 @@ describe('on a phone, tables and code', () => {
     await screen.findByRole('heading', { level: 1 })
     await waitFor(() => expect(document.querySelector('.code-line')).not.toBeNull())
     const lines = Array.from(document.querySelector('pre code')!.querySelectorAll(':scope > .code-line'))
-    expect(lines[0].textContent).toBe('async def model(')
+    expect(lines[0].textContent).toBe('def model(')
     expect(lines[1].textContent).toBe('    self,')
     expect((lines[1] as HTMLElement).style.getPropertyValue('--indent')).toBe('4ch')
   })

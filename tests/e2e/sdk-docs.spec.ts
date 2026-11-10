@@ -37,7 +37,11 @@ test.describe('SDK docs', () => {
 
   test('a type in a signature links to its model', async ({ page }) => {
     await page.goto('/docs/sdk/igni-client/scheduler')
-    await page.locator('.sdk-article-body').getByRole('link', { name: 'ScheduledTask' }).first().click()
+    await page
+      .locator('.sdk-article-body')
+      .getByRole('link', { name: 'ScheduledTask', exact: true })
+      .first()
+      .click()
     await expect(page).toHaveURL(/models-reference#scheduledtask$/)
     await expect(page.locator('#scheduledtask')).toBeInViewport()
   })

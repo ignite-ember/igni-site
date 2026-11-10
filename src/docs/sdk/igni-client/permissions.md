@@ -36,11 +36,14 @@ the last matching argument rule, else the tool's own level, else
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `func_name` | `str` | required | `tool_name` and `func_name` name the tool and its function; |
-| `tool_args` | [`ToolCallArgs`](/docs/sdk/igni-client/models-reference#toolcallargs) | required | `tool_args` are the call's arguments, which argument rules match against. |
-| `tool_name` | `str` | required | `tool_name` and `func_name` name the tool and its function; |
+| `func_name` | `str` | required | Name of the tool's function being called. |
+| `tool_args` | [`ToolCallArgs`](/docs/sdk/igni-client/models-reference#toolcallargs) | required | The call's arguments, which argument-specific rules are matched against. |
+| `tool_name` | `str` | required | Name of the tool. |
 
 **Returns** `Literal['allow', 'ask', 'deny']`.
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
@@ -72,15 +75,19 @@ async def save_rule(self, *, level: Literal['allow', 'ask', 'deny'], rule: str) 
 `rule` is a permission rule (`Bash(git status)`, a tool name);
 `level` is `allow`, `ask` or `deny`. The rule is written to
 the project's `.igni/settings.local.json` (the person's own when
-there is no project). Returns nothing. Fails when the settings file
-cannot be written.
+there is no project), and the session follows it from its next tool
+call. Returns nothing. Fails when the settings file cannot be
+written.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `level` | `Literal['allow', 'ask', 'deny']` | required | `level` is `allow`, `ask` or `deny`. |
-| `rule` | `str` | required | `rule` is a permission rule (`Bash(git status)`, a tool name); |
+| `level` | `Literal['allow', 'ask', 'deny']` | required | What the rule does: `allow`, `ask` or `deny`. |
+| `rule` | `str` | required | The permission rule: a tool name, or a tool with an argument pattern such as `Bash(git status)`. |
 
 **Returns** `None`.
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`window`](/docs/sdk/igni-client/access) — Through Fleet's gateway every connection stands as igni's window and makes this call. On the desktop only the app's own window does: a program — with the lockfile's token or an approver token — gets `AccessRefused`.
 

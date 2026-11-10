@@ -33,10 +33,13 @@ per session.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `limit` | `int` | `50` | `limit` caps the matches returned (default 50). |
-| `query` | `str` | `''` | `query` is what was typed so far (empty matches everything); |
+| `limit` | `int` | `50` | Maximum number of matches to return. |
+| `query` | `str` | `''` | What was typed so far; empty matches every file. |
 
 **Returns** [`FileCompletion`](/docs/sdk/igni-client/models-reference#filecompletion).
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
@@ -67,9 +70,12 @@ give the call a long timeout. Returns the chosen `path`, or
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `start` | `str \| None` | `None` | `start` is the folder the picker opens in (this session's project when absent or empty). igni runs on the person's machine, so the dialog appears on their desktop; it waits as long as they take, so give the call a long timeout. |
+| `start` | `str \| None` | `None` | Folder the picker opens in; the session's project folder when absent or empty. |
 
 **Returns** [`PickDirResult`](/docs/sdk/igni-client/models-reference#pickdirresult).
+
+**How long** `person` — Waits for the person, who may take their time.
+The client waits as long as it takes.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
@@ -102,9 +108,12 @@ client read.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `path` | `str` | required | `path` is relative to the project, absolute, or an `attachment:<id>` reference. |
+| `path` | `str` | required | The file: relative to the project, absolute, or an `attachment:<id>` reference. |
 
 **Returns** [`ReadFileResult`](/docs/sdk/igni-client/models-reference#readfileresult).
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
@@ -134,9 +143,12 @@ the search timed out, and `error` when it failed.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `query` | `str` | required | `query` is the snippet, matched exactly; one shorter than five characters finds nothing. |
+| `query` | `str` | required | The snippet, matched exactly; shorter than 5 characters finds nothing. |
 
 **Returns** [`SearchCodeResult`](/docs/sdk/igni-client/models-reference#searchcoderesult).
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
@@ -173,10 +185,13 @@ and `error` when it could not be read.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `path` | `str \| None` | `None` | `path` is the folder to list (the home folder when absent or empty); |
-| `show_hidden` | `bool` | `False` | `show_hidden` includes folders whose names start with a dot. |
+| `path` | `str \| None` | `None` | The folder to list; the home folder when absent or empty. |
+| `show_hidden` | `bool` | `False` | Include folders whose names start with a dot. |
 
 **Returns** [`DirListResult`](/docs/sdk/igni-client/models-reference#dirlistresult).
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 

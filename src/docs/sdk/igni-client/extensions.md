@@ -31,6 +31,9 @@ Takes no arguments.
 
 **Returns** [`ExtensionListResult`](/docs/sdk/igni-client/models-reference#extensionlistresult).
 
+**How long** `instant` — Answered from what igni holds in memory, at once.
+The client waits up to 10 seconds.
+
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
 **Raises** [`InvalidArguments`](/docs/sdk/igni-client/errors-reference#invalidarguments) · [`MethodFailed`](/docs/sdk/igni-client/errors-reference#methodfailed) · [`UnknownMethod`](/docs/sdk/igni-client/errors-reference#unknownmethod) · [`UnexpectedAnswer`](/docs/sdk/igni-client/errors-reference#unexpectedanswer) · [`Unavailable`](/docs/sdk/igni-client/errors-reference#unavailable) ([when each is raised](/docs/sdk/igni-client/errors-reference))
@@ -66,10 +69,13 @@ a setting's options, or igni has no extension support.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `extension_id` | `str` | required | `extension_id` is the extension; |
-| `values` | `dict[str, JsonValue]` | required | `values` the settings to change, by key, merged over what is stored. |
+| `extension_id` | `str` | required | The id of the extension to configure. |
+| `values` | `dict[str, JsonValue]` | required | Setting key to new value, merged over the stored values. A key the extension does not declare is refused. |
 
 **Returns** [`ExtensionListResult`](/docs/sdk/igni-client/models-reference#extensionlistresult).
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`window`](/docs/sdk/igni-client/access) — Through Fleet's gateway every connection stands as igni's window and makes this call. On the desktop only the app's own window does: a program — with the lockfile's token or an approver token — gets `AccessRefused`.
 

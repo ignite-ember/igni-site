@@ -37,9 +37,12 @@ skills, agents, hooks, MCP servers and tools, with its README; or
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `name` | `str` | required | `name` is the installed plugin. |
+| `name` | `str` | required | Name of the installed plugin. |
 
 **Returns** [`PluginContents`](/docs/sdk/igni-client/models-reference#plugincontents).
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
@@ -72,10 +75,13 @@ policy, a git error.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `install_ref` | `str \| None` | `None` | `install_ref` the branch, tag or commit to check out (the marketplace's, or the default branch, when absent). |
-| `ref` | `str` | required | `ref` is a git URL or `@<marketplace>/<plugin>`; |
+| `install_ref` | `str \| None` | `None` | Branch, tag or commit to check out; when absent, the marketplace's choice or the default branch. |
+| `ref` | `str` | required | A git URL, or `@<marketplace>/<plugin>` for a marketplace plugin. |
 
 **Returns** [`InfoMessage`](/docs/sdk/igni-client/events-reference#infomessage).
+
+**How long** `long` — Runs something that takes as long as it takes: a git clone, the agent, a shell command, a model summarising.
+The client waits up to 600 seconds.
 
 **Access** [`window`](/docs/sdk/igni-client/access) — Through Fleet's gateway every connection stands as igni's window and makes this call. On the desktop only the app's own window does: a program — with the lockfile's token or an approver token — gets `AccessRefused`.
 
@@ -106,6 +112,9 @@ and what it brings: skills, agents, hooks, MCP servers.
 Takes no arguments.
 
 **Returns** `list[`[`PluginInfo`](/docs/sdk/igni-client/models-reference#plugininfo)`]`.
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
@@ -145,11 +154,14 @@ source, git is missing, or the clone failed.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `branch` | `str \| None` | `None` | `branch` the branch, tag or commit to read (the default branch when absent); |
-| `source` | `str` | required | `source` is the plugin's git URL (optionally followed by a subfolder); |
-| `subdir` | `str \| None` | `None` | `subdir` the plugin's folder inside the repository, which wins over one in `source`. |
+| `branch` | `str \| None` | `None` | Branch, tag or commit to read; the default branch when absent. |
+| `source` | `str` | required | The plugin's git URL, optionally followed by a folder inside the repository. |
+| `subdir` | `str \| None` | `None` | The plugin's folder inside the repository; overrides one given in `source`. |
 
 **Returns** [`PluginContents`](/docs/sdk/igni-client/models-reference#plugincontents).
+
+**How long** `long` — Runs something that takes as long as it takes: a git clone, the agent, a shell command, a model summarising.
+The client waits up to 600 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
@@ -178,9 +190,12 @@ why not.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `name` | `str` | required | `name` is the installed plugin. |
+| `name` | `str` | required | Name of the installed plugin. |
 
 **Returns** [`InfoMessage`](/docs/sdk/igni-client/events-reference#infomessage).
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`window`](/docs/sdk/igni-client/access) — Through Fleet's gateway every connection stands as igni's window and makes this call. On the desktop only the app's own window does: a program — with the lockfile's token or an approver token — gets `AccessRefused`.
 
@@ -211,10 +226,13 @@ the organisation manages.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `enabled` | `bool` | required | `enabled` its new state. |
-| `name` | `str` | required | `name` is the installed plugin; |
+| `enabled` | `bool` | required | The plugin's new state: `true` to switch it on. |
+| `name` | `str` | required | Name of the installed plugin. |
 
 **Returns** [`InfoMessage`](/docs/sdk/igni-client/events-reference#infomessage).
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`window`](/docs/sdk/igni-client/access) — Through Fleet's gateway every connection stands as igni's window and makes this call. On the desktop only the app's own window does: a program — with the lockfile's token or an approver token — gets `AccessRefused`.
 
@@ -244,10 +262,13 @@ whose text names the commit now installed, or why not.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `install_ref` | `str \| None` | `None` | `install_ref` the branch, tag or commit to move to (the remote's default branch when absent). |
-| `name` | `str` | required | `name` is the installed plugin; |
+| `install_ref` | `str \| None` | `None` | Branch, tag or commit to move to; the remote's default branch when absent. |
+| `name` | `str` | required | Name of the installed plugin. |
 
 **Returns** [`InfoMessage`](/docs/sdk/igni-client/events-reference#infomessage).
+
+**How long** `long` — Runs something that takes as long as it takes: a git clone, the agent, a shell command, a model summarising.
+The client waits up to 600 seconds.
 
 **Access** [`window`](/docs/sdk/igni-client/access) — Through Fleet's gateway every connection stands as igni's window and makes this call. On the desktop only the app's own window does: a program — with the lockfile's token or an approver token — gets `AccessRefused`.
 
@@ -277,9 +298,12 @@ organisation's policy, a git error, an unreadable catalogue.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `url` | `str` | required | `url` is the marketplace's git URL. |
+| `url` | `str` | required | The marketplace's git URL. |
 
 **Returns** [`InfoMessage`](/docs/sdk/igni-client/events-reference#infomessage).
+
+**How long** `long` — Runs something that takes as long as it takes: a git clone, the agent, a shell command, a model summarising.
+The client waits up to 600 seconds.
 
 **Access** [`window`](/docs/sdk/igni-client/access) — Through Fleet's gateway every connection stands as igni's window and makes this call. On the desktop only the app's own window does: a program — with the lockfile's token or an approver token — gets `AccessRefused`.
 
@@ -309,6 +333,9 @@ Takes no arguments.
 
 **Returns** `list[`[`MarketplaceInfo`](/docs/sdk/igni-client/models-reference#marketplaceinfo)`]`.
 
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
+
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
 **Raises** [`InvalidArguments`](/docs/sdk/igni-client/errors-reference#invalidarguments) · [`MethodFailed`](/docs/sdk/igni-client/errors-reference#methodfailed) · [`UnknownMethod`](/docs/sdk/igni-client/errors-reference#unknownmethod) · [`UnexpectedAnswer`](/docs/sdk/igni-client/errors-reference#unexpectedanswer) · [`Unavailable`](/docs/sdk/igni-client/errors-reference#unavailable) ([when each is raised](/docs/sdk/igni-client/errors-reference))
@@ -336,9 +363,12 @@ whose text says what was refreshed, or why not.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `name` | `str \| None` | `None` | `name` is one marketplace; absent or empty refreshes every one. |
+| `name` | `str \| None` | `None` | The marketplace to refresh; every marketplace when absent. |
 
 **Returns** [`InfoMessage`](/docs/sdk/igni-client/events-reference#infomessage).
+
+**How long** `long` — Runs something that takes as long as it takes: a git clone, the agent, a shell command, a model summarising.
+The client waits up to 600 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
@@ -367,9 +397,12 @@ that there is no such marketplace.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `name` | `str` | required | `name` is the marketplace. |
+| `name` | `str` | required | Name of the marketplace. |
 
 **Returns** [`InfoMessage`](/docs/sdk/igni-client/events-reference#infomessage).
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`window`](/docs/sdk/igni-client/access) — Through Fleet's gateway every connection stands as igni's window and makes this call. On the desktop only the app's own window does: a program — with the lockfile's token or an approver token — gets `AccessRefused`.
 

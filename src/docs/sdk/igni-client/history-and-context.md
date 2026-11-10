@@ -38,6 +38,9 @@ Takes no arguments (`session_id` is this session's own).
 
 **Returns** `list[`[`ChatTurn`](/docs/sdk/igni-client/models-reference#chatturn)`]`.
 
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
+
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
 **Raises** [`InvalidArguments`](/docs/sdk/igni-client/errors-reference#invalidarguments) · [`MethodFailed`](/docs/sdk/igni-client/errors-reference#methodfailed) · [`UnknownMethod`](/docs/sdk/igni-client/errors-reference#unknownmethod) · [`UnexpectedAnswer`](/docs/sdk/igni-client/errors-reference#unexpectedanswer) · [`Unavailable`](/docs/sdk/igni-client/errors-reference#unavailable) ([when each is raised](/docs/sdk/igni-client/errors-reference))
@@ -66,10 +69,13 @@ around it, and where the match sits in the snippet.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `limit` | `int` | `50` | `limit` caps the hits (default 50). |
-| `query` | `str` | required | `query` is the text to find (case-insensitive; blank finds nothing); |
+| `limit` | `int` | `50` | Maximum number of hits to return. |
+| `query` | `str` | required | Text to find, case-insensitive; blank finds nothing. |
 
 **Returns** `list[`[`ChatSearchHit`](/docs/sdk/igni-client/models-reference#chatsearchhit)`]`.
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
@@ -100,9 +106,12 @@ history could not be saved.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `run_id` | `str` | required | `run_id` the first run to drop (a top-level run, as `get_chat_history` carries it). |
+| `run_id` | `str` | required | Id of the first run to drop: a top-level run, as `get_chat_history` carries it. |
 
 **Returns** [`TruncateHistoryResult`](/docs/sdk/igni-client/models-reference#truncatehistoryresult).
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
@@ -134,6 +143,9 @@ Takes no arguments.
 
 **Returns** [`ContextBreakdown`](/docs/sdk/igni-client/models-reference#contextbreakdown).
 
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
+
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
 **Raises** [`InvalidArguments`](/docs/sdk/igni-client/errors-reference#invalidarguments) · [`MethodFailed`](/docs/sdk/igni-client/errors-reference#methodfailed) · [`UnknownMethod`](/docs/sdk/igni-client/errors-reference#unknownmethod) · [`UnexpectedAnswer`](/docs/sdk/igni-client/errors-reference#unexpectedanswer) · [`Unavailable`](/docs/sdk/igni-client/errors-reference#unavailable) ([when each is raised](/docs/sdk/igni-client/errors-reference))
@@ -152,22 +164,23 @@ print(breakdown.floor, breakdown.runs)
 Compact this session's conversation when its context is nearly full.
 
 ```python
-async def compact(self, *, ctx_tokens: int, max_ctx: int) -> SessionCleared | None
+async def compact(self, *, ctx_tokens: int, max_ctx: int) -> CompactionOutcome
 ```
 
 `ctx_tokens` is the context the last turn used and `max_ctx`
 the model's window; at 80% or more the conversation is summarised
 and replaced by the summary (the `PreCompact` hooks may refuse).
-Returns a `session_cleared` message, sent in place of an
-`rpc_response`, carrying the `summary`; or `null` (in an
-`rpc_response`) when nothing was compacted.
+Returns `compacted` and, when it was, the `summary`.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `ctx_tokens` | `int` | required | `ctx_tokens` is the context the last turn used and `max_ctx` the model's window; at 80% or more the conversation is summarised and replaced by the summary (the `PreCompact` hooks may refuse). |
-| `max_ctx` | `int` | required | `ctx_tokens` is the context the last turn used and `max_ctx` the model's window; at 80% or more the conversation is summarised and replaced by the summary (the `PreCompact` hooks may refuse). |
+| `ctx_tokens` | `int` | required | Tokens of context the last turn used. |
+| `max_ctx` | `int` | required | The model's context window, in tokens. Compaction happens at 80% or more. |
 
-**Returns** [`SessionCleared`](/docs/sdk/igni-client/events-reference#sessioncleared)` | None`.
+**Returns** [`CompactionOutcome`](/docs/sdk/igni-client/models-reference#compactionoutcome).
+
+**How long** `long` — Runs something that takes as long as it takes: a git clone, the agent, a shell command, a model summarising.
+The client waits up to 600 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
@@ -201,6 +214,9 @@ read); a positive estimate also becomes the context size
 Takes no arguments.
 
 **Returns** `int`.
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 

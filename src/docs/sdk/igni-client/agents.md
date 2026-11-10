@@ -30,9 +30,12 @@ ephemeral.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `name` | `str` | required | `name` is the ephemeral agent. |
+| `name` | `str` | required | Name of the agent created during the session. |
 
 **Returns** [`DiscardEphemeralResult`](/docs/sdk/igni-client/models-reference#discardephemeralresult).
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
@@ -62,6 +65,9 @@ whether it is ephemeral (made during this session, not yet saved).
 Takes no arguments.
 
 **Returns** `list[`[`AgentInfo`](/docs/sdk/igni-client/models-reference#agentinfo)`]`.
+
+**How long** `instant` — Answered from what igni holds in memory, at once.
+The client waits up to 10 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
@@ -97,10 +103,13 @@ unknown, not ephemeral, or the destination exists.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `name` | `str` | required | `name` is the ephemeral agent; |
-| `target` | `str \| None` | `None` | `target` is `project` (the default: the project's agents) or `personal` (the person's own). |
+| `name` | `str` | required | Name of the agent created during the session. |
+| `target` | `str \| None` | `None` | Where to save it: `project` (the project's agents; the default) or `personal` (the user's own agents). |
 
 **Returns** [`PromoteEphemeralResult`](/docs/sdk/igni-client/models-reference#promoteephemeralresult).
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`window`](/docs/sdk/igni-client/access) — Through Fleet's gateway every connection stands as igni's window and makes this call. On the desktop only the app's own window does: a program — with the lockfile's token or an approver token — gets `AccessRefused`.
 
@@ -130,9 +139,12 @@ the cancellation failed.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `run_id` | `str` | `''` | `run_id` is the sub-agent run's id, as its events carry it. |
+| `run_id` | `str` | `''` | Id of the sub-agent run, as its events carry it; must not be empty. |
 
 **Returns** [`CancelAgentRunResult`](/docs/sdk/igni-client/models-reference#cancelagentrunresult).
+
+**How long** `instant` — Answered from what igni holds in memory, at once.
+The client waits up to 10 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 

@@ -34,13 +34,18 @@ there was no such run or it had already ended, with the
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `workflow_run_id` | `str` | required | `workflow_run_id` is the run (from `run_workflow`). |
+| `workflow_run_id` | `str` | required | Id of the workflow run to cancel. |
 
 **Returns** a [`Call`](/docs/sdk/igni-client/api-reference#call) — await it for the result, [`WorkflowCancelResponse`](/docs/sdk/igni-client/models-reference#workflowcancelresponse), or `async with` it to follow its events too.
 
 **Events** `CancelWorkflowEvent` is any of [`WorkflowEventPush`](/docs/sdk/igni-client/events-reference#workfloweventpush) (igni streams `workflow_event`).
 
 **How they are told apart** `async with` the call to follow it: it yields the `workflow_event` pushes of `workflow_run_id` and ends with the run's last, or with the answer when `cancelled` is false.
+
+**Told apart by** the message's `workflow_run_id` is the `workflow_run_id` the call was given — igni's contract says so.
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
@@ -72,6 +77,9 @@ be read is left out.
 Takes no arguments.
 
 **Returns** `list[`[`WorkflowListItem`](/docs/sdk/igni-client/models-reference#workflowlistitem)`]`.
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
@@ -109,14 +117,19 @@ workflow runtime is missing.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `args` | `dict[str, JsonValue] \| None` | `None` | `args` its input, a JSON object the workflow reads as it defines. |
-| `name` | `str` | required | `name` is the workflow (from `list_workflows`); |
+| `args` | `dict[str, JsonValue] \| None` | `None` | The workflow's own input, passed to it unchanged. Each workflow defines the keys it reads; omit for none. |
+| `name` | `str` | required | Name of the workflow to run. |
 
 **Returns** a [`Call`](/docs/sdk/igni-client/api-reference#call) — await it for the result, [`WorkflowRunResponse`](/docs/sdk/igni-client/models-reference#workflowrunresponse), or `async with` it to follow its events too.
 
 **Events** `RunWorkflowEvent` is any of [`WorkflowEventPush`](/docs/sdk/igni-client/events-reference#workfloweventpush) (igni streams `workflow_event`).
 
 **How they are told apart** `async with` the call to follow it: it yields every `workflow_event` push carrying the `workflow_run_id` igni answered with — those that came before the answer too — and ends with the run's `workflow_completed` or `workflow_failed`.
+
+**Told apart by** the message's `workflow_run_id` is the `workflow_run_id` the call was answered with — igni's contract says so.
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 

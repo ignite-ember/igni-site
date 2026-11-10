@@ -32,13 +32,18 @@ mode change, and `ok`; `ok: false` with `error` when
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `run_id` | `str` | `''` | `run_id` is the run that submitted the plan (`plan_submitted` carries it). |
+| `run_id` | `str` | `''` | Id of the run that submitted the plan, as `plan_submitted` carries it. |
 
 **Returns** a [`Call`](/docs/sdk/igni-client/api-reference#call) — await it for the result, [`PlanDecisionResult`](/docs/sdk/igni-client/models-reference#plandecisionresult), or `async with` it to follow its events too.
 
 **Events** `ApprovePlanEvent` is any of [`PermissionModeChangedPush`](/docs/sdk/igni-client/events-reference#permissionmodechangedpush), [`PlanDecidedPush`](/docs/sdk/igni-client/events-reference#plandecidedpush) (igni streams `permission_mode_changed`, `plan_decided`).
 
 **How they are told apart** `async with` the call to follow it: it yields the `plan_decided` push whose `run_id` is this call's, and ends with it, or with the answer when `ok` is false. A change of permission mode is in the answer's `mode_status`.
+
+**Told apart by** the message's `run_id` is the `run_id` the call was given — igni's contract says so.
+
+**How long** `instant` — Answered from what igni holds in memory, at once.
+The client waits up to 10 seconds.
 
 **Access** [`approver`](/docs/sdk/igni-client/access) — Through Fleet's gateway every connection stands as igni's window and makes this call. On the desktop, a program needs an approver token the window minted (`Local(approver_token=...)`); with the lockfile's token it gets `AccessRefused`.
 
@@ -74,13 +79,18 @@ false` with `error` when `run_id` is empty.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
-| `run_id` | `str` | `''` | `run_id` is the run that submitted the plan. |
+| `run_id` | `str` | `''` | Id of the run that submitted the plan, as `plan_submitted` carries it. |
 
 **Returns** a [`Call`](/docs/sdk/igni-client/api-reference#call) — await it for the result, [`PlanDecisionResult`](/docs/sdk/igni-client/models-reference#plandecisionresult), or `async with` it to follow its events too.
 
 **Events** `DismissPlanEvent` is any of [`PlanDecidedPush`](/docs/sdk/igni-client/events-reference#plandecidedpush) (igni streams `plan_decided`).
 
 **How they are told apart** `async with` the call to follow it: it yields the `plan_decided` push whose `run_id` is this call's, and ends with it, or with the answer when `ok` is false.
+
+**Told apart by** the message's `run_id` is the `run_id` the call was given — igni's contract says so.
+
+**How long** `instant` — Answered from what igni holds in memory, at once.
+The client waits up to 10 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
@@ -112,6 +122,9 @@ when none was submitted.
 Takes no arguments.
 
 **Returns** [`LatestPlanResult`](/docs/sdk/igni-client/models-reference#latestplanresult).
+
+**How long** `instant` — Answered from what igni holds in memory, at once.
+The client waits up to 10 seconds.
 
 **Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
 
