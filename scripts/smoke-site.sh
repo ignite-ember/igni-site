@@ -17,7 +17,7 @@ js=$(grep -o 'assets/index-[^"]*\.js' "$DIST/index.html" | head -1)
 [ -n "$js" ] || { echo "no assets/index-*.js in $DIST/index.html" >&2; exit 1; }
 echo "expecting /$js"
 
-paths="/ /fleet /factory /compare/agentcore /docs /docs/fleet /codeindex"
+paths="/ /fleet /factory /compare/agentcore /docs /docs/fleet /codeindex /docs/sdk /docs/sdk/igni-client"
 bust="smoke=$(date +%s)"
 fail=0
 for p in $paths; do
