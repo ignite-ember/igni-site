@@ -42,6 +42,7 @@ import offlineUpdatesRaw from './content/OFFLINE_UPDATES.md?raw'
 import codeindexRaw from './content/CODEINDEX.md?raw'
 import fleetRaw from './content/FLEET.md?raw'
 import buildingExtensionsRaw from './content/BUILDING_EXTENSIONS.md?raw'
+import sdksRaw from './content/SDKS.md?raw'
 
 export interface DocArticle {
   slug: string
@@ -233,6 +234,14 @@ export const DOCS: DocArticle[] = [
     description: "The gateway, node agent and Firecracker microVMs behind Fleet, what a host needs, how it ties into igni server, and what is not finished.",
     category: 'modules',
     content: fleetRaw,
+  },
+  {
+    slug: 'sdks',
+    title: 'SDKs and the API',
+    description:
+      "Building on igni from your own code: the OpenAI-compatible model API, igni-client, igni-service and igni-extension, the TypeScript page packages, and the CLI — with install, authentication and worked examples.",
+    category: 'extending',
+    content: sdksRaw,
   },
   {
     slug: 'building-extensions',

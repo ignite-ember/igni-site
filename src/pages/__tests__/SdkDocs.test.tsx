@@ -11,7 +11,7 @@ import userEvent from '@testing-library/user-event'
 import { cleanup, screen, waitFor, within } from '@testing-library/react'
 import { Route, Routes } from 'react-router-dom'
 import { renderWithProviders } from '../../test/render'
-import { SDK_PACKAGES, SDK_PAGES, loadSdkContent, sdkPagesOf, sdkPath, sdkToc, searchSdk } from '../../docs/sdkManifest'
+import { SDK_PACKAGES, SDK_PAGES, loadSdkContent, sdkLabel, sdkPagesOf, sdkPath, sdkToc, searchSdk } from '../../docs/sdkManifest'
 import { SdkArticlePage } from '../SdkArticlePage'
 import { SdkLandingPage } from '../SdkLandingPage'
 
@@ -44,8 +44,15 @@ function renderAt(route: string) {
 }
 
 describe('the pages igni-sdk generated', () => {
-  test('there are three packages, each with an overview, a guide and a reference', () => {
-    expect(SDK_PACKAGES.map((p) => p.name).sort()).toEqual(['igni-client', 'igni-extension', 'igni-service'])
+  test('there are six packages, each with an overview, a guide and a reference', () => {
+    expect(SDK_PACKAGES.map((p) => p.name).sort()).toEqual([
+      'extension-bridge',
+      'igni-client',
+      'igni-extension',
+      'igni-service',
+      'ui-css',
+      'ui-react',
+    ])
     for (const pkg of SDK_PACKAGES) {
       const pages = sdkPagesOf(pkg.name)
       expect(pages[0].slug, pkg.name).toBe('overview')
@@ -88,13 +95,23 @@ describe('search', () => {
 })
 
 describe('the landing page', () => {
-  test('shows the three packages, what each is for and where it runs', async () => {
+  test('shows the six packages, what each is for and where it runs', async () => {
     renderAt('/docs/sdk')
     for (const pkg of SDK_PACKAGES) {
-      expect(await screen.findByRole('heading', { name: pkg.name })).toBeInTheDocument()
+      expect(await screen.findByRole('heading', { name: sdkLabel(pkg) })).toBeInTheDocument()
     }
-    expect(screen.getAllByText(/Where it runs:/)).toHaveLength(3)
+    expect(screen.getAllByText(/Where it runs:/)).toHaveLength(6)
     expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute('href', '/docs')
+  })
+
+  test('each package says how it is installed and where it lives', async () => {
+    renderAt('/docs/sdk')
+    for (const pkg of SDK_PACKAGES) {
+      const card = (await screen.findByRole('heading', { name: sdkLabel(pkg) })).closest('section')!
+      expect(within(card).getByText(pkg.install), pkg.name).toBeInTheDocument()
+      const registry = within(card).getByRole('link', { name: pkg.registry })
+      expect(registry).toHaveAttribute('href', pkg.registryUrl)
+    }
   })
 
   test('searching lists methods, linked to their section', async () => {

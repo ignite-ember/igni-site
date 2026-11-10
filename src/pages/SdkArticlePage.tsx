@@ -14,7 +14,7 @@ import { rehypeSdkLayout } from '../docs/rehypeSdkLayout'
 import { MobileTableOfContents, TableOfContents } from '../docs/DocToc'
 import { useActiveSectionId } from '../docs/useActiveSectionId'
 import { SdkSidebar, SdkSidebarMobile } from '../docs/SdkSidebar'
-import { SDK_CATEGORY_LABEL, loadSdkContent, sdkPackage, sdkPage, sdkPagesOf, sdkPath, sdkToc } from '../docs/sdkManifest'
+import { SDK_CATEGORY_LABEL, loadSdkContent, sdkLabel, sdkPackage, sdkPage, sdkPagesOf, sdkPath, sdkToc } from '../docs/sdkManifest'
 import './DocsPage.css'
 import './SdkDocs.css'
 
@@ -36,7 +36,7 @@ export function SdkArticlePage() {
   const meta = sdkPackage(pkg)
   const page = sdkPage(pkg, slug)
   useDocumentTitle(
-    page ? `${page.title} — ${page.package} — Docs` : 'SDK documentation',
+    page ? `${page.title} — ${sdkLabel(meta) || page.package} — Docs` : 'SDK documentation',
     page?.description,
   )
 
@@ -100,9 +100,9 @@ export function SdkArticlePage() {
               <Breadcrumbs.Item as={Link} to="/docs">Docs</Breadcrumbs.Item>
               <Breadcrumbs.Item as={Link} to="/docs/sdk">SDK</Breadcrumbs.Item>
               {page.slug === 'overview'
-                ? <Breadcrumbs.Item selected>{meta.name}</Breadcrumbs.Item>
+                ? <Breadcrumbs.Item selected>{sdkLabel(meta)}</Breadcrumbs.Item>
                 : [
-                    <Breadcrumbs.Item key="pkg" as={Link} to={sdkPath(meta.name)}>{meta.name}</Breadcrumbs.Item>,
+                    <Breadcrumbs.Item key="pkg" as={Link} to={sdkPath(meta.name)}>{sdkLabel(meta)}</Breadcrumbs.Item>,
                     <Breadcrumbs.Item key="page" selected>{page.title}</Breadcrumbs.Item>,
                   ]}
             </Breadcrumbs>
@@ -111,11 +111,11 @@ export function SdkArticlePage() {
 
             <div>
               <div className="sdk-article-kicker">
-                <Label variant="accent">{meta.name} {meta.version}</Label>
+                <Label variant="accent">{sdkLabel(meta)} {meta.version}</Label>
                 <Text size="small" className="docs-muted">{SDK_CATEGORY_LABEL[page.category]}</Text>
               </div>
               <Heading as="h1" className="doc-article-title">
-                {page.slug === 'overview' ? meta.name : page.title}
+                {page.slug === 'overview' ? sdkLabel(meta) : page.title}
               </Heading>
               <Text className="docs-muted">{page.description}</Text>
             </div>

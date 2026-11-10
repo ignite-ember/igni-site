@@ -1,25 +1,38 @@
 /**
- * The SDKs' documentation: igni-client, igni-extension and igni-service.
+ * The SDKs' documentation: six published packages, three on PyPI and
+ * three on npm.
  *
  * Not written here. igni-sdk generates every page (`make sdk-docs`: each
  * package README cut at its sections, igni-client's reference from
- * igni-core's RPC contract, the other two's from their code) with an
- * `index.json` that says what each is, and `scripts/sync-sdk-docs.mjs`
- * copies them into `sdk/`. This module reads that index and the pages it
- * names; `/docs/sdk/...` renders them with the same renderer as the rest
- * of the documentation.
+ * igni-core's RPC contract, the other two Python ones' from their code,
+ * the npm ones' from their TypeScript and CSS) with an `index.json` that
+ * says what each is, and `scripts/sync-sdk-docs.mjs` copies them into
+ * `sdk/`. This module reads that index and the pages it names;
+ * `/docs/sdk/...` renders them with the same renderer as the rest of the
+ * documentation.
  *
  * What is written here is what igni-sdk does not say: each package's
  * one-line purpose and where it runs, for the SDK landing page.
  */
 
 export interface SdkPackageMeta {
+  /** How the site routes the package: `/docs/sdk/<name>`. */
   name: string
-  module: string
+  /** The name on the registry. An npm name carries a `/`, a path cannot. */
+  registryName: string
+  /** The registry it is published on: PyPI or npm. */
+  registry: string
+  /** Where it lives on that registry. */
+  registryUrl: string
+  /** The line that installs it, as the registry wants it written. */
+  install: string
+  /** The name to import. */
+  importName: string
   version: string
   description: string
-  pypi: string
   source: string
+  /** PyPI's page, for the Python packages. */
+  pypi?: string
 }
 
 export type SdkCategory = 'guide' | 'reference'
@@ -94,6 +107,24 @@ export const SDK_ROLES: Record<string, { forWhat: string; runsWhere: string }> =
     runsWhere:
       'Once per deployment, in the organisation’s own cloud or data centre.',
   },
+  'extension-bridge': {
+    forWhat:
+      'A page inside igni: the bridge it talks to igni over — connect(), RPC to the extension’s own tools, navigation, and the theme.',
+    runsWhere:
+      'In the browser, in the frame igni gives an extension’s page. The host imports the same protocol, so there is one description of the wire.',
+  },
+  'ui-react': {
+    forWhat:
+      'The React components an extension builds its page from — the shell, the primitives, the tables, the feedback. Everything exported is under the compatibility floor.',
+    runsWhere:
+      'In the browser, in an extension’s page, drawn with `@ignite-ember/ui-css`.',
+  },
+  'ui-css': {
+    forWhat:
+      'The stylesheet an extension bundles: igni’s own classes, and the tokens the host pushes live as the theme changes.',
+    runsWhere:
+      'In the browser, as a stylesheet the extension bundles — a page’s own origin refuses a cross-origin one.',
+  },
 }
 
 export const SDK_CATEGORY_LABEL: Record<SdkCategory, string> = {
@@ -109,6 +140,15 @@ export function sdkPath(pkg: string, slug = 'overview', anchor = ''): string {
 
 export function sdkPackage(name: string | undefined): SdkPackageMeta | undefined {
   return SDK_PACKAGES.find((p) => p.name === name)
+}
+
+/**
+ * The name a reader knows the package by: the one on the registry. An
+ * npm package's is `@ignite-ember/ui-react` — a `/` a path cannot carry,
+ * which is why the site routes it under a slug and calls it by this.
+ */
+export function sdkLabel(pkg: SdkPackageMeta | undefined): string {
+  return pkg?.registryName ?? pkg?.name ?? ''
 }
 
 /** A package's pages in their order: its guide, then its reference. */
@@ -143,7 +183,11 @@ export function searchSdk(query: string, limit = 20): SdkHit[] {
   }
   for (const page of SDK_PAGES) {
     if (page.title.toLowerCase().includes(q) || page.description.toLowerCase().includes(q)) {
-      add({ path: sdkPath(page.package, page.slug), title: page.title, context: page.package })
+      add({
+        path: sdkPath(page.package, page.slug),
+        title: page.title,
+        context: sdkLabel(sdkPackage(page.package)) || page.package,
+      })
     }
   }
   for (const page of SDK_PAGES) {
@@ -152,7 +196,7 @@ export function searchSdk(query: string, limit = 20): SdkHit[] {
         add({
           path: sdkPath(page.package, page.slug, section.id),
           title: section.title,
-          context: `${page.package} · ${page.title}`,
+          context: `${sdkLabel(sdkPackage(page.package)) || page.package} · ${page.title}`,
         })
       }
     }
