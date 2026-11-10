@@ -131,6 +131,11 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
+    <loc>https://ignite-ember.sh/docs/sdks</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
     <loc>https://ignite-ember.sh/docs/building-extensions</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
