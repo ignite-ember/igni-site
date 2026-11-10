@@ -6,6 +6,8 @@ import { DownloadPage } from "./pages/DownloadPage";
 import { DocsPage } from "./pages/DocsPage";
 import { DocArticlePage } from "./pages/DocArticlePage";
 import { AgentCorePage } from "./pages/AgentCorePage";
+import { SdkLandingPage } from "./pages/SdkLandingPage";
+import { SdkArticlePage } from "./pages/SdkArticlePage";
 
 /**
  * The public site — what ignite-ember.sh serves.
@@ -37,6 +39,11 @@ export default function App() {
             <Route path="compare/agentcore" element={<AgentCorePage />} />
             <Route path="docs" element={<DocsPage />} />
             <Route path="docs/:slug" element={<DocArticlePage />} />
+            {/* The SDKs' documentation, generated in igni-sdk and
+            copied into src/docs/sdk/ (scripts/sync-sdk-docs.mjs). */}
+            <Route path="docs/sdk" element={<SdkLandingPage />} />
+            <Route path="docs/sdk/:pkg" element={<SdkArticlePage />} />
+            <Route path="docs/sdk/:pkg/:page" element={<SdkArticlePage />} />
             {/* Unlisted: nothing links here, it is absent from
             the sitemap and disallowed in robots.txt. A
             finished page waiting on the decision to launch

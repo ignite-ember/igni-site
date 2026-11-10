@@ -18,7 +18,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
-import { docSlugs } from './generate-sitemap.mjs'
+import { docSlugs, sdkPaths } from './generate-sitemap.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -30,7 +30,8 @@ export function declaredPaths() {
 
 /**
  * Object names for the copies of index.html: every declared path, with
- * `docs/:slug` expanded to each article. `/` is index.html itself and
+ * `docs/:slug` expanded to each article and the SDK routes to each of
+ * their pages. `/` is index.html itself and
  * `*` matches anything, so neither gets a copy. Any other parameter is
  * an error: this script cannot know its values.
  */
@@ -40,6 +41,11 @@ export function routeObjects() {
     if (p === '*') continue
     if (p === 'docs/:slug') {
       out.push(...docSlugs().map((s) => `docs/${s}`))
+    } else if (p === 'docs/sdk/:pkg' || p === 'docs/sdk/:pkg/:page') {
+      // The SDK pages, from igni-sdk's index: `docs/sdk/<package>` for
+      // each overview, `docs/sdk/<package>/<page>` for the rest.
+      const depth = p.split('/').length
+      out.push(...sdkPaths().filter((s) => s.split('/').length === depth))
     } else if (p.includes(':') || p.includes('*')) {
       throw new Error(`site-routes: no way to list the values of "${p}"; teach scripts/site-routes.mjs`)
     } else {

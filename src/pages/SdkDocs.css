@@ -1,0 +1,350 @@
+/* ── The SDK documentation ──
+ * Its pages are the documentation's articles (DocsPage.css) with a third
+ * column: the package's pages on the left. Breakpoints are in rem — a
+ * `@media` condition cannot read a custom property — at the docs' own
+ * 900px (56.25rem) and 640px (40rem), plus 75rem, below which the table
+ * of contents moves above the article to leave the article its width. */
+
+.sdk-wrapper {
+  max-width: 90rem;
+}
+
+.sdk-layout {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr) 14rem;
+  gap: var(--base-size-32);
+  align-items: start;
+}
+
+/* ── The package's pages, left ── */
+.sdk-sidebar {
+  position: sticky;
+  top: var(--base-size-16);
+  max-height: calc(100vh - var(--base-size-48));
+  overflow-y: auto;
+  font-size: var(--text-body-size-medium);
+}
+
+.sdk-sidebar-package {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  padding: var(--base-size-8);
+  font-weight: 600;
+  color: var(--fgColor-default);
+  text-decoration: none;
+}
+
+.sdk-sidebar-package:hover {
+  color: var(--fgColor-accent);
+}
+
+.sdk-sidebar-mobile {
+  display: none;
+}
+
+.sdk-article-kicker {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  margin-bottom: var(--base-size-8);
+}
+
+/* A method's name is one long word: it may break anywhere rather than
+   push the page sideways. */
+.sdk-article-body h2,
+.sdk-article-body h3 {
+  overflow-wrap: anywhere;
+  scroll-margin-top: var(--base-size-16);
+}
+
+/* ── Landing: the three packages ── */
+.sdk-packages {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: var(--base-size-12);
+}
+
+.sdk-package-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--base-size-8);
+  padding: var(--base-size-16);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium);
+}
+
+.sdk-package-card p {
+  margin: 0;
+}
+
+.sdk-package-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--base-size-8);
+}
+
+.sdk-package-title {
+  display: flex;
+  align-items: center;
+  gap: var(--base-size-8);
+  font-size: var(--text-title-size-small) !important;
+}
+
+.sdk-package-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--base-size-4) var(--base-size-16);
+  margin-top: auto;
+}
+
+.sdk-package-link,
+.sdk-hit {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-4);
+  min-height: var(--base-size-44);
+  color: var(--fgColor-accent);
+  text-decoration: none;
+}
+
+.sdk-package-link:hover .sdk-hit-title,
+.sdk-package-link:hover,
+.sdk-hit:hover .sdk-hit-title {
+  text-decoration: underline;
+}
+
+/* ── Landing: search results ── */
+.sdk-hits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: var(--borderWidth-thin) solid var(--borderColor-muted);
+}
+
+.sdk-hits li {
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted);
+}
+
+.sdk-hit {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--base-size-12);
+  padding: var(--base-size-8) 0;
+}
+
+.sdk-hit-title {
+  font-family: var(--fontStack-monospace);
+  font-size: var(--text-body-size-medium);
+  overflow-wrap: anywhere;
+}
+
+.sdk-hit-context {
+  font-size: var(--text-body-size-small);
+}
+
+/* ── The /docs index: the SDK section ── */
+.docs-sdk-title {
+  font-size: var(--text-title-size-small) !important;
+}
+
+/* ── Below 75rem: the table of contents above the article ── */
+@media (max-width: 75rem) {
+  .sdk-layout {
+    grid-template-columns: 14rem minmax(0, 1fr);
+  }
+
+  .sdk-layout .doc-toc {
+    display: none;
+  }
+
+  .sdk-layout .doc-toc-mobile {
+    display: block;
+    border: var(--borderWidth-thin) solid var(--borderColor-default);
+    border-radius: var(--borderRadius-medium);
+  }
+
+  .sdk-layout .doc-toc-mobile summary {
+    display: flex;
+    align-items: center;
+    gap: var(--base-size-8);
+    min-height: var(--base-size-44);
+    padding: 0 var(--base-size-12);
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--fgColor-muted);
+  }
+
+  .sdk-layout .doc-toc-mobile ol {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 var(--base-size-6);
+    border-top: var(--borderWidth-thin) solid var(--borderColor-muted);
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .sdk-layout .doc-toc-mobile a {
+    display: flex;
+    align-items: center;
+    min-height: var(--base-size-44);
+    padding: 0 var(--base-size-12);
+    color: var(--fgColor-default);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* ── Below 56.25rem: one column; the package's pages collapse above ── */
+@media (max-width: 56.25rem) {
+  .sdk-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sdk-sidebar {
+    display: none;
+  }
+
+  .sdk-sidebar-mobile {
+    display: block;
+    border: var(--borderWidth-thin) solid var(--borderColor-default);
+    border-radius: var(--borderRadius-medium);
+  }
+
+  .sdk-sidebar-mobile summary {
+    display: flex;
+    align-items: center;
+    gap: var(--base-size-8);
+    min-height: var(--base-size-44);
+    padding: 0 var(--base-size-12);
+    cursor: pointer;
+    list-style: none;
+    font-weight: 600;
+  }
+
+  .sdk-sidebar-mobile summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .sdk-sidebar-mobile-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sdk-sidebar-mobile nav,
+  .sdk-sidebar-mobile ul {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .sdk-sidebar-mobile a {
+    min-height: var(--base-size-44);
+  }
+}
+
+/* ── Code: a line at a time (rehypeSdkLayout) ──
+ * Each line is a block that knows its indentation (`--indent`), so that
+ * where a line has to wrap, its continuation hangs four columns in from
+ * the line's own indentation. */
+.sdk-article-body .code-line {
+  display: block;
+}
+
+/* Column labels exist for the cards below; a table has its header. */
+.sdk-cell-label {
+  display: none;
+}
+
+/* ── Below 48rem, the docs' table breakpoint: tables become cards ──
+ * Each row a card, each cell labelled with its column, nothing off the
+ * screen and nothing to scroll sideways. The header row stays for
+ * screen readers (the roles rehypeSdkLayout adds keep it a table to
+ * them) and is hidden from view; the visible labels are hidden from them. */
+@media (max-width: 48rem) {
+  .doc-article-body.sdk-article-body table {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    overflow: visible;
+    border: 0;
+    background: none;
+    font-size: var(--text-body-size-medium);
+  }
+
+  .sdk-article-body thead {
+    position: absolute;
+    width: 0.0625rem;
+    height: 0.0625rem;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .sdk-article-body tbody,
+  .sdk-article-body tr {
+    display: block;
+  }
+
+  .sdk-article-body tr {
+    margin: 0 0 var(--base-size-8);
+    padding: var(--base-size-8) var(--base-size-12);
+    border: var(--borderWidth-thin) solid var(--borderColor-default);
+    border-radius: var(--borderRadius-medium);
+  }
+
+  /* The label in a column of its own at the cell's left, the value
+     beside it: a card as short as its content. */
+  .doc-article-body.sdk-article-body td {
+    position: relative;
+    display: block;
+    min-width: 0;
+    max-width: none;
+    min-height: var(--base-size-24);
+    padding: var(--base-size-4) 0 var(--base-size-4) 6.5rem;
+    border: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .doc-article-body.sdk-article-body td.sdk-cell-empty {
+    display: none;
+  }
+
+  .doc-article-body.sdk-article-body td code {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .sdk-cell-label {
+    position: absolute;
+    top: var(--base-size-4);
+    left: 0;
+    width: 6rem;
+    display: block;
+    overflow-wrap: anywhere;
+    line-height: 1.7;
+    font-size: var(--text-body-size-small);
+    font-weight: 600;
+    color: var(--fgColor-muted);
+  }
+
+  /* Code wraps instead of scrolling; a continuation hangs under its line. */
+  .doc-article-body.sdk-article-body pre,
+  .doc-article-body.sdk-article-body pre code {
+    white-space: pre-wrap;
+    overflow-x: visible;
+    overflow-wrap: anywhere;
+    max-width: none;
+  }
+
+  .sdk-article-body .code-line {
+    padding-left: calc(var(--indent, 0ch) + 4ch);
+    text-indent: calc(-1 * (var(--indent, 0ch) + 4ch));
+  }
+}
+
+.sdk-card-title {
+  font-size: var(--text-body-size-medium) !important;
+}

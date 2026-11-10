@@ -35,6 +35,21 @@ export function docSlugs() {
   return [...src.matchAll(/^\s*slug: '([a-z0-9-]+)',$/gm)].map((m) => m[1])
 }
 
+/**
+ * The SDK documentation's paths, from the index igni-sdk generates
+ * (copied into `src/docs/sdk/` by `scripts/sync-sdk-docs.mjs`): the
+ * landing page, each package (its overview) and each other page.
+ */
+export function sdkPaths() {
+  const index = JSON.parse(readFileSync(join(ROOT, 'src/docs/sdk/index.json'), 'utf8'))
+  return [
+    'docs/sdk',
+    ...index.pages.map((p) =>
+      p.slug === 'overview' ? `docs/sdk/${p.package}` : `docs/sdk/${p.package}/${p.slug}`,
+    ),
+  ]
+}
+
 export function buildSitemap() {
   const entries = [
     { loc: '/', priority: '1.0', changefreq: 'weekly' },
@@ -50,6 +65,12 @@ export function buildSitemap() {
     ...docSlugs().map((slug) => ({
       loc: `/docs/${slug}`,
       priority: '0.8',
+      changefreq: 'monthly',
+    })),
+    // The SDK documentation (src/pages/SdkLandingPage.tsx, SdkArticlePage.tsx).
+    ...sdkPaths().map((path) => ({
+      loc: `/${path}`,
+      priority: path === 'docs/sdk' ? '0.9' : '0.7',
       changefreq: 'monthly',
     })),
   ]
@@ -76,5 +97,5 @@ export function buildSitemap() {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const out = join(ROOT, 'public/sitemap.xml')
   writeFileSync(out, buildSitemap())
-  console.log(`wrote ${out} — ${docSlugs().length} articles`)
+  console.log(`wrote ${out} — ${docSlugs().length} articles, ${sdkPaths().length} SDK pages`)
 }

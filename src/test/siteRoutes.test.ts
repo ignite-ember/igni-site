@@ -15,6 +15,7 @@ import { describe, expect, it } from 'vitest'
 import App from '../App'
 import { DOCS } from '../docs/docsManifest'
 import { routeObjects } from '../../scripts/site-routes.mjs'
+import { SDK_PAGES } from '../docs/sdkManifest'
 
 /** Every `<Route>` in the element tree App returns, by its `path`. */
 function routePaths(node: ReactNode, out: string[] = []): string[] {
@@ -35,7 +36,7 @@ describe('the route copies the deploy uploads', () => {
     expect(paths.length).toBeGreaterThanOrEqual(10)
     for (const p of paths) {
       if (p === '*') continue
-      if (p === 'docs/:slug') continue // expanded below
+      if (p === 'docs/:slug' || p.startsWith('docs/sdk/:')) continue // expanded below
       expect(objects, p).toContain(p)
     }
   })
@@ -43,6 +44,15 @@ describe('the route copies the deploy uploads', () => {
   it('cover every article in the docs manifest', () => {
     expect(DOCS.length).toBeGreaterThanOrEqual(13)
     for (const d of DOCS) expect(objects, d.slug).toContain(`docs/${d.slug}`)
+  })
+
+  it('cover every SDK page', () => {
+    expect(SDK_PAGES.length).toBeGreaterThan(30)
+    expect(objects).toContain('docs/sdk')
+    for (const p of SDK_PAGES) {
+      const path = p.slug === 'overview' ? `docs/sdk/${p.package}` : `docs/sdk/${p.package}/${p.slug}`
+      expect(objects, path).toContain(path)
+    }
   })
 
   it('cover every page in the sitemap', () => {

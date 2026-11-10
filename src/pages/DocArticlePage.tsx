@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useState, useEffect, useRef } from 'react'
+import { useMemo } from 'react'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
@@ -16,96 +16,17 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
   BookIcon,
-  ListUnorderedIcon,
 } from '@primer/octicons-react'
 import { Blankslate } from '@primer/react/experimental'
 import { DOCS, extractSections } from '../docs/docsManifest'
 import { markdownComponents } from '../docs/markdownComponents'
+import { MobileTableOfContents, TableOfContents } from '../docs/DocToc'
+import { useActiveSectionId } from '../docs/useActiveSectionId'
 import './DocsPage.css'
 
 /** Strip the H1 title line from markdown content. */
 function stripH1(content: string): string {
   return content.replace(/^# .+\n?/, '')
-}
-
-/** Track which H2 section is currently visible. */
-function useActiveSectionId(sectionIds: string[]): string | null {
-  const [activeId, setActiveId] = useState<string | null>(null)
-  const observerRef = useRef<IntersectionObserver | null>(null)
-
-  useEffect(() => {
-    if (sectionIds.length === 0) return
-
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id)
-            break
-          }
-        }
-      },
-      { rootMargin: '0px 0px -70% 0px', threshold: 0 },
-    )
-
-    for (const id of sectionIds) {
-      const el = document.getElementById(id)
-      if (el) observerRef.current.observe(el)
-    }
-
-    return () => observerRef.current?.disconnect()
-  }, [sectionIds])
-
-  return activeId
-}
-
-/** The same list for screens too narrow for the right-hand column. */
-function MobileTableOfContents({ sections }: { sections: { id: string; title: string }[] }) {
-  const ref = useRef<HTMLDetailsElement>(null)
-  const scrollTo = useCallback((id: string) => {
-    if (ref.current) ref.current.open = false
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, [])
-
-  return (
-    <details className="doc-toc-mobile" ref={ref}>
-      <summary><ListUnorderedIcon size={14} /> On this page</summary>
-      <ol>
-        {sections.map((s) => (
-          <li key={s.id}>
-            <a href={`#${s.id}`} onClick={(e) => { e.preventDefault(); scrollTo(s.id) }}>{s.title}</a>
-          </li>
-        ))}
-      </ol>
-    </details>
-  )
-}
-
-function TableOfContents({ sections, activeSectionId }: { sections: { id: string; title: string }[]; activeSectionId: string | null }) {
-  const scrollTo = useCallback((id: string) => {
-    const el = document.getElementById(id)
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, [])
-
-  return (
-    <nav className="doc-toc">
-      <Stack gap="none">
-        <Text size="small" weight="semibold" className="doc-toc-heading">
-          <ListUnorderedIcon size={12} /> On this page
-        </Text>
-        {sections.map((s) => (
-          <a
-            key={s.id}
-            className={`doc-toc-link ${activeSectionId === s.id ? 'doc-toc-link-active' : ''}`}
-            href={`#${s.id}`}
-            onClick={(e) => { e.preventDefault(); scrollTo(s.id) }}
-          >
-            {s.title}
-          </a>
-        ))}
-      </Stack>
-    </nav>
-  )
 }
 
 export function DocArticlePage() {
