@@ -17,7 +17,7 @@ import {
 } from '@primer/octicons-react'
 import { Blankslate } from '@primer/react/experimental'
 import { DOCS, CATEGORY_META, CATEGORY_ORDER } from '../docs/docsManifest'
-import { SDK_PACKAGES, SDK_ROLES, sdkPath, searchSdk } from '../docs/sdkManifest'
+import { SDK_PACKAGES, SDK_ROLES, sdkLabel, sdkPath, searchSdk } from '../docs/sdkManifest'
 import './DocsPage.css'
 import './SdkDocs.css'
 
@@ -77,7 +77,7 @@ function SdkSection({ query, hits }: { query: string; hits: ReturnType<typeof se
             <DocCard
               key={pkg.name}
               slug={sdkPath(pkg.name).replace(/^\/docs\//, '')}
-              title={pkg.name}
+              title={sdkLabel(pkg)}
               description={SDK_ROLES[pkg.name]?.forWhat ?? pkg.description}
               titleClass="sdk-card-title"
             />

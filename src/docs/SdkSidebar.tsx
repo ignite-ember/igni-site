@@ -11,6 +11,8 @@ import { PackageIcon } from '@primer/octicons-react'
 import {
   SDK_CATEGORY_LABEL,
   SDK_PACKAGES,
+  sdkLabel,
+  sdkPackage,
   sdkPagesOf,
   sdkPath,
   type SdkCategory,
@@ -20,7 +22,7 @@ function PageList({ pkg, current }: { pkg: string; current: string }) {
   const pages = sdkPagesOf(pkg)
   const categories: SdkCategory[] = ['guide', 'reference']
   return (
-    <NavList aria-label={`${pkg} pages`}>
+    <NavList aria-label={`${sdkLabel(sdkPackage(pkg))} pages`}>
       {categories.map((category) => {
         const inCategory = pages.filter((p) => p.category === category)
         if (inCategory.length === 0) return null
@@ -43,7 +45,7 @@ function PageList({ pkg, current }: { pkg: string; current: string }) {
         {SDK_PACKAGES.filter((p) => p.name !== pkg).map((p) => (
           <NavList.Item key={p.name} as={Link} to={sdkPath(p.name)}>
             <NavList.LeadingVisual><PackageIcon /></NavList.LeadingVisual>
-            {p.name}
+            {sdkLabel(p)}
           </NavList.Item>
         ))}
       </NavList.Group>
@@ -54,9 +56,9 @@ function PageList({ pkg, current }: { pkg: string; current: string }) {
 /** The column beside the article, on wide screens. */
 export function SdkSidebar({ pkg, current }: { pkg: string; current: string }) {
   return (
-    <nav className="sdk-sidebar" aria-label={`${pkg} documentation`}>
+    <nav className="sdk-sidebar" aria-label={`${sdkLabel(sdkPackage(pkg))} documentation`}>
       <Link className="sdk-sidebar-package" to={sdkPath(pkg)}>
-        <PackageIcon size={16} /> {pkg}
+        <PackageIcon size={16} /> {sdkLabel(sdkPackage(pkg))}
       </Link>
       <PageList pkg={pkg} current={current} />
     </nav>
@@ -76,7 +78,7 @@ export function SdkSidebarMobile({ pkg, current, title }: { pkg: string; current
       <summary>
         <PackageIcon size={14} />
         <span className="sdk-sidebar-mobile-label">
-          {pkg} <span className="docs-muted">· {title}</span>
+          {sdkLabel(sdkPackage(pkg))} <span className="docs-muted">· {title}</span>
         </span>
       </summary>
       <PageList pkg={pkg} current={current} />

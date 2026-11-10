@@ -65,6 +65,12 @@ describe('the committed sitemap', () => {
     expect(COMMITTED).toContain(`<loc>${ORIGIN}/docs/sdk/igni-client/scheduler</loc>`)
   })
 
+  it('lists the npm packages\u2019 pages too', () => {
+    expect(COMMITTED).toContain(`<loc>${ORIGIN}/docs/sdk/extension-bridge</loc>`)
+    expect(COMMITTED).toContain(`<loc>${ORIGIN}/docs/sdk/ui-react</loc>`)
+    expect(COMMITTED).toContain(`<loc>${ORIGIN}/docs/sdk/ui-css</loc>`)
+  })
+
   it('lists the AgentCore comparison', () => {
     expect(COMMITTED).toContain(`<loc>${ORIGIN}/compare/agentcore</loc>`)
   })

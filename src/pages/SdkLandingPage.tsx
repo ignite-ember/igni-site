@@ -5,19 +5,19 @@ import { ArrowRightIcon, PackageIcon, SearchIcon } from '@primer/octicons-react'
 import { Blankslate } from '@primer/react/experimental'
 
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
-import { SDK_PACKAGES, SDK_ROLES, sdkPagesOf, sdkPath, searchSdk } from '../docs/sdkManifest'
+import { SDK_PACKAGES, SDK_ROLES, sdkLabel, sdkPagesOf, sdkPath, searchSdk } from '../docs/sdkManifest'
 import './DocsPage.css'
 import './SdkDocs.css'
 
 /**
- * `/docs/sdk`: the three Python SDKs, what each is for and where it
- * runs, and a search over every page of all three — down to a single
- * method or model.
+ * `/docs/sdk`: the six published SDKs — three on PyPI, three on npm —
+ * what each is for and where it runs, and a search over every page of
+ * all six — down to a single method or model.
  */
 export function SdkLandingPage() {
   useDocumentTitle(
     'SDK documentation',
-    'igni-client, igni-extension and igni-service: guides and the complete API reference of the Python SDKs.',
+    'igni-client, igni-extension, igni-service, extension-bridge, ui-react and ui-css: guides and the complete API reference of all six.',
   )
   const [query, setQuery] = useState('')
   const hits = useMemo(() => searchSdk(query, 30), [query])
@@ -38,8 +38,8 @@ export function SdkLandingPage() {
             </PageHeader.TitleArea>
             <PageHeader.Description>
               <Text size="medium">
-                Three Python packages, on PyPI, released together. Every method, model and event
-                has its own entry, generated from the SDKs and igni’s contract.
+                Six packages, released together: three on PyPI, three on npm. Every method, model,
+                event and component has its own entry, generated from the SDKs and igni’s contract.
               </Text>
             </PageHeader.Description>
           </PageHeader>
@@ -82,7 +82,7 @@ export function SdkLandingPage() {
                 <section key={pkg.name} className="sdk-package-card" aria-labelledby={`sdk-${pkg.name}`}>
                   <div className="sdk-package-head">
                     <Heading as="h2" id={`sdk-${pkg.name}`} className="sdk-package-title">
-                      <PackageIcon size={16} /> {pkg.name}
+                      <PackageIcon size={16} /> {sdkLabel(pkg)}
                     </Heading>
                     <Label>{pkg.version}</Label>
                   </div>
@@ -93,7 +93,20 @@ export function SdkLandingPage() {
                     </Text>
                   )}
                   <Text as="p" size="small" className="docs-muted">
-                    <code>pip install {pkg.name}</code> · <code>import {pkg.module}</code>
+                    <code>{pkg.install}</code> ·{' '}
+                    <code>
+                      {pkg.registry === 'PyPI' ? `import ${pkg.importName}` : `from "${pkg.importName}"`}
+                    </code>
+                  </Text>
+                  <Text as="p" size="small" className="docs-muted">
+                    On{' '}
+                    <a href={pkg.registryUrl} target="_blank" rel="noopener noreferrer">
+                      {pkg.registry}
+                    </a>{' '}
+                    ·{' '}
+                    <a href={pkg.source} target="_blank" rel="noopener noreferrer">
+                      source
+                    </a>
                   </Text>
                   <div className="sdk-package-links">
                     <Link to={sdkPath(pkg.name)} className="sdk-package-link">
