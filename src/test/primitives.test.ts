@@ -73,7 +73,11 @@ const CEILINGS: Record<string, number> = {
   'pages/LandingPage.css': 821,
   // +3 on 2026-11-03: breakpoints for the stacked prev/next, the
   // narrow-screen table of contents and the phone pass.
-  'pages/DocsPage.css': 100,
+  // −12 on 2026-11-11: the code palette is Primer's functional roles
+  // (--fgColor-*), so the syntax colours follow the page's theme
+  // instead of being written out twice — once for the dark theme and
+  // once for the system.
+  'pages/DocsPage.css': 88,
   // Geometry inside a `viewBox`, which is not CSS pixels. A
   // `font-size` on SVG text is a length in *user units* that scales
   // with the drawing, so a text-size token there would size a label
