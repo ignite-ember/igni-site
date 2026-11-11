@@ -7,9 +7,41 @@
  * every factual claim. 953 claims were checked; 20 were wrong and
  * were corrected, and 1 could not be proved and was cut.
  *
- * These describe the release after **1.0.3**. 1.0.3 is what is on PyPI
- * today and predates the rename, so it reads `~/.ember`; the install
- * guide says so in a note rather than waiting for the release.
+ * Four articles were added afterwards — the glossary, the
+ * troubleshooting index, the first-session walkthrough and the
+ * changelog — and the whole set was then checked against the source
+ * again. That pass found 15 further errors across seven articles and
+ * every one was corrected: the sign-in timeout, the provider list, a
+ * fifth team mode that does not exist, the `igni` command's old name,
+ * the `ignite-ember` alias before 1.0.4, the Homebrew formula's
+ * command, the SDK tag, the desktop app's cache directory, and the
+ * audit trail's rule.
+ *
+ * A third pass put an adversarial reader on each of the four new
+ * articles on its own, with the source it names and no other brief.
+ * Fourteen errors came back and every one was corrected: the image
+ * tags the release workflow actually pushes, the SDK packages'
+ * release-note headings, a package that is not on PyPI yet described
+ * as published, the Anthropic and Gemini SDKs being dependencies
+ * rather than extras, an exit code of 1 that always comes with a
+ * message, `--verbose` printing nothing in the terminal, the group
+ * pack arriving only on a browser sign-in, the built-in skills being
+ * written whatever the group ships, and the first run's file list.
+ *
+ * A fourth pass audited the glossary against the source, term by
+ * term. Six errors came back and every one was corrected: a skill is
+ * not only shipped and a command is not only yours, a hook's answers
+ * are `allow`/`deny`/`ask`/`defer` and `Allow`/`Reject`/`Modify`
+ * belong to the extension SDK, the word "pool" is alive in 0.7.0's
+ * own code, "model profile" is a **VM profile** or nothing, `models:`
+ * in the server's backends file holds model ids, and the Factory is
+ * a name a licence carries.
+ *
+ * These describe the release after **1.0.3** — igni-core 1.0.4 and igni
+ * server 0.7.0. 1.0.3 is what is on PyPI today and predates the rename,
+ * so it reads `~/.ember`; the install guide says so in a note rather than
+ * waiting for the release, and "Changes and upgrades" has the whole
+ * version story.
  *
  * Revised on 2026-10-30 against the code: IDE plugins dropped,
  * CodeIndex and Artifacts moved into extensions, the licence, the
@@ -43,6 +75,10 @@ import codeindexRaw from './content/CODEINDEX.md?raw'
 import fleetRaw from './content/FLEET.md?raw'
 import buildingExtensionsRaw from './content/BUILDING_EXTENSIONS.md?raw'
 import sdksRaw from './content/SDKS.md?raw'
+import yourFirstSessionRaw from './content/FIRST_SESSION.md?raw'
+import glossaryRaw from './content/GLOSSARY.md?raw'
+import changesAndUpgradesRaw from './content/CHANGES_AND_UPGRADES.md?raw'
+import troubleshootingRaw from './content/TROUBLESHOOTING.md?raw'
 
 export interface DocArticle {
   slug: string
@@ -110,6 +146,13 @@ export const DOCS: DocArticle[] = [
     content: installingIgniRaw,
   },
   {
+    slug: 'your-first-session',
+    title: "Your first session",
+    description: "One run, from an empty terminal to a finished task: installing it, signing in, saying what it may do, and where to go next.",
+    category: 'getting-started',
+    content: yourFirstSessionRaw,
+  },
+  {
     slug: 'models-and-the-factory',
     title: "Models and the Factory",
     description: "igni's own models, serving them and their LoRA adapters on your GPUs, how a model is chosen, and what the Factory is.",
@@ -132,8 +175,8 @@ export const DOCS: DocArticle[] = [
   },
   {
     slug: 'inference-backends',
-    title: "Connecting your GPUs: inference backends and pools",
-    description: "How the server routes chat and indexing work to the inference nodes you own, and how capacity is shared between them.",
+    title: "Connecting your GPUs: inference backends",
+    description: "How the server routes chat over the inference nodes you own, and how capacity is shared between them.",
     category: 'operations',
     content: inferenceBackendsRaw,
   },
@@ -166,11 +209,32 @@ export const DOCS: DocArticle[] = [
     content: offlineUpdatesRaw,
   },
   {
+    slug: 'changes-and-upgrades',
+    title: "Changes and upgrades",
+    description: "The four products and their versions, what changed at each of the recent boundaries, and what you have to change when you cross one.",
+    category: 'operations',
+    content: changesAndUpgradesRaw,
+  },
+  {
+    slug: 'troubleshooting',
+    title: "Troubleshooting",
+    description: "The errors igni actually prints, what each one means, and what to do about it.",
+    category: 'operations',
+    content: troubleshootingRaw,
+  },
+  {
     slug: 'configuration-and-precedence',
     title: "Configuration: files, precedence and where igni loads things from",
     description: "The settings files igni reads, the order they win in, and the same tiering applied to agents, skills, commands and plugins.",
     category: 'core-concepts',
     content: configurationAndPrecedenceRaw,
+  },
+  {
+    slug: 'glossary',
+    title: "Glossary",
+    description: "Every term igni uses, and what it means here. Where a word means more than one thing, the entry says which sense is meant.",
+    category: 'core-concepts',
+    content: glossaryRaw,
   },
   {
     slug: 'project-context-and-memory',
@@ -203,7 +267,7 @@ export const DOCS: DocArticle[] = [
   {
     slug: 'tools-mcp-and-language-servers',
     title: "Tools, MCP servers and language servers",
-    description: "The nine built-in tools, why there is no Read or Grep, how to add your own, and how to attach MCP servers.",
+    description: "The eight built-in tools, why there is no Read or Grep, how to add your own, and how to attach MCP servers.",
     category: 'features',
     content: toolsMcpAndLanguageServersRaw,
   },

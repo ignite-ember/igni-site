@@ -14,7 +14,7 @@ So, as that first account: create your company's organisation under **Deployment
 kubectl -n igni logs deploy/igni-api | grep 'EMAIL DISABLED'
 ```
 
-`SUPER_ADMIN_PASSWORD_HASH` is break-glass — a bcrypt hash you set, presented as `X-Super-Admin-Key`. It reaches the deployment-wide settings under `/v1/admin` when nobody can sign in, typically because the identity provider is the thing that needs fixing. It makes nobody a super admin, and it is not required for normal operation.
+`SUPER_ADMIN_PASSWORD_HASH` is break-glass — a bcrypt hash you set, presented as `X-Super-Admin-Key`. It reaches the deployment-wide settings under `/v1/portal` when nobody can sign in, typically because the identity provider is the thing that needs fixing: the registered clients (`/v1/portal/clients`, with their approve, revoke and held-update routes) and the extension priority order (`/v1/portal/extension-priority`). It does not reach the super-admin list (`/v1/portal/super-admins`) or the organisation list (`/v1/portal/deployment/organizations`); those need a signed-in super admin, as do the deployment notices (`/v1/portal/deployment/notices`). It makes nobody a super admin, and it is not required for normal operation.
 
 ## Accounts, organisations and roles
 
@@ -113,7 +113,7 @@ A group is how an organisation ships working material to its people. Each person
 
 The format is not a choice — igni's loaders honour exactly one per kind. **Four of these ship executable code**: a workflow is JavaScript run in Node, a tool is Python imported into the session's own process, a hook is a command run on tool use, and a script is a shell file a hook invokes. Whoever can edit a group can run code on every machine in it. (LSP servers, monitors and knowledge are deliberately not group kinds.)
 
-Every organisation gets one group flagged `is_default`, seeded lazily with what igni ships: 11 agents, 6 skills, 2 shell scripts and the 2 hooks (`pre-pr-review`, `post-commit-todo`) — 21 entries. It is **read-only**: editing it answers 409 telling you to copy it. Copying is the intended workflow — **Copy group** on any group's page (`POST /v1/portal/groups/{id}/copy` with a `name`) makes a new group holding its entries, its extensions and its settings, with nobody in it; `POST /v1/portal/groups` also takes `template_group_id`. So "the standard set, minus the coding agents" is two steps.
+Every organisation gets one group flagged `is_default`, seeded lazily with what igni ships: 11 agents, 5 skills, 2 shell scripts and the 2 hooks (`pre-pr-review`, `post-commit-todo`) — 20 entries. It is **read-only**: editing it answers 409 telling you to copy it. Copying is the intended workflow — **Copy group** on any group's page (`POST /v1/portal/groups/{id}/copy` with a `name`) makes a new group holding its entries, its extensions and its settings, with nobody in it; `POST /v1/portal/groups` also takes `template_group_id`. So "the standard set, minus the coding agents" is two steps.
 
 ```bash
 curl -X POST https://igni.example.com/v1/portal/groups \
@@ -123,7 +123,7 @@ curl -X POST https://igni.example.com/v1/portal/groups \
        "default_model": "platform-review-lora"}'
 ```
 
-A group's `default_model` — usually a LoRA adapter — and an agent entry's own `model` are checked against the chat pool on write: a name no node serves is a **409 listing what is served**, rather than a failure that lands on whoever uses the group later. Resolution falls back agent entry → group default → deployment default. A group may also carry a `theme` (hex `accent`, `danger`, `success`, a `brand_name` up to 40 characters, and a `brand_mark` as a base64 `data:` URI under 64 KB — not a URL, because the desktop client's CSP allows `img-src` from `data:` only).
+A group's `default_model` — usually a LoRA adapter — and an agent entry's own `model` are checked against the nodes on write: a name no node serves is a **409 listing what is served**, rather than a failure that lands on whoever uses the group later. Resolution falls back agent entry → group default → deployment default. A group may also carry a `theme` (hex `accent`, `danger`, `success`, a `brand_name` up to 40 characters, and a `brand_mark` as a base64 `data:` URI under 64 KB — not a URL, because the desktop client's CSP allows `img-src` from `data:` only).
 
 Entry content is capped at 256 KB and the entry name must be a plain filename (letters, digits, dot, underscore, hyphen) — the client turns it into a path on every developer's machine.
 
@@ -248,7 +248,7 @@ If you publish nothing, the client falls back to asking for the server address a
 
 The builds are on each release at [ignite-ember/igni-app](https://github.com/ignite-ember/igni-app/releases). The macOS build is signed with a Developer ID, notarised, and updates itself. The Windows and Linux builds have no OS code signing — Windows shows a SmartScreen "unknown publisher" prompt on first launch — and do not update themselves, so those installs stay on the version they were installed at until somebody installs the next release.
 
-**2. It installs its own backend, on first launch.** The app downloads `uv`, uses it to provision a pinned CPython 3.12, creates a managed virtualenv, installs `ignite-ember` at the version the app was built against, and downloads igni's decision model. Everything lands in a per-user cache — `~/Library/Caches/ember-code` on macOS, `%LOCALAPPDATA%\ember-code` on Windows, `$XDG_CACHE_HOME/ember-code` on Linux — so later launches skip straight to starting the backend.
+**2. It installs its own backend, on first launch.** The app downloads `uv`, uses it to provision a pinned CPython 3.12, creates a managed virtualenv, installs `igni-core` at the version the app was built against, and downloads igni's decision model. Everything lands in a per-user cache — `~/Library/Caches/igni` on macOS, `%LOCALAPPDATA%\igni` on Windows, `$XDG_CACHE_HOME/igni` on Linux — so later launches skip straight to starting the backend.
 
 Two things to put in the onboarding ticket: it checks for at least **1 GB free** before it starts, and the decision model it then downloads is about 1.7 GB on top; and it needs **network access on first run**. If your developers cannot reach the internet at all, provision the backend yourself and point the app at it with `runtime_python` — see [Installing igni](/docs/installing-igni).
 
@@ -256,13 +256,13 @@ Two things to put in the onboarding ticket: it checks for at least **1 GB free**
 
 A developer who is not an active member of the organisation they pick is refused at that step, which is the normal result of installing before you have invited them.
 
-Then two things arrive without being asked for: model discovery registers whatever your pool serves, and the group pack lands on disk — so the agents, skills and hooks you decided on are simply there.
+Then two things arrive without being asked for: model discovery registers whatever your nodes serve, and the group pack lands on disk — so the agents, skills and hooks you decided on are simply there.
 
 **Assign the group whenever suits you.** A developer who starts igni before you have assigned them is in Default until you move them; moving them later just works, and their next sync picks up the new group.
 
 ### The CLI, for the cases that are not a person
 
-`pip install ignite-ember` (Python 3.12) gives you `igni`, and it is the right thing for CI, a pre-commit hook or a scripted batch job.
+`pip install igni-core` (Python 3.12) gives you `igni`, and it is the right thing for CI, a pre-commit hook or a scripted batch job. `ignite-ember` is the package's old name: it is still installable, and each release of it installs `igni-core` of the same version with the same extras.
 
 **There is no headless way to sign in.** `/login` opens a browser, and the credential it writes — `~/.igni/credentials.json`, mode `0600` — is the only thing that authenticates. No environment variable supplies a token and there are no machine accounts or API keys. So a CI install is credentialled by signing in once on a machine that has a browser and copying that file across, and the token expires after 30 days, which makes that a recurring errand rather than a setup step. Plan for it, or keep CI to the parts that need no server. It is a single command with three non-interactive modes — `-m` for one message, `-p` for stdin → stdout, `-c -m` to resume the last session — and it is not how anybody should be told to start.
 
@@ -279,7 +279,11 @@ Four admin-only routes, behind the portal's Compliance page — the one sidebar 
 
 Both reach every approved service as well as this server. An erasure that a service does not confirm answers 502 naming it, and is safe to run again; the answer lists the services that confirmed. A subject-access export that a service does not answer comes back marked `truncated`.
 
-The trail records every `POST`, `PUT`, `PATCH` and `DELETE` under `/v1/portal`, `/v1/admin`, `/v1/directory`, `/v1/service-notifications` and `/v1/nodes`, plus the auth paths — which include a service registering itself and uploading its extension. No `GET`s — reads are not recorded — and `/heartbeat` is excluded.
+The trail records every `POST`, `PUT`, `PATCH` and `DELETE` under `/v1/portal` (which includes `/v1/portal/deployment`), `/v1/directory`, `/v1/service-notifications`, `/v1/nodes`, `/v1/vm`, `/v1/service-events`, `/v1/service-items`, `/v1/service-attachments`, `/v1/me/mcp-approvals` and `/scim/v2` — plus, wherever they are mounted, the paths ending `/vm-credential/pickup`, `/events/fail`, `/events/ack`, `/exports/pull`, `/archive`, `/failed` and `/vm-profile-request`.
+
+The authentication paths are recorded whatever their method and outcome, because a failed sign-in is among the most valuable things a trail holds: `/v1/sign-in`, `/v1/sign-up`, `/v1/sign-in-with-code`, `/v1/send-sign-in-code`, `/v1/send-sign-up-code`, `/v1/send-reset-password-code`, `/v1/reset-password`, `/v1/auth`, `/v1/cli/token` and `/v1/clients` — the last being where a service or an app registers itself.
+
+Reads are not recorded, with three exceptions that are events in themselves: `GET /v1/portal/audit-events/export`, `GET /v1/portal/access-review`, and a `GET` under `/v1/portal/orgs/` ending `/download`. `/heartbeat` is never recorded — a node beats every 60 seconds, which would bury the rows an administrator reads.
 
 `audit_events` is **append-only in the database**, by a Postgres trigger rather than by convention: an `UPDATE` is refused even to a caller holding the connection. `DELETE` is deliberately left open, because `AUDIT_RETENTION_DAYS` has to be able to do its job.
 

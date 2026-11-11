@@ -115,11 +115,11 @@ Where a write cited passages, the quote is stored beside the chunk id, so the ci
 
 ## This needs the documents service
 
-Everything above is served by a second deployment, `igni__artifacts`, not by igni server, on a hostname of its own. It defaults to port 8100, mounts its API under `/v1`, and serves `/health`, `/ready` and `/version` outside it. Each organisation's documents are in a database of their own, beside the service's shared one, and each organisation's drafts and presence in a Redis database of their own. It refuses to start without igni server's URL, its own public URL, `IGNI_KEY_ENCRYPTION_KEY` and `POSTGRES_URL`.
+Everything above is served by a second deployment — the documents service of the Artifacts module, deployed from that module's own repository — and not by igni server, on a hostname of its own. igni server's Helm chart has nothing for it: no `artifacts` values, no second Ingress and no ConfigMap. It defaults to port 8100, mounts its API under `/v1`, and serves `/health`, `/ready` and `/version` outside it. Each organisation's documents are in a database of their own, beside the service's shared one, and each organisation's drafts and presence in a Redis database of their own. It refuses to start without igni server's URL, its own public URL, `IGNI_KEY_ENCRYPTION_KEY` and `POSTGRES_URL`.
 
 It has no `users` table. It **checks** user tokens and never issues them: igni server signs them with a key only it holds, and the documents service checks them against the public half igni server publishes, and that each names the documents service's own URL as its audience. Names and addresses it asks of igni server's directory. Nothing secret is shared between the two in either direction — the documents service signs its own requests with a key it generated and registered.
 
-It is deployed with two addresses, igni server's and its own, and nothing is configured on igni server for it. It registers itself on first start and serves nobody until a super admin approves it on the portal's *Services* page; see [running the documents service](/docs/running-the-documents-service).
+It is deployed with two addresses, igni server's and its own, and nothing is configured on igni server for it: the server knows it only as a registered service. It registers itself on first start and serves nobody until a super admin approves it on the portal's *Services* page; see [running the documents service](/docs/running-the-documents-service).
 
 igni server does not proxy document traffic. The documents service ships its igni extension through igni server, which hands it to the machines of every group an org admin switched it on for; on a person's machine, the igni app gets the extension a ten-minute token for the documents service, and the extension calls the service directly. What crosses between the two services is the directory, notifications for people's feeds, and igni server's erasure and subject-access requests. A deployment that has approved no documents service simply has no documents, which is a supported configuration rather than a broken one.
 
@@ -136,3 +136,9 @@ Artifacts checks the paid modules' licence file itself, offline (`IGNI_LICENCE_F
 | `/health`, `/ready`, `/version`, `GET /v1/licence`, igni's erasure and export calls, signing in and out of the service's own site, removing an organisation's graph | Every `GET`: documents, versions, comments, lineage, passages, search, projects, the public reader, the comment stream — everything an export reads; the archivist's read-only Cypher; finding a folder's project; pointing an organisation at its graph | Sharing and deleting documents, new versions, drafts, comments and replies, access, audience and owner changes, folders, projects, lineage decisions; the document room's WebSocket, which carries live edits |
 
 A refused request gets `403` with a JSON body naming the module, state and reason, and the header `igni-licence: <state>`. A refused WebSocket is closed with code `4403`. Only people who change something count towards the licence's band; readers are free.
+
+## Where to go next
+
+- **[Running the documents service](/docs/running-the-documents-service)** — deploying the service that serves them.
+- **[Administering your organisation](/docs/administering-your-organisation)** — switching the extension on for a group.
+- **[Licensing and evaluations](/docs/licensing-and-evaluations)** — the licence file the module checks.

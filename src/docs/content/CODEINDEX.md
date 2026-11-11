@@ -54,11 +54,11 @@ Parsing uses `tree-sitter` 0.25.2 and `tree-sitter-language-pack` 0.13.0. Langua
 
 Each repository has three switches: indexing, pull-request comments, and which categories of comment to post.
 
-Indexing uses the **`codeindex` pool** of inference nodes. CodeIndex reads its own node list, in the same JSON format igni server uses, from `INFERENCE_BACKENDS_PATH` or `INFERENCE_BACKENDS`, and re-reads it every 30 seconds. igni server does not pass its list on. See [Connecting your GPUs](/docs/inference-backends) for the format.
+Indexing uses **CodeIndex's own inference nodes**. The service reads its own node list from its own configuration — `INFERENCE_BACKENDS_PATH` or `INFERENCE_BACKENDS`, the setting names igni server uses for its own list — and re-reads it every 30 seconds. igni server does not pass its list on: it keeps one list of nodes, routes chat over them and nothing else, and CodeIndex runs its own nodes from its own configuration. See [Connecting your GPUs](/docs/inference-backends) for the format.
 
 ## Deploying it
 
-One image, built from the `igni__code-index` repository with `containers/be/Dockerfile`. The build also builds the extension bundle. The same image runs three things:
+One image, built from the CodeIndex module's own repository with `containers/be/Dockerfile`. The build also builds the extension bundle. The manifests are the module's own too: igni server's chart has nothing for CodeIndex, so the module deploys itself, on a hostname of its own. The same image runs three things:
 
 ```bash
 # API, on port 8081
@@ -76,9 +76,9 @@ It runs as user `igni` (uid 10001). `GET /health` and `GET /version` answer with
 What it needs:
 
 - **PostgreSQL.** The role needs `CREATEDB`, because each organisation gets its own database, `<POSTGRES_DB>_t<n>`.
-- **Redis**, with at least `16 + 3 × organisations` logical databases. `databases 64` holds 16 organisations.
+- **Redis**, with at least `16 + 3 × organisations` logical databases. `databases 64` holds 16 organisations. Which logical database the service uses is the module's own convention — igni server's chart assigns a number only for itself.
 - **An object store or a volume** for changesets: GCS, S3 (or MinIO), or a filesystem path.
-- **Inference nodes** in the `codeindex` pool.
+- **Inference nodes** of CodeIndex's own, configured in the service and not in igni server.
 - **igni server**, and a hostname of its own.
 
 Neo4j is not a server dependency.
@@ -107,7 +107,7 @@ The settings that matter:
 
 Nothing is configured on igni server for CodeIndex. On first start the service makes its own key, registers with igni server, uploads its extension and logs its key's thumbprint. A super admin compares the thumbprint on the portal's **Services** page and approves it. Connecting GitHub (as a GitHub App) or GitLab (with OAuth) is done afterwards on CodeIndex's own site, under **Settings**.
 
-> **Note:** There is no Helm chart for CodeIndex yet. igni server's chart has no `codeindex` values; run the image with your own manifests, and give it its own Ingress and certificate.
+> **Note:** There is no Helm chart for CodeIndex, and igni server's chart has no `codeindex` values and publishes no second host — nothing on the server's host belongs to another service. Run the image with your own manifests, and give it its own Ingress and certificate.
 
 ## The API
 

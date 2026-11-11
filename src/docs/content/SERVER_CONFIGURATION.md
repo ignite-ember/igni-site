@@ -85,12 +85,14 @@ Your own vLLM nodes, described as a JSON array, from `INFERENCE_BACKENDS_PATH` (
 
 ```json
 [
-  {"id": "gh200-a", "base_url": "http://10.0.3.11:8000", "model": "igni-1.0-4b", "max_concurrent": 64, "pools": ["chat"]},
-  {"id": "gh200-b", "base_url": "http://10.0.3.12:8000", "models": ["igni-1.0-4b", "sql-lora"], "pools": ["chat", "codeindex"], "multimodal": true}
+  {"id": "gh200-a", "base_url": "http://10.0.3.11:8000", "model": "igni-1.0-4b", "max_concurrent": 64},
+  {"id": "gh200-b", "base_url": "http://10.0.3.12:8000", "models": ["igni-1.0-4b", "sql-lora"], "multimodal": true}
 ]
 ```
 
-`id`, `base_url` and at least one model are required; a single-model node may write `model` instead of `models`. `max_concurrent` defaults to 64, `pools` to `["chat"]`, `multimodal` to false, and `api_key` is optional because a node on a private network usually has no auth. A `base_url` without an `http://` or `https://` scheme fails the whole list at load rather than silently dropping one node.
+`id`, `base_url` and at least one model are required; a single-model node may write `model` instead of `models`. `max_concurrent` defaults to 64, `multimodal` to false, and `api_key` is optional because a node on a private network usually has no auth. A `base_url` without an `http://` or `https://` scheme fails the whole list at load rather than silently dropping one node.
+
+A node carries no `pools` field. 0.7.0 removed the two-pool model — `chat` and `codeindex` — and a node is now just a node; migration 0029 drops the column. A `pools` key left in a list written for an earlier release is ignored rather than refused, so the file still loads. CodeIndex runs its own nodes from its own configuration, and there is no setting here for them.
 
 ## Email
 
@@ -150,7 +152,7 @@ The other three are wrong for every real install and only fail when somebody cli
 | `SERVICE_EVENTS_PER_MINUTE` | `600` | How many events one service may ask igni to deliver to producers per minute (`POST /v1/service-events`); past it, a 429 with `Retry-After`. `0` removes the limit. |
 | `SERVICE_EVENT_MAX_WAIT_SECONDS` | `1209600` (14 days) | The longest an undelivered event waits. An event without `expires_at` gets this; a later `expires_at` is cut to it. Then it expires: no longer handed out, and its service reads it as `expired`. |
 | `SERVICE_EVENT_RETENTION_DAYS` | `30` | Days an event is kept after it was delivered, expired or dropped, so its service can read what became of it; then the daily retention round deletes it. `0` keeps them. |
-| `SUPER_ADMIN_PASSWORD_HASH` | `''` | Break-glass: a bcrypt hash, never a password — generate one with `python -c "import bcrypt,secrets; p=secrets.token_urlsafe(32); print(p, bcrypt.hashpw(p.encode(), bcrypt.gensalt()).decode())"`. Presented as `X-Super-Admin-Key`, it reaches the deployment-wide settings under `/v1/admin` when nobody can sign in. Super admins themselves are accounts (the first one created is one); this makes nobody a super admin. Unset, there is no break-glass. |
+| `SUPER_ADMIN_PASSWORD_HASH` | `''` | Break-glass: a bcrypt hash, never a password — generate one with `python -c "import bcrypt,secrets; p=secrets.token_urlsafe(32); print(p, bcrypt.hashpw(p.encode(), bcrypt.gensalt()).decode())"`. Presented as `X-Super-Admin-Key`, it reaches the deployment-wide settings under `/v1/portal` when nobody can sign in — the registered clients and the extension priority order. The super-admin list and the organisation list need a signed-in super admin, and the break-glass key does not reach them. Super admins themselves are accounts (the first one created is one); this makes nobody a super admin. Unset, there is no break-glass. |
 
 The `CLOUD_VM__` group sets the default VM profile and the platform's caps for [Fleet](/docs/fleet) — `CLOUD_VM__STANDARD_NORMAL_MEMORY_MIB=1024`, `CLOUD_VM__STANDARD_MEMORY_MIB=4096`, `CLOUD_VM__STANDARD_VCPUS=1`, `CLOUD_VM__STANDARD_IDLE_BEFORE_PAUSE_S=10`, and the `CLOUD_VM__CAP_MAX_*` caps; that page lists them all.
 
@@ -197,5 +199,5 @@ A handful of settings have no named chart value and no entry in `dist.env` — `
 
 ## Where to go next
 
-- **[Connecting your GPUs](/docs/inference-backends)** — the settings here describe the pool; that page describes what fills it.
+- **[Connecting your GPUs](/docs/inference-backends)** — the settings here describe the node list; that page describes what fills it.
 - **[Administering your organisation](/docs/administering-your-organisation)** — the configuration above decides which sign-in methods exist; that page is where you use them.

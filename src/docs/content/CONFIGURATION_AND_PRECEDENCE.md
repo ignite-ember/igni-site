@@ -178,3 +178,9 @@ The `.claude` roots for agents, skills, rules files and hooks are read only whil
 - **`settings.json` carries only permissions** into `Settings`. Everything else you put there is either read by a dedicated loader (hooks) or ignored.
 - **A last migration step touches `models.registry`.** After every other tier has run, rows whose URL contains the substring `ignite-ember.sh` are candidates for replacement by the shipping defaults. The match is a plain substring on the whole URL, not a hostname comparison, so staging and dev subdomains match too. The shipped default registry is empty, so on a default install there is nothing to replace those rows with and the tier changes nothing.
 - **Defaults worth knowing:** `models.default` is `""` (falls back to the first key in `models.registry`), `models.max_context_window` is `200000`, `permissions.mode` is `"default"` with `file_write` and `shell_execute` at `"ask"`, `storage.data_dir` is `~/.igni` (or `~/.ember` on a machine that has not been migrated), `storage.database_url` is unset (per-project SQLite), `air_gapped` is `false`, `api_url` is empty — there is no vendor host baked in, and the paths that need one refuse with the setting's name rather than failing deep inside an HTTP client — and `update_check_ttl` is `86400` seconds, which `0` disables.
+
+## Where to go next
+
+- **[Project context, rules and memory](/docs/project-context-and-memory)** — the files igni reads before it answers, and how they merge with these settings.
+- **[Permissions and safety](/docs/permissions-and-safety)** — the modes that decide what the agent may do, and where they are set.
+- **[Your first session](/docs/your-first-session)** — where each of these files first appears.

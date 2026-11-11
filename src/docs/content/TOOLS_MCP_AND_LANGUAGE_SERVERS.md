@@ -83,7 +83,7 @@ Four locations are read, later winning on name collision: `~/.igni/.mcp.json`, t
 
 Every MCP tool is namespaced `mcp_<server>_<tool>` on both transports, so a server exposing `read_file` cannot collide with anything built in.
 
-Dependencies: the base install already requests agno's MCP extra (`agno[openai,ddg,sqlite,sql,mcp]`), and there is a standalone extra too — `pip install 'ignite-ember[mcp]'` pulls `mcp~=1.30`. If the SDK is missing, connect fails with `MCP dependencies not installed (pip install agno[mcp])`.
+Dependencies: the base install already requests agno's MCP extra (`agno[openai,ddg,sqlite,sql,mcp]`), and there is a standalone extra too — `pip install 'igni-core[mcp]'` pulls `mcp~=2.3`. If the SDK is missing, connect fails with `MCP dependencies not installed (pip install agno[mcp])`.
 
 Three things to expect on first run:
 
@@ -140,3 +140,9 @@ A category set in `managed-settings.yaml` or your group's policy is final: no lo
 Six categories are wired. `file_write`, `shell_execute`, `web_search` and `web_fetch` name functions. `git_push` and `git_destructive` become shell rules: `git push` for the first; `git push --force`, `git push -f`, `git reset --hard`, `git clean`, `git checkout --`, `git branch -D`, `git stash drop`, `git stash clear` and `git filter-branch` for the second. Each matches the command on its own or after a separator (`cd repo && git push`). Only `file_read` and `shell_restricted` are inert.
 
 A confirmation gate is only real if it names a function that exists. Two did not — web search and the former CodeIndex tool both ran unconfirmed while the code claimed otherwise — so `tests/test_every_tool_function_is_reachable.py` now asserts that every gated name is present on the built toolkit, and a sibling test forbids any shipped prompt from instructing a tool the model will never be given.
+
+## Where to go next
+
+- **[Building extensions](/docs/building-extensions)** — adding tools of your own.
+- **[Permissions and safety](/docs/permissions-and-safety)** — the six categories these tools fall into, and who may grant them.
+- **[Hooks, workflows and scheduled tasks](/docs/hooks-workflows-and-scheduled-tasks)** — running your own code when igni does something.

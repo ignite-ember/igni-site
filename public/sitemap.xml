@@ -41,6 +41,11 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
+    <loc>https://ignite-ember.sh/docs/your-first-session</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
     <loc>https://ignite-ember.sh/docs/models-and-the-factory</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
@@ -81,7 +86,22 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
+    <loc>https://ignite-ember.sh/docs/changes-and-upgrades</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://ignite-ember.sh/docs/troubleshooting</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
     <loc>https://ignite-ember.sh/docs/configuration-and-precedence</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://ignite-ember.sh/docs/glossary</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>

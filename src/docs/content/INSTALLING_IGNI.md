@@ -1,6 +1,6 @@
 igni reaches a developer in two forms: the **desktop app**, which is how a person uses it, and the **CLI**, for scripts and CI. Both run the same agent on the developer's own machine and talk to your igni server for sign-in and models. This page covers installing each, signing in, and installing on a machine with no internet access. There are no IDE plugins; the desktop app and the CLI are the clients.
 
-> **Note:** The current release is 1.0.3, which keeps its files in `~/.ember`. The next release keeps them in `~/.igni` and moves an existing `~/.ember` there on first start. This documentation describes the next release.
+> **Note:** This documentation describes **1.0.4**, which is not published yet. Today PyPI serves `ignite-ember` **1.0.3** — the pre-split monolith, whose module is `ember_code` and which keeps its files in `~/.ember`. The package `igni-core` is not on PyPI, so `pip install igni-core` does not work yet, and `pip install ignite-ember` gives you 1.0.3. The next release keeps its files in `~/.igni` and moves an existing `~/.ember` there on first start. [Changes and upgrades](/docs/changes-and-upgrades) has the whole version story.
 
 ## The desktop app
 
@@ -14,13 +14,15 @@ The app is called **igni**. It is a Tauri application that shows igni's web inte
 
 Builds are attached to each release at [github.com/ignite-ember/igni-app/releases](https://github.com/ignite-ember/igni-app/releases).
 
-**On first launch it installs its own backend.** The app downloads `uv`, uses it to install Python 3.12, creates a private virtual environment, installs `ignite-ember[decisions]` at the app's own version, and downloads igni's decision model (about 1.7 GB). It needs network access for this, and at least 1 GB free before it starts. Everything lands in a per-user cache:
+**On first launch it installs its own backend.** The app downloads `uv`, uses it to install Python 3.12, creates a private virtual environment, installs `igni-core[decisions]` at the app's own version, and downloads igni's decision model (about 1.7 GB). It needs network access for this, and at least 1 GB free before it starts. Everything lands in a per-user cache:
 
 | Platform | Cache |
 |---|---|
-| macOS | `~/Library/Caches/ember-code` |
-| Linux | `$XDG_CACHE_HOME/ember-code` |
-| Windows | `%LOCALAPPDATA%\ember-code` |
+| macOS | `~/Library/Caches/igni` |
+| Linux | `$XDG_CACHE_HOME/igni` |
+| Windows | `%LOCALAPPDATA%\igni` |
+
+An install made before the rename keeps its `ember-code` directory beside the new one, and the app keeps using it — the virtualenv in it records absolute paths, so moving it would cost a full reinstall.
 
 Later launches start straight away. If the backend is damaged, **Reinstall Backend (Clean)** in the app's menu starts again; **Diagnose Backend** reports what it found.
 
@@ -41,14 +43,18 @@ Set these in `~/.igni/config.yaml`, in the managed-settings file, or in a group'
 ## The CLI
 
 ```bash
-pip install ignite-ember
+pip install igni-core
 ```
 
-The package is `ignite-ember`. It needs **Python 3.12** exactly. It installs the command `igni`, and `ignite-ember` as an alias. There is also a Homebrew formula:
+The package is **`igni-core`** — the name igni's backend and CLI were renamed to when the monolith was split. From 1.0.4 the old name keeps working through an alias package that carries metadata and nothing else and depends on `igni-core` at the same version, so `pip install ignite-ember` resolves to the same thing. Until 1.0.4 is published, `pip install ignite-ember` gives you 1.0.3, the pre-split monolith. Either way it needs **Python 3.12** exactly. It installs the command `igni`, and `ignite-ember` as an alias.
+
+There is also a Homebrew formula:
 
 ```bash
 brew install ignite-ember/tap/ignite-ember
 ```
+
+It installs the published 1.0.3, and it puts the `ignite-ember` command on your `PATH` — not `igni`.
 
 Optional extras:
 
@@ -69,7 +75,24 @@ igni --model platform-review-lora -m "review this branch"
 
 Other flags set the permission mode (`--read-only`, `--accept-edits`, `--auto-approve`, `--strict`), turn off web tools (`--no-web`), work in a git worktree (`--worktree`) or add directories (`--add-dir`). See [Permissions and safety](/docs/permissions-and-safety).
 
-Two subcommands exist: `igni ext`, for [extensions](/docs/building-extensions), and `igni migrate`, which migrates igni's own database.
+Four subcommands exist: `igni ext`, for [extensions](/docs/building-extensions); `igni login`, which signs in to your igni server; `igni migrate`, which migrates igni's own database; and `igni trust`, which records whether a folder may run its own code.
+
+### `igni ext`
+
+`igni ext` has six subcommands:
+
+| Subcommand | What it does |
+|---|---|
+| `igni ext doctor [bundle]` | Checks a bundle's manifest, then starts it the way igni would and asks it over MCP for its tools |
+| `igni ext install <source>` | Installs an extension you are developing, from a directory or a repository |
+| `igni ext sync` | Brings the local store in step with the extensions igni server lists as switched on for your group |
+| `igni ext list` | Lists what is installed in this deployment |
+| `igni ext remove <extension-id>` | Removes an installed extension |
+| `igni ext init <directory>` | Scaffolds an extension that runs |
+
+`igni ext sync` is what the desktop app does at start-up and at sign-in, for a terminal. igni server lists the extensions switched on for the signed-in person's group, and the sync downloads, verifies and stores what is new or changed, removes what is no longer listed, and leaves a development install of the same id alone. It starts and stops nothing: igni's backend starts what is stored when it boots, and an `igni -m` run syncs by itself first.
+
+`igni ext install` is for development only. It needs `IGNI_DEV_EXTENSIONS=1`, because extensions otherwise reach a machine from their services through igni server.
 
 ## Signing in
 
@@ -85,7 +108,15 @@ api_url: https://igni.example.com
 # portal_url is worked out from api_url when not set
 ```
 
-**There is no headless sign-in.** `/login` opens a browser, no environment variable supplies a token, and there are no machine accounts. To run the CLI in CI, sign in once on a machine with a browser and copy `~/.igni/credentials.json` across. The token expires after 30 days.
+**The CLI signs in headlessly; the desktop app does not.** `igni login` runs the same flow as `/login`, printing the address to open so that a machine with no browser of its own can still finish. `igni login --token-stdin` keeps an access token read from stdin, once igni server has accepted it, and is the path for a script or a CI job that already holds one:
+
+```bash
+printf %s "$IGNI_TOKEN" | igni login --token-stdin
+```
+
+The token is never taken as an argument, so it does not land in the shell's history or in the process list. The token expires after 30 days.
+
+Signing in through a browser also fetches your group's pack of agents, skills, hooks and settings, verifies it and caches it on disk under `~/.igni/group-policy/`. The `--token-stdin` path keeps the token and nothing else; the pack arrives the next time you sign in through a browser.
 
 After sign-in, the client asks your server which models it serves and registers them. See [Models and the Factory](/docs/models-and-the-factory).
 
@@ -139,10 +170,10 @@ The managed-settings file, which a user cannot override:
 ```bash
 python3.12 -m venv /opt/igni/venv
 /opt/igni/venv/bin/pip install --index-url https://pypi.example.internal/simple \
-  "ignite-ember[decisions]==<version>"
+  "igni-core[decisions]==<version>"
 ```
 
-**The desktop app** cannot download its backend, so give it one. Install `ignite-ember[decisions]` at the app's version into a Python 3.12 environment as above, then point the app at it:
+**The desktop app** cannot download its backend, so give it one. Install `igni-core[decisions]` at the app's version into a Python 3.12 environment as above, then point the app at it:
 
 ```yaml
 air_gapped: true
@@ -154,7 +185,7 @@ runtime_python: /opt/igni/venv/bin/python
 **The decision model** has to be copied in. On a machine that can reach Hugging Face:
 
 ```bash
-HF_HOME=/tmp/laya python -m ember_code.prefetch_models
+HF_HOME=/tmp/laya python -m igni_core.prefetch_models
 ```
 
 Then copy `/tmp/laya/hub/models--convaiinnovations--laya` into the target machine's `~/.cache/huggingface/hub`. Without it, Bypass mode asks rather than allows.
@@ -163,10 +194,11 @@ Then copy `/tmp/laya/hub/models--convaiinnovations--laya` into the target machin
 
 - **No Intel Mac build.** macOS builds are for Apple silicon only.
 - **Windows and Linux builds are not code-signed and do not update themselves.**
-- **No headless sign-in** for CI, as above.
+- **The desktop app has no headless sign-in.** The CLI signs in headlessly with `igni login --token-stdin`, as above.
 - **The offline update bundle does not carry the clients.** See [Offline updates](/docs/offline-updates).
 
 ## Where to go next
 
 - **[Project context, rules and memory](/docs/project-context-and-memory)** — what igni reads in a project before it answers.
 - **[Agents and orchestration](/docs/agents-and-orchestration)** — the agents that ship, and how to write your own.
+- **[Changes and upgrades](/docs/changes-and-upgrades)** — which version is which, where each one's release notes live, and what changed between them.

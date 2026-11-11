@@ -1,6 +1,6 @@
-Anything you type that begins with `/` is a slash command. There are four kinds, and they are tried in a fixed order: the 32 built-ins compiled into the agent, markdown files you drop into a `commands/` directory, the commands your installed extensions declare, and skills — directories containing a `SKILL.md`. This page covers all four, plus output styles, which change the agent's tone rather than running anything.
+Anything you type that begins with `/` is a slash command. There are four kinds, and they are tried in a fixed order: the 33 built-ins compiled into the agent, markdown files you drop into a `commands/` directory, the commands your installed extensions declare, and skills — directories containing a `SKILL.md`. This page covers all four, plus output styles, which change the agent's tone rather than running anything.
 
-You type slash commands in a client attached to a running backend (`python -m ember_code.backend`). The `igni` CLI also accepts them in one-shot mode (`igni -m "/ctx"`), with one important caveat covered at the end.
+You type slash commands in a client attached to a running backend (`python -m igni_core.backend`). The `igni` CLI also accepts them in one-shot mode (`igni -m "/ctx"`), with one important caveat covered at the end.
 
 ## How a command is resolved
 
@@ -35,6 +35,7 @@ Every entry in `BuiltinCommandRegistry._build_entries()`:
 | `/skills` | Lists installed skills |
 | `/hooks` | Lists installed hooks |
 | `/mcp` | MCP server status panel |
+| `/programs` | Lets a program answer approval requests |
 | `/plugin <...>` | Install / update / remove a plugin |
 | `/plugins` | Plugins panel |
 | `/extensions` | Installed extensions and their settings |
@@ -98,7 +99,7 @@ The `@path` rule is the one that bites: a relative path resolves against **the d
 
 ## Skills
 
-A skill is a directory with a `SKILL.md` in it; supporting files live alongside. Five ship with the agent, in `src/ember_code/bundled_skills/`:
+A skill is a directory with a `SKILL.md` in it; supporting files live alongside. Five ship with the agent, in `src/igni_core/bundled_skills/`:
 
 | Skill | Category | Argument hint |
 |---|---|---|
@@ -161,3 +162,9 @@ The agent has a `slash_command` tool that dispatches through the same handler. N
 `igni -m "/commit"` is not the same as typing `/commit` in a client. The one-shot path dispatches the command, prints the result, and returns without ever calling the model — so a markdown command or skill prints its rendered instructions rather than carrying them out. Built-in informational commands (`/ctx`, `/config`) work fine this way.
 
 Markdown-command shell tokens run with no confirmation and no permission check. A `.igni/commands/` file is executable content; review one before invoking it the same way you would a shell script.
+
+## Where to go next
+
+- **[Agents and orchestration](/docs/agents-and-orchestration)** — the agents a command can hand work to.
+- **[Tools, MCP servers and language servers](/docs/tools-mcp-and-language-servers)** — what a command may call.
+- **[Building extensions](/docs/building-extensions)** — shipping skills and commands as part of an extension.
