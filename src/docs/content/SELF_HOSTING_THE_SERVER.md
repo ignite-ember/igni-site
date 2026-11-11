@@ -1,4 +1,4 @@
-The igni server is the backend half of a self-hosted install: a FastAPI service that holds accounts, organisations and the model-key pool, plus an admin portal. You run it yourself — there is no hosted deployment to point at. This page covers what needs it, what you have to bring, and the two shapes it ships in: a Helm chart for Kubernetes and a Docker Compose stack for a single host. It is open source under Apache-2.0, at [github.com/ignite-ember/igni-server](https://github.com/ignite-ember/igni-server).
+The igni server is the backend half of a self-hosted install: a FastAPI service that holds accounts, organisations and the list of inference nodes, plus an admin portal. You run it yourself — there is no hosted deployment to point at. This page covers what needs it, what you have to bring, and the two shapes it ships in: a Helm chart for Kubernetes and a Docker Compose stack for a single host. It is open source under Apache-2.0, at [github.com/ignite-ember/igni-server](https://github.com/ignite-ember/igni-server).
 
 ## What needs a server
 
@@ -29,7 +29,7 @@ Without a relay, sign-in and password-reset codes are sent nowhere: the log reco
 
 Two images, `igni-api` and `igni-portal`. Three ways to get them:
 
-- **Pull a release** from `ghcr.io/ignite-ember/igni-api` and `ghcr.io/ignite-ember/igni-portal`, tagged with the release version. Release tags are unprefixed (`0.6.0`); tags starting `dev-` or `stage-`, and the moving `dev` and `stage`, are Ignite Ember's own pre-release builds, not releases. Mirror them into your own registry if your cluster should not pull from the internet.
+- **Pull a release** from `ghcr.io/ignite-ember/igni-api` and `ghcr.io/ignite-ember/igni-portal`. The API image is tagged with the release version (`0.7.0`), with the commit it was built from, and with a moving `:latest`; the portal image is tagged with the commit and with `:latest`. Release tags are unprefixed — there are no `dev` or `stage` images, because 0.7.0 removed them. Mirror the images into your own registry if your cluster should not pull from the internet.
 - **Import them from a release's signed offline bundle**, which carries them with their signatures and SBOMs — see [Offline updates](/docs/offline-updates). On a network with no route out, this is the only way.
 - **Build them yourself.**
 
@@ -37,17 +37,19 @@ Either way the chart has no default repository and `fail()`s rather than guessin
 
 ```bash
 # from the repository root
-docker build -f containers/be/Dockerfile  -t registry.example.com/igni/igni-api:1.0.4 .
-docker build -f portal/Dockerfile         -t registry.example.com/igni/igni-portal:1.0.4 portal/
+docker build -f containers/be/Dockerfile  -t registry.example.com/igni/igni-api:0.7.0 .
+docker build -f portal/Dockerfile         -t registry.example.com/igni/igni-portal:0.7.0 portal/
 ```
 
 Note the build contexts differ: the API builds from the repository root, the portal from its own directory.
 
 Push both to a registry your cluster can reach, then give the chart those names. **Tag with a version, never `latest`** — the chart refuses `latest` outright, because a `latest` tag cannot be rolled back to and an unchanged tag gives Kubernetes no reason to roll pods on upgrade.
 
-The embedder that document search uses is not one of them. It belongs to the documents service and is built and deployed from igni__artifacts — see [Running the documents service](/docs/running-the-documents-service). Releases of this chart before that move deployed it as `<release>-embedder`; `helm upgrade` now removes it, so a documents service that pointed `EMBEDDER_URL` there needs the igni__artifacts embedder deployed first.
+The embedder that document search uses is not one of them. It belongs to the documents service and is built and deployed from the Artifacts module's own repository — see [Running the documents service](/docs/running-the-documents-service). This chart deploys no embedder and no documents service: there is no `embedder`, `embedderImage` or `artifacts` value in it. It used to deploy `<release>-embedder` and set `EMBEDDER_URL`; `helm upgrade` deletes that Deployment and Service, so a documents service that pointed `EMBEDDER_URL` there needs the Artifacts embedder deployed first.
 
 ## Deploying with Helm
+
+The chart is version 0.2.0 and deploys application 0.7.0. The two move independently: a customer taking a fixed chart template need not move the image.
 
 These have no default and the chart calls `fail()` naming each: the image repositories, `postgres.host`, `redis.host`, `secrets.secretEncryptionKey` (a Fernet key), and — outside `appEnv: dev` — an `https://` `urls.publicBase`, which the Ingress host supplies when the Ingress is on. Mirror the images into your own registry first — an unqualified repository name resolves to Docker Hub.
 
@@ -65,7 +67,9 @@ helm install igni ./charts/igni \
   --set secrets.secretEncryptionKey="$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')"
 ```
 
-Tags default to `.Chart.AppVersion`, currently `0.6.0`. A tag of `latest` is refused outright — it cannot be rolled back to, and an unchanged tag gives Kubernetes no reason to roll pods.
+Tags default to `.Chart.AppVersion`, currently `0.7.0`. A tag of `latest` is refused outright — it cannot be rolled back to, and an unchanged tag gives Kubernetes no reason to roll pods.
+
+**The portal image is not published under the version tag.** The release workflow pushes `igni-portal` under the commit it was built from and under a moving `:latest`; only `igni-api` also gets `:0.7.0`. A cluster that pulls the portal straight from GHCR therefore needs `--set portalImage.tag=<commit>`. The offline bundle carries the portal under the version tag, so an imported install needs nothing.
 
 The values that matter:
 
@@ -82,7 +86,6 @@ The values that matter:
 | `service.apiPort` / `portalPort` | `7777` / `3000` | |
 | `ingress.enabled` | `false` | `/v1` and `/.well-known` to the API, everything else to the portal |
 | `licence.existingSecret` | `""` | A Secret holding the paid modules' licence under the key `licence.json`, mounted read-only at `/etc/igni/licence/` in the API so the portal can show it. The base needs none. See [Licensing and evaluations](/docs/licensing-and-evaluations) |
-| `artifacts.enabled` / `artifacts.host` | `false` / `""` | Publishes the documents service on **its own hostname** with a second Ingress; the host is required when enabled and must differ from `ingress.host`. See *Every service has its own hostname* below |
 
 The chart sets no ingress annotations (`ingress.annotations` defaults to `{}`), which matters for one thing in particular: the API accepts request bodies up to **32 MiB** (`MAX_REQUEST_BODY_BYTES`), and most ingress controllers cap them far lower — nginx at 1 MiB by default. A long chat context or a large changeset then gets a 413 from a component the server never sees, so nothing in its logs explains it. Raise the controller's limit to match:
 
@@ -92,9 +95,20 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-body-size: "32m"
 ```
 
-One route is larger. A service uploads the extension it ships to `PUT /v1/clients/{client_id}/extension`, and that bundle carries every dependency as wheels for three platforms, so the API accepts up to **400 MiB** there and nowhere else. If services reach the server through this Ingress, the controller has to let that through too — `"400m"` on the annotation above. The API still refuses anything over 32 MiB on every other route itself, so raising the controller's limit does not raise the server's. The shipped Caddyfile already allows 400 MiB on that one path.
+Two routes are larger, and both are a service publishing what it ships. A service publishes its extension bundle to `PUT /v1/clients/{client_id}/extension` — every dependency as wheels for three platforms — and the API accepts up to **400 MiB** there. It publishes each asset to `PUT /v1/clients/{client_id}/extension/assets/{sha256}` and accepts up to **1 GiB** there. Every other route on the server is held to 32 MiB, and the server refuses it itself, so raising the controller's limit does not raise the server's. If services reach the server through this Ingress, the controller has to admit the largest of them, which is what the chart's own values file recommends — `"1024m"`, with buffering off and long timeouts:
 
-| `retention.auditDays` / `webhookEventDays` | `0` / `0` | 0 keeps forever; the retention runner does not start |
+```yaml
+ingress:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "1024m"
+    nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+```
+
+The shipped Caddyfile allows 400 MiB on the extension upload and 32 MB everywhere else. The portal's own nginx caps `/v1` at 32 MB, so an upload that goes through the portal is refused at 32 MB; the chart's Ingress sends `/v1` straight to the API, which is where the larger limits apply.
+
+| `retention.auditDays` | `0` | 0 keeps forever; the retention runner does not start |
 | `monitoring.serviceMonitor.enabled` | `false` | Needs the Prometheus Operator CRDs |
 | `backup.enabled` | `false` | Requires `backup.existingClaim` when on |
 | `networkPolicy.enabled` | `false` | Deny-by-default both ways; needs `networkPolicy.ingressFrom` when on |
@@ -111,7 +125,7 @@ Secrets can come from the chart (`secrets.create: true`) or from one you created
 
 - **Ingress to the API** (7777) from the portal pods and your ingress controller; **to the portal** (3000) from the controller only. Name the controller with `networkPolicy.ingressFrom.namespaceSelector` (a label map, e.g. `kubernetes.io/metadata.name: ingress-nginx`) and optionally `podSelector`. The render fails if it is empty, rather than admitting every namespace.
 - **Prometheus**, if you scrape `/metrics`: `networkPolicy.metricsFrom`. Required when `monitoring.serviceMonitor.enabled` is on.
-- **Services that call the API in-cluster** — Artifacts is given the API's `.svc` address — go in `networkPolicy.apiIngressFrom`, as NetworkPolicy peers.
+- **Services that call the API in-cluster** — a service deployed beside the server, at `http://<release>-api.<ns>.svc:<port>` — go in `networkPolicy.apiIngressFrom`, as NetworkPolicy peers.
 - **DNS**: port 53, UDP and TCP, to any destination. It is not pinned to the cluster resolver by default because CoreDNS's labels differ between distributions and NodeLocal DNSCache answers on a link-local address; set `networkPolicy.dns.to` if you know yours.
 - **The portal's egress** is the API pods on 7777, and nothing else.
 - **Everything else the server reaches** is `networkPolicy.egress`: one entry per destination, `{name, cidrs, ports: [{port, protocol}]}`, applied to the API, migrate and backup pods unless `components` narrows it. Empty by default — so with the policy on and nothing listed, the server can resolve names and reach nothing. The migrate Job and the backup both need Postgres; the backup's volume is mounted by the node, so it needs nothing more. `egressCidrs` still works but opens every port to each CIDR; prefer `egress`.
@@ -143,7 +157,7 @@ Both failures land on your users rather than on you: a sign-in page whose SSO bu
 
 ### Monitoring is three switches, not one
 
-`monitoring.serviceMonitor.enabled` is the one in the table above, and the chart ships two more. `monitoring.prometheusRule.enabled` renders eleven alerts across three groups — audit-write failure, dependency loss, replicas disagreeing about their version, retention never running, email-code throttling, pool exhaustion, webhook rejection and clock skew. `monitoring.dashboard.enabled` renders a Grafana dashboard as a ConfigMap; it needs no CRD, so it is the one that is harmless to leave on.
+`monitoring.serviceMonitor.enabled` is the one in the table above, and the chart ships two more. `monitoring.prometheusRule.enabled` renders ten alerts across three groups — an audit write failing in `igni.audit`; a dependency down, a rate of server errors, and replicas disagreeing about their version in `igni.availability`; and retention not running, retention never having run, retention failing, email codes throttled, the connection pool exhausted and clock skew in `igni.compliance`. `monitoring.dashboard.enabled` renders a Grafana dashboard as a ConfigMap; it needs no CRD, so it is the one that is harmless to leave on.
 
 Writing your own alerts for failures the chart already covers is the common outcome of not knowing these exist.
 
@@ -163,16 +177,9 @@ Nothing secret is shared with a service. On first start it registers its own pub
 
 A service — Artifacts, CodeIndex, anything later — is served on a hostname of its own, such as `https://artifacts.example.com`, and never as a path on the server's (`https://igni.example.com/v1/artifacts`). Its URL is its identity: the address it registers as, the **audience** of every token a person gets for it, and where the server calls `{service URL}/v1/igni/subjects/...` for an erasure or a subject-access export. Under the server's host it would share the server's origin, so a token's audience would no longer say which of the two it is for, and every path the service served would be one the server could never use.
 
-So each service needs its own DNS name and its own certificate, and its `PUBLIC_BASE_URL` is exactly `https://<that name>` — reachable from the server as well as from people's machines. With the chart, the documents service is:
+So each service needs its own DNS name and its own certificate, and its `PUBLIC_BASE_URL` is exactly `https://<that name>` — reachable from the server as well as from people's machines.
 
-```bash
---set artifacts.enabled=true \
---set artifacts.host=artifacts.example.com \
---set artifacts.serviceName=igni-artifacts \
---set artifacts.tls.secretName=artifacts-tls   # when ingress.tls.enabled
-```
-
-That renders a second Ingress, `<release>-artifacts`, sending all of that host to the service's Service (in the same namespace; same ingress class and annotations as the server's), and a ConfigMap, `<release>-artifacts-env`, with `PUBLIC_BASE_URL=https://artifacts.example.com` and `IGNI_SERVER_BASE_URL` set to the API Service in-cluster, for the service's Deployment to `envFrom`. Nothing on the server's host routes to it, and the chart refuses to render with no host or with the server's. The single-instance Caddyfile routes only the server; a service run beside it gets a site block of its own for its own domain. How to stand the documents service up is in [Running the documents service](/docs/running-the-documents-service).
+**This chart deploys no service.** It used to carry an `artifacts` block that published the documents service on a second Ingress of its own, with a ConfigMap beside it; 0.7.0 removed the block, and the chart now renders one host — the server's. A service is deployed from its own repository, on a host of its own, and registers itself with the server. The single-instance Caddyfile routes only the server; a service run beside it gets a site block of its own for its own domain. How to stand the documents service up is in [Running the documents service](/docs/running-the-documents-service).
 
 To rotate the signing key, run `python tools/rotate_signing_key.py --stage` from a checkout of the server repository with the deployment's Postgres settings and `SECRET_ENCRYPTION_KEY` in its environment. The new key is published at once and signs ten minutes later, so every replica and every service has it before it is used; nothing restarts.
 
@@ -195,11 +202,11 @@ Locally: `make migrate`, and `make downgrade-one` for `alembic downgrade -1`.
 
 ## Upgrading, and what a rollback does not undo
 
-An upgrade is the same command with a new tag. On a network with no route out, import the release's images from its signed bundle first — see [Offline updates](/docs/offline-updates):
+An upgrade is the same command with the new release's tag. The chart's own version moves independently of the application's: 0.7.0 shipped chart 0.2.0, which dropped the `artifacts` block. On a network with no route out, import the release's images from its signed bundle first — see [Offline updates](/docs/offline-updates):
 
 ```bash
 helm upgrade igni ./charts/igni --namespace igni --reuse-values \
-  --set image.tag=1.0.5 --set portalImage.tag=1.0.5
+  --set image.tag=0.7.0 --set portalImage.tag=0.7.0
 ```
 
 The migration hook runs **before** the new pods, at weight `-5`, and the release stops if it fails — so a bad migration leaves the old version running against an unmigrated database rather than a new version against a broken one.
@@ -248,12 +255,12 @@ A run counts only when every archive in it passed: each is listed with `pg_resto
 ```bash
 cd containers
 IGNI_ENV_FILE=.env.prod \
-IGNI_IMAGE=registry.example.com/igni/igni-api:0.6.0 \
-IGNI_PORTAL_IMAGE=registry.example.com/igni/igni-portal:0.6.0 \
+IGNI_IMAGE=registry.example.com/igni/igni-api:0.7.0 \
+IGNI_PORTAL_IMAGE=registry.example.com/igni/igni-portal:0.7.0 \
 docker compose -f docker-compose.prod.yml --profile bundled up -d
 ```
 
-`IGNI_ENV_FILE` is required rather than defaulting to `.env` specifically so a leftover development env file cannot be deployed: `APP_ENV` is read from the same file as the check that would catch it, so naming the file is what breaks the loop. Start from `dist.env`, which ships `APP_ENV=prod` and empty credentials.
+`IGNI_ENV_FILE` is required rather than defaulting to `.env` specifically so a leftover development env file cannot be deployed: `APP_ENV` is read from the same file as the check that would catch it, so naming the file is what breaks the loop. Start from `dist.env` in the repository root, which ships `APP_ENV=prod` and empty credentials, and copy it to `containers/.env.prod` to fill in.
 
 The `bundled` profile adds Postgres (`postgres:17.6-alpine`) and Redis (`redis:7.4-alpine`) on the same host; point `POSTGRES_HOST=postgres` and `REDIS_HOST=redis` at them. Omit the profile and both are external. Nothing in the file `depends_on` a profiled service — that would make the other shape refuse to load entirely.
 
@@ -280,9 +287,9 @@ The startup checks warn rather than refuse for most things, and the warnings are
 kubectl -n igni logs deploy/igni-api | grep 'Deployment check'
 ```
 
-Fatal everywhere, `dev` included: a missing or invalid `SECRET_ENCRYPTION_KEY`. Fatal outside `dev`: a `PUBLIC_BASE_URL` that is not `https://`, `PORTAL_AUTH_BYPASS` enabled, a non-HTTPS `OIDC_ISSUER`, and a database still carrying the development bypass's admin rows. Warned: no webhook secrets, no mail relay, localhost still in `PORTAL_BASE_URL` or the OAuth URLs, a half-configured OIDC, an unfinished key rotation.
+Fatal everywhere, `dev` included: a missing or invalid `SECRET_ENCRYPTION_KEY`. Fatal outside `dev`: a `PUBLIC_BASE_URL` that is not `https://`, `PORTAL_AUTH_BYPASS` enabled, a non-HTTPS `OIDC_ISSUER`, and a database still carrying the development bypass's admin rows. Warned: no mail relay, localhost still in `PORTAL_BASE_URL` or the OAuth URLs, a half-configured OIDC, an unfinished key rotation, a `NODE_REGISTRATION_TOKEN` shorter than 32 characters, and a break-glass key that can never work.
 
-Liveness probes `/health`, which checks nothing deliberately; readiness probes `/ready`, which does a `SELECT 1` and a `PING` and returns 503 when a dependency is genuinely unavailable — but treats a merely saturated pool as `busy` and stays ready, since pulling a working replica out of a load balancer is the one action guaranteed to make a capacity problem worse.
+Liveness probes `/health`, which checks nothing deliberately; readiness probes `/ready`, which does a `SELECT 1` and a `PING` and returns 503 when a dependency is genuinely unavailable — but treats a merely saturated pool as `busy` and stays ready, since pulling a working replica out of a load balancer is the one action guaranteed to make a capacity problem worse. Both are mounted at the root, and so is `/version`, which answers the version that replica is running: `/health`, `/ready` and `/version` are not under `/v1`, so a probe does not move when the API version does.
 
 The portal opens on its own dashboard: `/` on your install goes to `/dashboard`, and somebody signed out is sent on to sign in. Ignite Ember's public site is not part of a self-hosted install.
 

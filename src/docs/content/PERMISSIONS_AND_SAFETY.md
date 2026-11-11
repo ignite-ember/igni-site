@@ -102,7 +102,7 @@ Only non-default values are emitted, on purpose: emitting defaults would hand `-
 
 ## CLI flags
 
-`igni` runs one message when given `-m` or `-p`. Its only subcommands are `igni ext` (developing extensions) and `igni migrate` (the state database's schema) — there is no `igni login` or `igni chat`. Five flags shape permissions:
+`igni` runs one message when given `-m` or `-p`. Its subcommands are `igni ext` (developing extensions), `igni login` (signing in to your igni server), `igni migrate` (the state database's schema) and `igni trust` (recording whether a folder may run its own code) — there is no `igni chat`. Five flags shape permissions:
 
 | Flag | Sets |
 |---|---|
@@ -231,4 +231,10 @@ permissions:
 
 The agent itself cannot change mode toward looser either way: its `slash_command` tool refuses `/plan`, `/accept` and `/bypass`, and `enter_plan_mode` only ever moves into plan mode.
 
-These are client commands. `igni -m` and `igni -p` run one message and exit, with no human to answer a prompt; interactive use means starting `python -m ember_code.backend --socket <path>` and attaching a client. One concession to that: a headless `--read-only` run prints the plan the agent submitted at the end, because the usual consumer is a frontend card nobody is looking at.
+These are client commands. `igni -m` and `igni -p` run one message and exit, with no human to answer a prompt; interactive use means starting `python -m igni_core.backend --socket <path>` and attaching a client. One concession to that: a headless `--read-only` run prints the plan the agent submitted at the end, because the usual consumer is a frontend card nobody is looking at.
+
+## Where to go next
+
+- **[Tools, MCP servers and language servers](/docs/tools-mcp-and-language-servers)** — the capabilities the six categories act on.
+- **[Configuration and precedence](/docs/configuration-and-precedence)** — where a permission rule may be set, and which one wins.
+- **[Troubleshooting](/docs/troubleshooting)** — what a paused run and an untrusted folder look like.

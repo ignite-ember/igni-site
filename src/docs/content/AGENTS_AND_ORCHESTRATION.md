@@ -1,10 +1,10 @@
 igni does its work through one main agent that holds the conversation plus a pool of specialists it hands subtasks to. A specialist is a markdown file — YAML frontmatter and a system prompt — so adding one is a file, not code. This page covers what ships, the file format the loader actually parses, where your own definitions go, how work is routed, and the limits that govern delegation.
 
-Delegation only happens inside a running session, which means a one-shot `igni -m "..."` run, a piped `igni -p` run, or a backend (`python -m ember_code.backend`) with a client attached.
+Delegation only happens inside a running session, which means a one-shot `igni -m "..."` run, a piped `igni -p` run, or a backend (`python -m igni_core.backend`) with a client attached.
 
 ## What ships
 
-`src/ember_code/bundled_agents/` holds 11 agents, one `.md` file each. Session startup calls `ProjectInitializer.initialize`, which copies each file into `<project>/.igni/agents/` and records its checksum. On a later upgrade, a copy you never touched is overwritten in place; a copy you edited is left alone and the new package version lands beside it as `<name>.md.new` for you to diff. When your group ships its own agents, the bundled ones are not copied at all.
+`src/igni_core/bundled_agents/` holds 11 agents, one `.md` file each. Session startup calls `ProjectInitializer.initialize`, which copies each file into `<project>/.igni/agents/` and records its checksum. On a later upgrade, a copy you never touched is overwritten in place; a copy you edited is left alone and the new package version lands beside it as `<name>.md.new` for you to diff. When your group ships its own agents, the bundled ones are not copied at all.
 
 | agent | declared tools | for |
 |---|---|---|
@@ -120,3 +120,10 @@ All under `orchestration:` in `.igni/config.yaml` (project) or `~/.igni/config.y
 ## Plugin-shipped agents
 
 Agents that arrive via a plugin are loaded under a security envelope. Their names are namespaced `<plugin>:<name>` so they cannot collide with yours, `mcp_servers` is stripped to empty, and `force_isolation` is set to `worktree` so every spawn runs in a fresh branch. Declaring `hooks`, `mcpServers`/`mcp_servers`, `permissionMode`/`permission_mode` or `permissions` in a plugin agent's frontmatter logs a warning and the keys are dropped — a plugin cannot grant itself privileges its manifest did not get. The same envelope applies to agents an extension ships, because an extension delivers its agents as a plugin.
+
+## Where to go next
+
+- **[Slash commands, skills and output styles](/docs/slash-commands-and-skills)** — the other thing you type after a slash, and the packaged procedures that ship with igni.
+- **[Tools, MCP servers and language servers](/docs/tools-mcp-and-language-servers)** — what an agent may call, and how you add more.
+- **[Building extensions](/docs/building-extensions)** — shipping your own agents to other people's machines.
+- **[Glossary](/docs/glossary)** — what "agent", "orchestrator", "team mode" and "plugin" mean here.

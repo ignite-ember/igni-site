@@ -118,3 +118,9 @@ Context files concatenate; settings do not — they merge, and later tiers win:
 ```
 
 Managed policy sits above CLI flags deliberately: an org policy cannot be overridden by adding a flag. The two environment variables are applied after the merge, so they beat every file. In the cloud the local files are not read at all. [Configuration and precedence](/docs/configuration-and-precedence) has the detail.
+
+## Where to go next
+
+- **[Configuration and precedence](/docs/configuration-and-precedence)** — the whole order, in one place.
+- **[Agents and orchestration](/docs/agents-and-orchestration)** — who reads this context, and how work is handed to a team.
+- **[Your first session](/docs/your-first-session)** — the files igni writes in a folder the first time it runs there.

@@ -12,11 +12,11 @@ Extensions run in the igni desktop app and in igni on a [Fleet](/docs/fleet) VM.
 
 ## The manifest
 
-Every extension has a `manifest.json` at its root, against the schema `https://igni.sh/schema/extension-manifest-1.json`. Four fields are required: `id`, `version`, `contract` and `trust`. A trimmed copy of Artifacts' manifest:
+Every extension has a `manifest.json` at its root, against the schema `https://ignite-ember.sh/schema/extension-manifest-1.json`. Four fields are required: `id`, `version`, `contract` and `trust`. A trimmed copy of Artifacts' manifest:
 
 ```json
 {
-  "$schema": "https://igni.sh/schema/extension-manifest-1.json",
+  "$schema": "https://ignite-ember.sh/schema/extension-manifest-1.json",
   "id": "igni.artifacts",
   "version": "0.1.0",
   "contract": ">=1.0 <2",
@@ -155,7 +155,7 @@ Hooks use `@ext.hook(...)` and answer `Allow`, `Reject(reason)` or `Modify(value
 
 ## The host API
 
-The host API is the igni app as an object model: `ext.host` in Python, `bridge.host` on a page. Its version is **1.10**. Each part needs a grant in `permissions.host`; a call without one fails with `not_granted`.
+The host API is the igni app as an object model: `ext.host` in Python, `bridge.host` on a page. Its version is **1.13.0**. Each part needs a grant in `permissions.host`; a call without one fails with `not_granted`.
 
 | Namespace | What it reaches | Grant |
 |---|---|---|
@@ -253,11 +253,14 @@ Send a message when your service knows what the agent should read. Send an event
 igni ext init ./acme-example              # a manifest, a server, a page
 igni ext doctor ./acme-example            # schema, contract, permissions, collisions, an MCP round trip
 IGNI_DEV_EXTENSIONS=1 igni ext install ./acme-example   # --replace to upgrade
+igni ext sync                             # match what igni server lists for your group
 igni ext list
 igni ext remove acme.example
 ```
 
 `igni ext install` also takes a git URL, with `--ref` and `--subdir`. An installed extension starts on igni's next start. If `doctor` passes, it loads.
+
+`igni ext sync` brings the local store into step with igni server now, for a terminal. It lists the extensions switched on for the signed-in person's group and installs, updates or removes them to match — downloading and verifying each one, and leaving a development install of the same id alone. It starts and stops nothing: igni's backend starts what is stored when it boots. `--root` syncs a store somewhere other than the default, and `--timeout` sets the seconds igni server has to answer (120 by default). The app does the same at start-up and sign-in.
 
 For tests, `igni_extension.testing` has `FakeHost` and `HostHarness`, and `igni_service.testing` has `FakeIgni`, which records events and lets a test settle them.
 

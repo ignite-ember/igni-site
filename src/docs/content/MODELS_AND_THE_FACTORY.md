@@ -20,7 +20,7 @@ igni server sends chat to inference nodes you run — usually vLLM — and lease
 ```json
 [
   {"id": "gpu-01", "base_url": "http://gpu-01.internal:8000/v1",
-   "model": "igni-1.0-4b", "max_concurrent": 64, "pools": ["chat"]}
+   "model": "igni-1.0-4b", "max_concurrent": 64}
 ]
 ```
 
@@ -30,10 +30,10 @@ The id is whatever the node reports — with vLLM, the name you give `--served-m
 
 ```json
 {"id": "gpu-02", "base_url": "http://gpu-02.internal:8000/v1",
- "models": ["igni-1.0-4b", "sql", "docs"], "pools": ["chat"]}
+ "models": ["igni-1.0-4b", "sql", "docs"]}
 ```
 
-When an admin adds a node in the portal, the node itself is asked for its ids, so adapter names come from what the operator passed to `--lora-modules`. How nodes are added, pooled and chosen between is in [Connecting your GPUs](/docs/inference-backends).
+When an admin adds a node in the portal, the node itself is asked for its ids, so adapter names come from what the operator passed to `--lora-modules`. How nodes are added and chosen between is in [Connecting your GPUs](/docs/inference-backends).
 
 ## Choosing a model
 
@@ -48,13 +48,13 @@ After sign-in, the client asks the server for the models it serves (`GET /v1/cha
 
 ## The small models igni runs itself
 
-Two kinds of model run outside your GPU pool, and both run without a network connection.
+Two kinds of model run outside the nodes you serve, and both run without a network connection.
 
 | Model | Used by | Where it runs |
 |---|---|---|
 | `sentence-transformers/all-MiniLM-L6-v2` (384 dimensions) | CodeIndex | On each developer's machine, with ONNX Runtime, shipped in the CodeIndex extension |
 | `sentence-transformers/all-MiniLM-L6-v2` and the reranker `cross-encoder/ms-marco-MiniLM-L-6-v2` | Artifacts | In the documents service's embedder image, baked in at build time |
-| Laya (`convaiinnovations/laya`) | Bypass mode's last check, and `host.decide` for extensions | On each developer's machine, installed with `ignite-ember[decisions]` |
+| Laya (`convaiinnovations/laya`) | Bypass mode's last check, and `host.decide` for extensions | On each developer's machine, installed with `igni-core[decisions]` |
 
 Both CodeIndex and Artifacts keep their vectors in **Neo4j**: CodeIndex in a local database per project and commit, Artifacts in a database per organisation. See [CodeIndex](/docs/codeindex) and [Running the documents service](/docs/running-the-documents-service).
 
@@ -73,5 +73,5 @@ What that means for a deployment today:
 
 ## Where to go next
 
-- **[Connecting your GPUs](/docs/inference-backends)** — registering nodes, pools, and how a request picks one.
+- **[Connecting your GPUs](/docs/inference-backends)** — registering nodes, and how a request picks one.
 - **[Installing igni](/docs/installing-igni)** — the clients that use these models, and pre-seeding the decision model offline.

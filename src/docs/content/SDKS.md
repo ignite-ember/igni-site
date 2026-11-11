@@ -27,15 +27,15 @@ uv add igni-extension          # or: pip install igni-extension
 npm install @ignite-ember/extension-bridge @ignite-ember/ui-react @ignite-ember/ui-css
 ```
 
-The Python SDKs are versioned together with the rest of igni and are Apache-2.0. The extension host object model carries its own schema version (currently **1.11**), which is what a page's `bridge.host` and the process's `ext.host` are generated from; the manifest's `contract` range (today `1.0`) is the compatibility promise an extension declares against.
+The Python SDKs are versioned together with the rest of igni and are Apache-2.0. The extension host object model carries its own schema version (currently **1.13.0**), which is what a page's `bridge.host` and the process's `ext.host` are generated from; the manifest's `contract` range (today `1.0`) is the compatibility promise an extension declares against.
 
-Every SDK release is also tagged `sdk-v<version>` on [github.com/ignite-ember/igni](https://github.com/ignite-ember/igni/releases). That release carries every wheel and every npm tarball with their SHA-256 digests, so a build machine with no route to PyPI or npm can install from it — see [Installing without internet access](#installing-without-internet-access).
+Every SDK release is also tagged `sdk-v<version>` on [github.com/ignite-ember/igni-sdk](https://github.com/ignite-ember/igni-sdk/releases). That release carries every wheel and every npm tarball with their SHA-256 digests, so a build machine with no route to PyPI or npm can install from it — see [Installing without internet access](#installing-without-internet-access).
 
 > **Note:** The SDKs are at an early version and marked alpha. A handful of methods are already deprecated in favour of clearer names, and a few capabilities are declared but not yet wired up; both are called out in the relevant section below and in Errors and limits.
 
 ## Calling igni's models: the OpenAI-compatible API
 
-The igni server exposes an **OpenAI-compatible REST API**. You do not install an igni library for this — you point the official `openai` client (or `curl`, or any OpenAI-compatible tool) at your server. Completions are proxied through the server's own key pool to the GPUs you run, so your code never holds an upstream provider URL or key. How the server routes that work is in [Connecting your GPUs](/docs/inference-backends).
+The igni server exposes an **OpenAI-compatible REST API**. You do not install an igni library for this — you point the official `openai` client (or `curl`, or any OpenAI-compatible tool) at your server. Completions are proxied through the server to the inference nodes you run, so your code never holds a node's address or key. How the server routes that work is in [Connecting your GPUs](/docs/inference-backends).
 
 The base URL is your server's public URL with `/v1` appended: `https://igni.example.com/v1`.
 
@@ -139,7 +139,7 @@ Tokens are RS256 JWTs issued by your server, whose issuer and audience are the s
 | **A service** | A 10-minute token for itself | `client_credentials` at the token endpoint, with a signed client assertion (`private_key_jwt`) |
 | **A person, as seen by a service** | A 10-minute token minted for that person | Handled for you by `igni-service` (see below) |
 
-> **Note:** There is no headless person sign-in. To call the API as a person from CI, sign in once on a machine with a browser and copy `~/.igni/credentials.json` across; the token lasts 30 days. Server-to-server integrations should register a service and use `client_credentials` instead.
+> **Note:** The desktop app has no headless sign-in. The CLI has both: `igni login` runs the sign-in flow and prints the address to open, for a machine with no browser of its own, and `igni login --token-stdin` keeps an access token read from stdin, once igni server has accepted it. To call the API as a person from CI, sign in on a machine with a browser and copy `~/.igni/credentials.json` across; the token lasts 30 days. Server-to-server integrations should register a service and use `client_credentials` instead.
 
 ### Discovery and the token endpoint
 
@@ -463,19 +463,21 @@ connect()
   });
 ```
 
-## The CLI: ignite-ember / igni
+## The CLI: igni-core / igni
 
-The CLI is the same agent as the desktop app, for scripts and CI. It is the package `ignite-ember` (command `igni`, alias `ignite-ember`), and needs Python 3.12.
+The CLI is the same agent as the desktop app, for scripts and CI. It is the package `igni-core` (command `igni`), and needs Python 3.12. It was published as `ignite-ember` before the split, and from 1.0.4 that name installs it too: the `ignite-ember` package carries nothing of its own and depends on `igni-core` at the same version, so `pip install ignite-ember` gives you the same CLI. The command `ignite-ember` is kept as an alias of `igni`.
 
 ```bash
-pip install ignite-ember            # or: brew install ignite-ember/tap/ignite-ember
+pip install igni-core               # or: pip install ignite-ember (the alias package)
 igni -m "explain src/auth.py"       # one message, then exit
 git diff | igni -p                  # stdin in, answer out
 igni -c -m "and the tests?"         # continue the last session
 igni --model platform-review-lora -m "review this branch"
 ```
 
-It reads its server from `~/.igni/config.yaml` (`api_url:`) and its token from `~/.igni/credentials.json`. Flags set the permission mode (`--read-only`, `--accept-edits`, `--auto-approve`, `--strict`), turn off web tools (`--no-web`), or add directories (`--add-dir`). Two subcommands exist: `igni ext` for extensions, and `igni migrate` for igni's own database. There is no interactive terminal chat and no headless sign-in — see [Installing igni](/docs/installing-igni) for the full flag list and the CI workaround.
+The Homebrew formula `ignite-ember/tap/ignite-ember` installs the published 1.0.3, and it puts the `ignite-ember` command on your `PATH` — not `igni`.
+
+It reads its server from `~/.igni/config.yaml` (`api_url:`) and its token from `~/.igni/credentials.json`. Flags set the permission mode (`--read-only`, `--accept-edits`, `--auto-approve`, `--strict`), turn off web tools (`--no-web`), or add directories (`--add-dir`). Four subcommands exist: `igni ext` for extensions, `igni login` to sign in, `igni migrate` for igni's own database, and `igni trust` to record whether a folder may run its own code. There is no interactive terminal chat. Headless sign-in is `igni login`: it runs the same flow as the app's sign-in page and prints the address to open, for a machine with no browser of its own, and `igni login --token-stdin` keeps an access token read from stdin, once igni server has accepted it — the path for a script or a CI job. The token is never an argument, so it does not land in the shell's history or in the process list. See [Installing igni](/docs/installing-igni) for the full flag list.
 
 ## Testing your integration
 
