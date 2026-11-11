@@ -155,12 +155,12 @@ Every release stays available for at least **ten years** from the day it is publ
 |---|---|---|
 | The offline bundle and its `.sha256` | `ghcr.io/ignite-ember/igni-bundle:<version>` | written once per version, never overwritten or deleted |
 | `igni-api` | `ghcr.io/ignite-ember/igni-api:<commit>`, `:<version>`, and a moving `:latest` | never deleted; the commit tag pins the exact image |
-| `igni-portal` | `ghcr.io/ignite-ember/igni-portal:<commit>`, and a moving `:latest` | never deleted; the commit tag pins the exact image |
+| `igni-portal` | `ghcr.io/ignite-ember/igni-portal:<commit>`, `:<version>`, and a moving `:latest` | never deleted; the commit tag pins the exact image |
 | Their signatures and SBOM attestations | beside each image, at `sha256-<digest>.sig` and `.att` | as the image |
 | Module images | `ghcr.io/ignite-ember/<name>:<version>`, by their own CD | as the image |
 | Release notes and changelog | the git tag `v<version>`, its GitHub Release, `CHANGELOG.md` | as the repository |
 
-In the bundle and in the registry you import it into, both images are carried under `:<version>`. The bundle re-tags the portal, which GHCR holds only under the commit it was built from.
+In the bundle and in the registry you import it into, both images are carried under `:<version>`. The bundle re-tags the portal to the version as well, so the tag the chart defaults to resolves inside your own registry.
 
 The rule that makes this a policy: **nobody deletes a release tag or a release bundle**, and any clean-up of old packages must leave every unprefixed tag alone. The `dev` and `stage` tags that used to sit beside them are gone — 0.7.0 removed those images — so there is no pre-release tag of ours left to tidy away.
 

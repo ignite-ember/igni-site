@@ -29,7 +29,7 @@ Without a relay, sign-in and password-reset codes are sent nowhere: the log reco
 
 Two images, `igni-api` and `igni-portal`. Three ways to get them:
 
-- **Pull a release** from `ghcr.io/ignite-ember/igni-api` and `ghcr.io/ignite-ember/igni-portal`. The API image is tagged with the release version (`0.7.0`), with the commit it was built from, and with a moving `:latest`; the portal image is tagged with the commit and with `:latest`. Release tags are unprefixed — there are no `dev` or `stage` images, because 0.7.0 removed them. Mirror the images into your own registry if your cluster should not pull from the internet.
+- **Pull a release** from `ghcr.io/ignite-ember/igni-api` and `ghcr.io/ignite-ember/igni-portal`. Both images are tagged with the release version (`0.7.0`), with the commit they were built from, and with a moving `:latest`. Release tags are unprefixed — there are no `dev` or `stage` images, because 0.7.0 removed them. Mirror the images into your own registry if your cluster should not pull from the internet.
 - **Import them from a release's signed offline bundle**, which carries them with their signatures and SBOMs — see [Offline updates](/docs/offline-updates). On a network with no route out, this is the only way.
 - **Build them yourself.**
 
@@ -69,7 +69,7 @@ helm install igni ./charts/igni \
 
 Tags default to `.Chart.AppVersion`, currently `0.7.0`. A tag of `latest` is refused outright — it cannot be rolled back to, and an unchanged tag gives Kubernetes no reason to roll pods.
 
-**The portal image is not published under the version tag.** The release workflow pushes `igni-portal` under the commit it was built from and under a moving `:latest`; only `igni-api` also gets `:0.7.0`. A cluster that pulls the portal straight from GHCR therefore needs `--set portalImage.tag=<commit>`. The offline bundle carries the portal under the version tag, so an imported install needs nothing.
+**Both images answer to the version the chart defaults to.** The release workflow pushes `igni-api` and `igni-portal` under the commit they were built from, under the release version (`0.7.0`) and under a moving `:latest`, so the default tags resolve in the registry without a `--set`. The offline bundle carries the same version tag, so an imported install needs nothing either.
 
 The values that matter:
 
