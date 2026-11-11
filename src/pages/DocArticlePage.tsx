@@ -89,7 +89,7 @@ export function DocArticlePage() {
                 variant="default"
                 size="large"
                 leadingVisual={ArrowLeftIcon}
-                onClick={() => { navigate(`/docs/${prevDoc.slug}`); window.scrollTo(0, 0) }}
+                onClick={() => { navigate(`/docs/${prevDoc.slug}`) }}
               >
                 {prevDoc.title}
               </Button>
@@ -99,7 +99,7 @@ export function DocArticlePage() {
                 variant="default"
                 size="large"
                 trailingVisual={ArrowRightIcon}
-                onClick={() => { navigate(`/docs/${nextDoc.slug}`); window.scrollTo(0, 0) }}
+                onClick={() => { navigate(`/docs/${nextDoc.slug}`) }}
               >
                 {nextDoc.title}
               </Button>

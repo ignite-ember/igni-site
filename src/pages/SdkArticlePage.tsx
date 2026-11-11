@@ -83,9 +83,10 @@ export function SdkArticlePage() {
     )
   }
 
+  // The scroll is reset by ScrollToTop on every route change, so this
+  // only has to navigate.
   const go = (to: string) => {
     navigate(to)
-    window.scrollTo(0, 0)
   }
 
   return (

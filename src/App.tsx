@@ -8,6 +8,7 @@ import { DocArticlePage } from "./pages/DocArticlePage";
 import { AgentCorePage } from "./pages/AgentCorePage";
 import { SdkLandingPage } from "./pages/SdkLandingPage";
 import { SdkArticlePage } from "./pages/SdkArticlePage";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 /**
  * The public site — what ignite-ember.sh serves.
@@ -28,6 +29,9 @@ export default function App() {
     <ThemeProvider colorMode="auto">
       <BaseStyles>
         <BrowserRouter>
+          {/* A new page opens at its own top, not where the last one
+              was left. */}
+          <ScrollToTop />
           <Routes>
             <Route index element={<LandingPage />} />
             {/* One page per paid module. */}

@@ -100,7 +100,9 @@ export const markdownComponents: Components = {
       return <a href={to}>{children}</a>
     }
     if (to.startsWith('/') && !to.startsWith('//')) {
-      return <Link to={to} onClick={() => window.scrollTo(0, 0)}>{children}</Link>
+      // The new page opens at its own top; ScrollToTop does that for
+      // every route change, so no link has to.
+      return <Link to={to}>{children}</Link>
     }
     return <a href={to} target="_blank" rel="noopener noreferrer">{children}</a>
   },
