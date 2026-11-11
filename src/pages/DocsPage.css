@@ -128,63 +128,111 @@
   line-height: 1.5;
 }
 
-/* Override highlight.js to match Primer theme in both modes */
+/* ── The code palette ──
+ *
+ * The article bodies are highlighted by highlight.js, whose github.css
+ * theme comes in with the page. The colours below replace that theme:
+ * the blocks sit on --bgColor-muted rather than on white, and the
+ * colours have to follow the page's theme.
+ *
+ * They do, by being Primer's functional roles rather than fixed
+ * values: a role is one colour in the light theme and another in the
+ * dark one, so the code follows the page wherever the page goes.
+ *
+ * Nothing here reads the theme, and that is the point.
+ * `data-dark-theme` on <html> is the *name* of the dark theme and is
+ * on the page in every mode, so a rule keyed on it paints dark
+ * colours onto a light page — which is what made the values in the
+ * articles a pale blue on grey. `data-color-mode` says which mode is
+ * on, but Primer's roles already answer that question; a second
+ * opinion here can only disagree with it.
+ */
+.doc-article-body pre {
+  --hl-fg: var(--fgColor-default);
+  --hl-keyword: var(--fgColor-danger);
+  --hl-entity: var(--fgColor-done);
+  --hl-constant: var(--fgColor-severe);
+  --hl-string: var(--fgColor-accent);
+  --hl-builtin: var(--fgColor-sponsors);
+  --hl-comment: var(--fgColor-muted);
+  --hl-tag: var(--fgColor-success);
+}
+
 .doc-article-body pre code.hljs {
   background: transparent !important;
   padding: 0;
-  color: var(--fgColor-default) !important;
+  color: var(--hl-fg) !important;
 }
 
-/* Dark mode: override highlight.js token colors for readability */
-[data-dark-theme="dark"] .doc-article-body pre code.hljs,
-[data-color-mode="dark"] .doc-article-body pre code.hljs {
-  color: var(--fgColor-default) !important;
+/* The tokens, grouped the way highlight.js groups them. */
+.doc-article-body pre .hljs-doctag,
+.doc-article-body pre .hljs-keyword,
+.doc-article-body pre .hljs-meta .hljs-keyword,
+.doc-article-body pre .hljs-template-tag,
+.doc-article-body pre .hljs-template-variable,
+.doc-article-body pre .hljs-type,
+.doc-article-body pre .hljs-variable.language_ {
+  color: var(--hl-keyword);
 }
 
-[data-dark-theme="dark"] .doc-article-body .hljs-keyword,
-[data-color-mode="dark"] .doc-article-body .hljs-keyword {
-  color: #ff7b72;
+.doc-article-body pre .hljs-title,
+.doc-article-body pre .hljs-title.class_,
+.doc-article-body pre .hljs-title.class_.inherited__,
+.doc-article-body pre .hljs-title.function_,
+.doc-article-body pre .hljs-function {
+  color: var(--hl-entity);
 }
 
-[data-dark-theme="dark"] .doc-article-body .hljs-string,
-[data-color-mode="dark"] .doc-article-body .hljs-string {
-  color: #a5d6ff;
+.doc-article-body pre .hljs-attr,
+.doc-article-body pre .hljs-attribute,
+.doc-article-body pre .hljs-literal,
+.doc-article-body pre .hljs-meta,
+.doc-article-body pre .hljs-number,
+.doc-article-body pre .hljs-operator,
+.doc-article-body pre .hljs-variable,
+.doc-article-body pre .hljs-selector-attr,
+.doc-article-body pre .hljs-selector-class,
+.doc-article-body pre .hljs-selector-id {
+  color: var(--hl-constant);
 }
 
-[data-dark-theme="dark"] .doc-article-body .hljs-comment,
-[data-color-mode="dark"] .doc-article-body .hljs-comment {
-  color: #8b949e;
+.doc-article-body pre .hljs-regexp,
+.doc-article-body pre .hljs-string,
+.doc-article-body pre .hljs-meta .hljs-string {
+  color: var(--hl-string);
 }
 
-[data-dark-theme="dark"] .doc-article-body .hljs-title,
-[data-dark-theme="dark"] .doc-article-body .hljs-function,
-[data-color-mode="dark"] .doc-article-body .hljs-title,
-[data-color-mode="dark"] .doc-article-body .hljs-function {
-  color: #d2a8ff;
+.doc-article-body pre .hljs-built_in,
+.doc-article-body pre .hljs-builtin-name,
+.doc-article-body pre .hljs-symbol,
+.doc-article-body pre .hljs-bullet {
+  color: var(--hl-builtin);
 }
 
-[data-dark-theme="dark"] .doc-article-body .hljs-number,
-[data-color-mode="dark"] .doc-article-body .hljs-number {
-  color: #79c0ff;
+.doc-article-body pre .hljs-comment,
+.doc-article-body pre .hljs-code,
+.doc-article-body pre .hljs-formula {
+  color: var(--hl-comment);
 }
 
-[data-dark-theme="dark"] .doc-article-body .hljs-built_in,
-[data-color-mode="dark"] .doc-article-body .hljs-built_in {
-  color: #ffa657;
+.doc-article-body pre .hljs-name,
+.doc-article-body pre .hljs-quote,
+.doc-article-body pre .hljs-selector-tag,
+.doc-article-body pre .hljs-selector-pseudo {
+  color: var(--hl-tag);
 }
 
-/* Also handle prefers-color-scheme for auto mode */
-@media (prefers-color-scheme: dark) {
-  [data-color-mode="auto"] .doc-article-body pre code.hljs {
-    color: var(--fgColor-default) !important;
-  }
-  [data-color-mode="auto"] .doc-article-body .hljs-keyword { color: #ff7b72; }
-  [data-color-mode="auto"] .doc-article-body .hljs-string { color: #a5d6ff; }
-  [data-color-mode="auto"] .doc-article-body .hljs-comment { color: #8b949e; }
-  [data-color-mode="auto"] .doc-article-body .hljs-title,
-  [data-color-mode="auto"] .doc-article-body .hljs-function { color: #d2a8ff; }
-  [data-color-mode="auto"] .doc-article-body .hljs-number { color: #79c0ff; }
-  [data-color-mode="auto"] .doc-article-body .hljs-built_in { color: #ffa657; }
+.doc-article-body pre .hljs-section {
+  color: var(--hl-constant);
+  font-weight: bold;
+}
+
+.doc-article-body pre .hljs-addition {
+  color: var(--hl-tag);
+}
+
+.doc-article-body pre .hljs-deletion {
+  color: var(--hl-keyword);
 }
 
 .doc-article-body code {
