@@ -6,4 +6,4 @@ Disallow: /billing
 Disallow: /cli-auth
 Disallow: /download
 
-Sitemap: https://ignite-ember.sh/sitemap.xml
+Sitemap: https://igni.sh/sitemap.xml

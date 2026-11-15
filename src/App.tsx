@@ -11,7 +11,7 @@ import { SdkArticlePage } from "./pages/SdkArticlePage";
 import { ScrollToTop } from "./components/ScrollToTop";
 
 /**
- * The public site — what ignite-ember.sh serves.
+ * The public site — what igni.sh (and ignite-ember.sh) serves.
  *
  * Landing page, one page per paid module, a comparison with AWS Bedrock
  * AgentCore, and the documentation. It

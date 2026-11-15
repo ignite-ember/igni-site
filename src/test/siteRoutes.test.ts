@@ -57,7 +57,7 @@ describe('the route copies the deploy uploads', () => {
 
   it('cover every page in the sitemap', () => {
     const sitemap = readFileSync(join(process.cwd(), 'public/sitemap.xml'), 'utf8')
-    const locs = [...sitemap.matchAll(/<loc>https:\/\/ignite-ember\.sh\/?([^<]*)<\/loc>/g)].map((m) => m[1])
+    const locs = [...sitemap.matchAll(/<loc>https:\/\/igni\.sh\/?([^<]*)<\/loc>/g)].map((m) => m[1])
     expect(locs.length).toBeGreaterThan(5)
     for (const loc of locs) if (loc) expect(objects, loc).toContain(loc)
   })

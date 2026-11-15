@@ -1,762 +1,762 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://ignite-ember.sh/</loc>
+    <loc>https://igni.sh/</loc>
     <priority>1.0</priority>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/codeindex</loc>
+    <loc>https://igni.sh/codeindex</loc>
     <priority>0.9</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/artifacts</loc>
+    <loc>https://igni.sh/artifacts</loc>
     <priority>0.9</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/fleet</loc>
+    <loc>https://igni.sh/fleet</loc>
     <priority>0.9</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/factory</loc>
+    <loc>https://igni.sh/factory</loc>
     <priority>0.9</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/compare/agentcore</loc>
+    <loc>https://igni.sh/compare/agentcore</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs</loc>
+    <loc>https://igni.sh/docs</loc>
     <priority>0.9</priority>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/installing-igni</loc>
+    <loc>https://igni.sh/docs/installing-igni</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/your-first-session</loc>
+    <loc>https://igni.sh/docs/your-first-session</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/models-and-the-factory</loc>
+    <loc>https://igni.sh/docs/models-and-the-factory</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/self-hosting-the-server</loc>
+    <loc>https://igni.sh/docs/self-hosting-the-server</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/server-configuration</loc>
+    <loc>https://igni.sh/docs/server-configuration</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/inference-backends</loc>
+    <loc>https://igni.sh/docs/inference-backends</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/administering-your-organisation</loc>
+    <loc>https://igni.sh/docs/administering-your-organisation</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/running-the-documents-service</loc>
+    <loc>https://igni.sh/docs/running-the-documents-service</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/licensing-and-evaluations</loc>
+    <loc>https://igni.sh/docs/licensing-and-evaluations</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/offline-updates</loc>
+    <loc>https://igni.sh/docs/offline-updates</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/changes-and-upgrades</loc>
+    <loc>https://igni.sh/docs/changes-and-upgrades</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/troubleshooting</loc>
+    <loc>https://igni.sh/docs/troubleshooting</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/configuration-and-precedence</loc>
+    <loc>https://igni.sh/docs/configuration-and-precedence</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/glossary</loc>
+    <loc>https://igni.sh/docs/glossary</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/project-context-and-memory</loc>
+    <loc>https://igni.sh/docs/project-context-and-memory</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/permissions-and-safety</loc>
+    <loc>https://igni.sh/docs/permissions-and-safety</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/agents-and-orchestration</loc>
+    <loc>https://igni.sh/docs/agents-and-orchestration</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/slash-commands-and-skills</loc>
+    <loc>https://igni.sh/docs/slash-commands-and-skills</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/tools-mcp-and-language-servers</loc>
+    <loc>https://igni.sh/docs/tools-mcp-and-language-servers</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/hooks-workflows-and-scheduled-tasks</loc>
+    <loc>https://igni.sh/docs/hooks-workflows-and-scheduled-tasks</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/artifacts</loc>
+    <loc>https://igni.sh/docs/artifacts</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/codeindex</loc>
+    <loc>https://igni.sh/docs/codeindex</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/fleet</loc>
+    <loc>https://igni.sh/docs/fleet</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdks</loc>
+    <loc>https://igni.sh/docs/sdks</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/building-extensions</loc>
+    <loc>https://igni.sh/docs/building-extensions</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk</loc>
+    <loc>https://igni.sh/docs/sdk</loc>
     <priority>0.9</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/installing</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/installing</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/quick-start</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/quick-start</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/concepts</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/concepts</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/guides</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/guides</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/api-reference</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/api-reference</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/errors-and-troubleshooting</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/errors-and-troubleshooting</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/changes-since-0-1-0</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/changes-since-0-1-0</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/igni</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/igni</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/sessions</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/sessions</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/runs</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/runs</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/history-and-context</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/history-and-context</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/loop</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/loop</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/plans</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/plans</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/models</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/models</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/permissions</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/permissions</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/workspace</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/workspace</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/files</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/files</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/shell-and-processes</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/shell-and-processes</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/agents</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/agents</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/skills-and-commands</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/skills-and-commands</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/hooks</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/hooks</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/scheduler</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/scheduler</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/workflows</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/workflows</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/mcp</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/mcp</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/plugins</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/plugins</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/extensions</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/extensions</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/notifications</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/notifications</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/sign-in-and-server</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/sign-in-and-server</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/approvers</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/approvers</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/window</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/window</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/access</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/access</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/models-reference</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/models-reference</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/events-reference</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/events-reference</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-client/errors-reference</loc>
+    <loc>https://igni.sh/docs/sdk/igni-client/errors-reference</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-extension</loc>
+    <loc>https://igni.sh/docs/sdk/igni-extension</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-extension/install</loc>
+    <loc>https://igni.sh/docs/sdk/igni-extension/install</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-extension/quick-start</loc>
+    <loc>https://igni.sh/docs/sdk/igni-extension/quick-start</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-extension/concepts</loc>
+    <loc>https://igni.sh/docs/sdk/igni-extension/concepts</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-extension/guides</loc>
+    <loc>https://igni.sh/docs/sdk/igni-extension/guides</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-extension/api-reference</loc>
+    <loc>https://igni.sh/docs/sdk/igni-extension/api-reference</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-extension/troubleshooting-and-faq</loc>
+    <loc>https://igni.sh/docs/sdk/igni-extension/troubleshooting-and-faq</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-extension/changes-since-0-1-0</loc>
+    <loc>https://igni.sh/docs/sdk/igni-extension/changes-since-0-1-0</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-extension/license</loc>
+    <loc>https://igni.sh/docs/sdk/igni-extension/license</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-extension/reference-igni-extension-class</loc>
+    <loc>https://igni.sh/docs/sdk/igni-extension/reference-igni-extension-class</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-extension/reference-tools</loc>
+    <loc>https://igni.sh/docs/sdk/igni-extension/reference-tools</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-extension/reference-callers-and-service</loc>
+    <loc>https://igni.sh/docs/sdk/igni-extension/reference-callers-and-service</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-extension/reference-host</loc>
+    <loc>https://igni.sh/docs/sdk/igni-extension/reference-host</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-extension/reference-hooks</loc>
+    <loc>https://igni.sh/docs/sdk/igni-extension/reference-hooks</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-extension/reference-service-events-and-prompts</loc>
+    <loc>https://igni.sh/docs/sdk/igni-extension/reference-service-events-and-prompts</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-extension/reference-environment</loc>
+    <loc>https://igni.sh/docs/sdk/igni-extension/reference-environment</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-extension/reference-errors</loc>
+    <loc>https://igni.sh/docs/sdk/igni-extension/reference-errors</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-extension/reference-testing</loc>
+    <loc>https://igni.sh/docs/sdk/igni-extension/reference-testing</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service/installing</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service/installing</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service/quick-start</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service/quick-start</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service/concepts</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service/concepts</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service/api-reference</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service/api-reference</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service/guides</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service/guides</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service/troubleshooting-and-faq</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service/troubleshooting-and-faq</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service/changes-since-0-1-0</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service/changes-since-0-1-0</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service/reference-igni-service-class</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service/reference-igni-service-class</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service/reference-callers</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service/reference-callers</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service/reference-web-sign-in</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service/reference-web-sign-in</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service/reference-host-and-directory</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service/reference-host-and-directory</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service/reference-notifications</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service/reference-notifications</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service/reference-producers-and-agents</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service/reference-producers-and-agents</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service/reference-subjects</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service/reference-subjects</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service/reference-vm-profiles</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service/reference-vm-profiles</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service/reference-key-storage</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service/reference-key-storage</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service/reference-errors</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service/reference-errors</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/igni-service/reference-testing</loc>
+    <loc>https://igni.sh/docs/sdk/igni-service/reference-testing</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge</loc>
+    <loc>https://igni.sh/docs/sdk/extension-bridge</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/quick-start</loc>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/quick-start</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/the-life-of-a-page</loc>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/the-life-of-a-page</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/the-host-bridge-host</loc>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/the-host-bridge-host</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/its-own-service-bridge-service</loc>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/its-own-service-bridge-service</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/calling-your-extension-s-tools</loc>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/calling-your-extension-s-tools</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/following-the-host</loc>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/following-the-host</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/where-the-page-is</loc>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/where-the-page-is</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/the-floor</loc>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/the-floor</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/changed-since-0-1-0-on-purpose</loc>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/changed-since-0-1-0-on-purpose</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/installing</loc>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/installing</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/the-source-and-a-build-beside-it</loc>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/the-source-and-a-build-beside-it</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/reference-the-bridge</loc>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/reference-the-bridge</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/reference-what-a-page-is-handed</loc>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/reference-what-a-page-is-handed</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/reference-the-host-object-model</loc>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/reference-the-host-object-model</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/reference-the-extensions-service</loc>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/reference-the-extensions-service</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/reference-the-wire</loc>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/reference-the-wire</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/extension-bridge/reference-the-design-tokens</loc>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/reference-the-design-tokens</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-react</loc>
+    <loc>https://igni.sh/docs/sdk/ui-react</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-react/quick-start</loc>
+    <loc>https://igni.sh/docs/sdk/ui-react/quick-start</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-react/the-floor</loc>
+    <loc>https://igni.sh/docs/sdk/ui-react/the-floor</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-react/choosing-a-component</loc>
+    <loc>https://igni.sh/docs/sdk/ui-react/choosing-a-component</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-react/styling</loc>
+    <loc>https://igni.sh/docs/sdk/ui-react/styling</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-react/peer-dependencies</loc>
+    <loc>https://igni.sh/docs/sdk/ui-react/peer-dependencies</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-react/changed-since-0-1-0-on-purpose</loc>
+    <loc>https://igni.sh/docs/sdk/ui-react/changed-since-0-1-0-on-purpose</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-react/the-stylesheet-is-not-optional</loc>
+    <loc>https://igni.sh/docs/sdk/ui-react/the-stylesheet-is-not-optional</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-react/the-source-and-a-build-beside-it</loc>
+    <loc>https://igni.sh/docs/sdk/ui-react/the-source-and-a-build-beside-it</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-react/reference-the-primitives</loc>
+    <loc>https://igni.sh/docs/sdk/ui-react/reference-the-primitives</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-react/reference-the-shell</loc>
+    <loc>https://igni.sh/docs/sdk/ui-react/reference-the-shell</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-react/reference-the-table</loc>
+    <loc>https://igni.sh/docs/sdk/ui-react/reference-the-table</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-react/reference-feedback</loc>
+    <loc>https://igni.sh/docs/sdk/ui-react/reference-feedback</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-react/reference-content</loc>
+    <loc>https://igni.sh/docs/sdk/ui-react/reference-content</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-react/reference-utilities</loc>
+    <loc>https://igni.sh/docs/sdk/ui-react/reference-utilities</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-css</loc>
+    <loc>https://igni.sh/docs/sdk/ui-css</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-css/using-it</loc>
+    <loc>https://igni.sh/docs/sdk/ui-css/using-it</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-css/how-theming-works</loc>
+    <loc>https://igni.sh/docs/sdk/ui-css/how-theming-works</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-css/the-floor</loc>
+    <loc>https://igni.sh/docs/sdk/ui-css/the-floor</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-css/what-is-here</loc>
+    <loc>https://igni.sh/docs/sdk/ui-css/what-is-here</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-css/the-spacing-scale</loc>
+    <loc>https://igni.sh/docs/sdk/ui-css/the-spacing-scale</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-css/the-type-scale</loc>
+    <loc>https://igni.sh/docs/sdk/ui-css/the-type-scale</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-css/shape</loc>
+    <loc>https://igni.sh/docs/sdk/ui-css/shape</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-css/primitives</loc>
+    <loc>https://igni.sh/docs/sdk/ui-css/primitives</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-css/writing-your-own-css</loc>
+    <loc>https://igni.sh/docs/sdk/ui-css/writing-your-own-css</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-css/installing</loc>
+    <loc>https://igni.sh/docs/sdk/ui-css/installing</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-css/what-an-extension-still-cannot-do</loc>
+    <loc>https://igni.sh/docs/sdk/ui-css/what-an-extension-still-cannot-do</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-css/reference-tokens</loc>
+    <loc>https://igni.sh/docs/sdk/ui-css/reference-tokens</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://ignite-ember.sh/docs/sdk/ui-css/reference-classes</loc>
+    <loc>https://igni.sh/docs/sdk/ui-css/reference-classes</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>

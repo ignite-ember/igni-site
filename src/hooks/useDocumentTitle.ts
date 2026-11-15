@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 
 const BASE_TITLE = 'igni'
-const BASE_URL = 'https://ignite-ember.sh'
+const BASE_URL = 'https://igni.sh'
 
 function setMeta(name: string, content: string) {
   let el = document.querySelector(`meta[name="${name}"]`) ||
