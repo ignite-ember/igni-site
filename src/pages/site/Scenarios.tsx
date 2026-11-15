@@ -137,10 +137,11 @@ const SCENARIOS: Scenario[] = [
     // igni docs/BENCHMARKS.md: 12 tasks × 5 runs, deterministic
     // grading. igni ran an open-weight model (MiniMax-M2.7) with CodeIndex;
     // Claude Code ran Opus 4.7 without it. Not the igni model, not Opus 5.
+    // Re-run on igni-1.0-27b once it ships; until then the note says so.
     stat: {
       value: '82%',
       label: 'of changes directly mergeable. Claude Code on Opus 4.7: 52%.',
-      source: 'Ignite Ember benchmark: 12 tasks, 5 runs each, igni with CodeIndex on the open-weight MiniMax-M2.7, at about 1/80th the cost per run.',
+      source: 'Ignite Ember benchmark: 12 tasks, 5 runs each, igni with CodeIndex on the open-weight MiniMax-M2.7, at about 1/80th the cost per run. Measured before igni 1.0; to be re-run on igni-1.0-27b.',
     },
     price: `${eurSeat(marginalRates(CODEINDEX_PRICES)[0])} a developer a year, less at scale`,
     mock: (
