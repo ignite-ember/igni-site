@@ -3,7 +3,7 @@
 # links answer 200 with the index.html that references this build's
 # script, and that script loads.
 #
-#   scripts/smoke-site.sh https://ignite-ember.sh [dist]
+#   scripts/smoke-site.sh https://igni.sh [dist]
 #
 # Retries for up to ~5 minutes while the CDN invalidation lands. Each
 # request carries a query string the CDN has not cached.
