@@ -12,6 +12,7 @@ on:
       bucket: { type: string, required: true }
       hosts: { type: string, required: true, description: 'Comma-separated hosts to invalidate' }
       site_url: { type: string, required: true }
+      also_urls: { type: string, required: false, default: '', description: 'Space-separated other names of the same site, smoke-checked too' }
       service_account: { type: string, required: true }
 
 permissions:
@@ -73,3 +74,13 @@ jobs:
         env:
           SITE_URL: ${{ inputs.site_url }}
         run: scripts/smoke-site.sh "$SITE_URL" dist
+
+      - name: Smoke check the other names
+        if: inputs.also_urls != ''
+        env:
+          ALSO_URLS: ${{ inputs.also_urls }}
+        run: |
+          for url in $ALSO_URLS; do
+            echo "== $url"
+            scripts/smoke-site.sh "$url" dist
+          done

@@ -1,6 +1,7 @@
 # igni site
 
-The public website at [ignite-ember.sh](https://ignite-ember.sh): the landing
+The public website at [igni.sh](https://igni.sh) (also served, unchanged, at
+[ignite-ember.sh](https://ignite-ember.sh); see [Domains](#domains)): the landing
 page, one page per paid module (`/codeindex`, `/artifacts`, `/fleet`,
 `/factory`), a comparison with AWS Bedrock AgentCore (`/compare/agentcore`)
 and the documentation (`/docs`, `/docs/:slug`). `/download` is served but
@@ -75,13 +76,14 @@ git tag release-v1.2.3 && git push origin release-v1.2.3
 ```
 
 It refuses a tag that is not `release-vX.Y.Z` or not on main, runs the same
-checks as CI, then deploys to ignite-ember.sh and www as
+checks as CI, then deploys to igni.sh, ignite-ember.sh and their www as
 `igni-site-deploy-prod`, which only a `release-v*` tag can sign in as.
 **Rollback:** Actions → Deploy → Run workflow, "Use workflow from" the
 older tag. Its build is made again from that tag; old hashed assets are
 still in the bucket, so cached pages keep loading either way. The run uses
 the GitHub environment `production`, where required reviewers can be
-added.
+added. The smoke check runs against https://igni.sh and then
+https://ignite-ember.sh (`also_urls` in `deploy.yml`).
 
 One-time Google Cloud setup (identity pool, the stage and prod service
 accounts, the CDN-invalidation role; `--https-redirect` also does the
@@ -91,6 +93,55 @@ HTTP→HTTPS redirect and HSTS below):
 DRY_RUN=1 scripts/setup-deploy-gcp.sh --https-redirect   # print the commands
 scripts/setup-deploy-gcp.sh                               # run them
 ```
+
+### Domains
+
+`igni.sh` is the primary name: the canonical links, `og:url`, the sitemap and
+`robots.txt` name it (`BASE_URL` in `src/hooks/useDocumentTitle.ts`, `ORIGIN`
+in `scripts/generate-sitemap.mjs`). `ignite-ember.sh` serves the same bucket
+and stays up for good: the published JSON Schemas keep their `$id` under
+`https://ignite-ember.sh/schema/…`, which extension manifests and themes in
+the wild name in `$schema`, and the `@ignite-ember.sh` addresses stay. Stage
+is `stage.ignite-ember.sh`.
+
+Both names go through the one load balancer in `ember-prod-491411` (set up by
+hand on 2026-11-15; none of it is in a repository). To recreate the igni.sh
+side:
+
+- **DNS:** Cloud DNS zone `igni-sh` for `igni.sh.`, with `A` records for
+  `igni.sh` and `www.igni.sh` at the load balancer's IP. The registrar points
+  igni.sh's nameservers at the zone's (`gcloud dns managed-zones describe
+  igni-sh --format='value(nameServers)'`).
+- **Certificate:** Certificate Manager certificate `igni-sh-managed`, Google
+  managed, for `igni.sh` and `www.igni.sh`. It issues only once the
+  nameservers point at the zone.
+- **Certificate map:** `igni-site-map`, which the HTTPS proxy uses, has the
+  entries `e-igni-sh` (hostname `igni.sh`) and `e-www-igni-sh` (`www.igni.sh`),
+  both with `igni-sh-managed`, next to the ignite-ember.sh entries.
+- **URL map:** `igni-public-urlmap` routes `igni.sh` and `www.igni.sh` to the
+  production backend bucket through host rule / path matcher `prod`, the same
+  one the ignite-ember.sh hosts use. The HTTP→HTTPS redirect map covers every
+  host.
+
+```sh
+P=--project=ember-prod-491411
+gcloud $P dns managed-zones create igni-sh --dns-name=igni.sh. --description="igni.sh"
+gcloud $P dns record-sets create igni.sh. --zone=igni-sh --type=A --ttl=300 --rrdatas=<LB_IP>
+gcloud $P dns record-sets create www.igni.sh. --zone=igni-sh --type=A --ttl=300 --rrdatas=<LB_IP>
+gcloud $P certificate-manager certificates create igni-sh-managed --domains=igni.sh,www.igni.sh
+gcloud $P certificate-manager maps entries create e-igni-sh --map=igni-site-map \
+  --hostname=igni.sh --certificates=igni-sh-managed
+gcloud $P certificate-manager maps entries create e-www-igni-sh --map=igni-site-map \
+  --hostname=www.igni.sh --certificates=igni-sh-managed
+# Add igni.sh and www.igni.sh to the hosts of the url map's `prod` host rule:
+gcloud $P compute url-maps export igni-public-urlmap --global --destination=/tmp/urlmap.yaml
+#   edit hostRules[] where pathMatcher: prod, add the two hosts, then
+gcloud $P compute url-maps import igni-public-urlmap --global --source=/tmp/urlmap.yaml
+gcloud $P certificate-manager certificates describe igni-sh-managed   # state ACTIVE once issued
+```
+
+The deploy invalidates the CDN per host, so a new name must also be added to
+`hosts:` in `.github/workflows/deploy.yml`.
 
 ### Where it is served today (checked 2026-11-03)
 

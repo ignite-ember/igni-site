@@ -26,7 +26,7 @@ import { dirname, join } from 'node:path'
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(HERE, '..')
 
-export const ORIGIN = 'https://ignite-ember.sh'
+export const ORIGIN = 'https://igni.sh'
 
 /** Slugs in manifest order. Read as text: this script runs under plain
  *  node, which cannot import a `.ts` module that does `?raw` imports. */

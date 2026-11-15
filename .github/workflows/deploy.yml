@@ -1,4 +1,5 @@
-# Production: a release-vX.Y.Z tag on main → ignite-ember.sh.
+# Production: a release-vX.Y.Z tag on main → igni.sh (ignite-ember.sh
+# serves the same bucket as a second name).
 #
 #   git tag release-v1.0.0 && git push origin release-v1.0.0
 #
@@ -89,6 +90,11 @@ jobs:
     with:
       environment: production
       bucket: igni-public-site
-      hosts: ignite-ember.sh,www.ignite-ember.sh
-      site_url: https://ignite-ember.sh
+      # The CDN invalidates per host: every name the load balancer serves
+      # the bucket under is listed, or that name keeps the old build.
+      hosts: igni.sh,www.igni.sh,ignite-ember.sh,www.ignite-ember.sh
+      site_url: https://igni.sh
+      # The old name still answers, and still serves the JSON Schemas whose
+      # $id is under https://ignite-ember.sh/schema/.
+      also_urls: https://ignite-ember.sh
       service_account: igni-site-deploy-prod@ember-prod-491411.iam.gserviceaccount.com
