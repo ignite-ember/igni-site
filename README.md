@@ -101,7 +101,8 @@ scripts/setup-deploy-gcp.sh                               # run them
 in `scripts/generate-sitemap.mjs`). `ignite-ember.sh` serves the same bucket
 and stays up for good: the published JSON Schemas keep their `$id` under
 `https://ignite-ember.sh/schema/…`, which extension manifests and themes in
-the wild name in `$schema`, and the `@ignite-ember.sh` addresses stay. Stage
+the wild name in `$schema`, and the `@ignite-ember.sh` addresses keep
+working, though the site's contact address is `dmytro@igni.sh`. Stage
 is `stage.ignite-ember.sh`.
 
 Both names go through the one load balancer in `ember-prod-491411` (set up by
