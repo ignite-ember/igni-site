@@ -11,7 +11,7 @@ export const CALENDLY_URL = 'https://calendly.com/dmytro-zezyk-ignite-ember/30mi
 // The one contact address, for buyers whose network blocks the booking
 // page, and for security questionnaires and the security pack. A mailto
 // link: no form, so the site collects no personal data.
-export const CONTACT_EMAIL = 'dmytro.zezyk@ignite-ember.sh'
+export const CONTACT_EMAIL = 'dmytro@igni.sh'
 
 /** A mailto link to the contact address, with a subject line filled in. */
 export function mailto(subject: string): string {
