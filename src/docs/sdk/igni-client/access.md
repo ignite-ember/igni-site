@@ -34,9 +34,14 @@ by the token it offers:
   also answers approval requests and calls `approve_plan`, each
   time once — no saved rule, no permission-mode change. It still
   reaches no `window` call.
-* **Local client, igni started without a secret** (by hand, or with
-  the development switch): every connection stands as the window, so
-  it reaches `client`, `approver` and `window` calls.
+* **Local client, igni started by hand.** With no launcher to give it
+  a secret, igni mints its own window token and prints it once to the
+  terminal; the connection that offers it stands as the window, and
+  the lockfile's program token makes a program, as on the desktop.
+* **Local client, igni started with the development switch**
+  (`IGNI_DEV_NO_WS_TOKEN=1`): no token at all, so every connection
+  stands as the window and reaches `client`, `approver` and
+  `window` calls.
 * **Through Fleet's gateway** (a cloud VM): the gateway authenticates
   the client — with a person's key or an app's — and igni on the VM
   takes no token, so every connection stands as the window and
@@ -50,7 +55,7 @@ by the token it offers:
 
 | Access | Methods |
 |---|---|
-| `window` | [`igni.approvers.mint_token()`](/docs/sdk/igni-client/approvers#igni-approvers-mint-token), [`igni.approvers.revoke_tokens()`](/docs/sdk/igni-client/approvers#igni-approvers-revoke-tokens), [`igni.auth.login()`](/docs/sdk/igni-client/sign-in-and-server#igni-auth-login), [`igni.auth.set_server()`](/docs/sdk/igni-client/sign-in-and-server#igni-auth-set-server), [`igni.extensions.set_settings()`](/docs/sdk/igni-client/extensions#igni-extensions-set-settings), [`igni.marketplaces.add()`](/docs/sdk/igni-client/plugins#igni-marketplaces-add), [`igni.marketplaces.remove()`](/docs/sdk/igni-client/plugins#igni-marketplaces-remove), [`igni.window.model()`](/docs/sdk/igni-client/window#igni-window-model), [`session.agents.promote()`](/docs/sdk/igni-client/agents#session-agents-promote), [`session.auth.reload_credentials()`](/docs/sdk/igni-client/sign-in-and-server#session-auth-reload-credentials), [`session.auth.sign_out()`](/docs/sdk/igni-client/sign-in-and-server#session-auth-sign-out), [`session.permissions.save_rule()`](/docs/sdk/igni-client/permissions#session-permissions-save-rule), [`session.plugins.install()`](/docs/sdk/igni-client/plugins#session-plugins-install), [`session.plugins.remove()`](/docs/sdk/igni-client/plugins#session-plugins-remove), [`session.plugins.set_enabled()`](/docs/sdk/igni-client/plugins#session-plugins-set-enabled), [`session.plugins.update()`](/docs/sdk/igni-client/plugins#session-plugins-update), [`session.run_shell()`](/docs/sdk/igni-client/shell-and-processes#session-run-shell), [`session.shutdown()`](/docs/sdk/igni-client/sessions#session-shutdown), [`session.workspace.set_trust()`](/docs/sdk/igni-client/workspace#session-workspace-set-trust) |
+| `window` | [`igni.approvers.mint_token()`](/docs/sdk/igni-client/approvers#igni-approvers-mint-token), [`igni.approvers.revoke_tokens()`](/docs/sdk/igni-client/approvers#igni-approvers-revoke-tokens), [`igni.auth.login()`](/docs/sdk/igni-client/sign-in-and-server#igni-auth-login), [`igni.auth.set_server()`](/docs/sdk/igni-client/sign-in-and-server#igni-auth-set-server), [`igni.extensions.set_settings()`](/docs/sdk/igni-client/extensions#igni-extensions-set-settings), [`igni.marketplaces.add()`](/docs/sdk/igni-client/plugins#igni-marketplaces-add), [`igni.marketplaces.remove()`](/docs/sdk/igni-client/plugins#igni-marketplaces-remove), [`igni.window.model()`](/docs/sdk/igni-client/window#igni-window-model), [`session.agents.promote()`](/docs/sdk/igni-client/agents#session-agents-promote), [`session.auth.reload_credentials()`](/docs/sdk/igni-client/sign-in-and-server#session-auth-reload-credentials), [`session.auth.sign_out()`](/docs/sdk/igni-client/sign-in-and-server#session-auth-sign-out), [`session.mcp.set_approval()`](/docs/sdk/igni-client/mcp#session-mcp-set-approval), [`session.permissions.save_rule()`](/docs/sdk/igni-client/permissions#session-permissions-save-rule), [`session.plugins.install()`](/docs/sdk/igni-client/plugins#session-plugins-install), [`session.plugins.remove()`](/docs/sdk/igni-client/plugins#session-plugins-remove), [`session.plugins.set_enabled()`](/docs/sdk/igni-client/plugins#session-plugins-set-enabled), [`session.plugins.update()`](/docs/sdk/igni-client/plugins#session-plugins-update), [`session.run_shell()`](/docs/sdk/igni-client/shell-and-processes#session-run-shell), [`session.shutdown()`](/docs/sdk/igni-client/sessions#session-shutdown), [`session.workspace.set_trust()`](/docs/sdk/igni-client/workspace#session-workspace-set-trust) |
 | `approver` | [`session.plan.approve()`](/docs/sdk/igni-client/plans#session-plan-approve) |
 
 Every other method needs only `client`.
