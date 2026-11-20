@@ -13,8 +13,10 @@ Every method here is generated from igni-core's RPC contract; its documentation 
 | [`session.mcp.connect()`](/docs/sdk/igni-client/mcp#session-mcp-connect) | Connect one configured MCP server to this session. |
 | [`session.mcp.disconnect()`](/docs/sdk/igni-client/mcp#session-mcp-disconnect) | Disconnect one MCP server from this session. |
 | [`session.mcp.ensure()`](/docs/sdk/igni-client/mcp#session-mcp-ensure) | Connect this session's configured MCP servers, once. |
+| [`session.mcp.list_approvals()`](/docs/sdk/igni-client/mcp#session-mcp-list-approvals) | List this session's MCP servers that need a first-use approval. |
 | [`session.mcp.server_details()`](/docs/sdk/igni-client/mcp#session-mcp-server-details) | Describe each of this session's MCP servers in full. |
 | [`session.mcp.servers()`](/docs/sdk/igni-client/mcp#session-mcp-servers) | List this session's configured MCP servers, in configuration order. |
+| [`session.mcp.set_approval()`](/docs/sdk/igni-client/mcp#session-mcp-set-approval) | Approve a configured MCP server, or withdraw its approval. |
 | [`session.mcp.set_tool_enabled()`](/docs/sdk/igni-client/mcp#session-mcp-set-tool-enabled) | Switch one MCP server's tool on or off for this project. |
 | [`session.mcp.status()`](/docs/sdk/igni-client/mcp#session-mcp-status) | List this session's MCP servers and whether each is connected. |
 
@@ -30,7 +32,7 @@ async def connect(self, server_name: str) -> InfoMessage
 Returns an `info` message, sent in place of an `rpc_response`,
 once it is connected. Fails with the reason when it did not connect
 (not configured, refused by policy, no tools, approval denied); the
-reason is also `get_mcp_server_details`'s `error` for it.
+reason is also `session.mcp.server_details()`'s `error` for it.
 
 | Parameter | Type | Default | Meaning |
 |---|---|---|---|
@@ -96,7 +98,7 @@ Connect this session's configured MCP servers, once.
 async def ensure(self) -> McpInitResult
 ```
 
-Takes no arguments. The first call connects every configured server
+The first call connects every configured server
 and rebuilds the agent with their tools; later calls do nothing.
 Returns the servers `connected`, the ones that `failed` with
 their errors, whether the agent was `rebuilt`, and, when nothing
@@ -123,6 +125,42 @@ ready = await session.mcp.ensure()
 print("connected:", ready.connected, "failed:", ready.failed)
 ```
 
+## session.mcp.list_approvals()
+
+List this session's MCP servers that need a first-use approval.
+
+```python
+async def list_approvals(self) -> list[McpApproval]
+```
+
+Returns one row per configured server — its
+`name`, where it is configured (`source`, `source_path`) and
+whether it is `approved`. A server from a project's or a plugin's
+`.mcp.json` runs a command or opens a connection as the person, so
+it never connects until approved; without a terminal to ask on,
+igni's window asks instead and answers with `session.mcp.set_approval()`. An
+extension's own service is approved by its install and not listed.
+
+Takes no arguments.
+
+**Returns** `list[`[`McpApproval`](/docs/sdk/igni-client/models-reference#mcpapproval)`]`.
+
+**How long** `instant` — Answered from what igni holds in memory, at once.
+The client waits up to 10 seconds.
+
+**Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
+
+**Raises** [`InvalidArguments`](/docs/sdk/igni-client/errors-reference#invalidarguments) · [`MethodFailed`](/docs/sdk/igni-client/errors-reference#methodfailed) · [`UnknownMethod`](/docs/sdk/igni-client/errors-reference#unknownmethod) · [`UnexpectedAnswer`](/docs/sdk/igni-client/errors-reference#unexpectedanswer) · [`Unavailable`](/docs/sdk/igni-client/errors-reference#unavailable) ([when each is raised](/docs/sdk/igni-client/errors-reference))
+
+**On the wire** RPC method `list_mcp_approvals`, scope `session`, area `mcp`; igni answers with `rpc_response`.
+
+**Example**
+
+```python
+for mcp_approval in await session.mcp.list_approvals():
+    print(mcp_approval.name, mcp_approval.approved)
+```
+
 ## session.mcp.server_details()
 
 Describe each of this session's MCP servers in full.
@@ -131,7 +169,7 @@ Describe each of this session's MCP servers in full.
 async def server_details(self) -> list[McpServerSnapshot]
 ```
 
-Takes no arguments. Returns one row per server: whether it is
+Returns one row per server: whether it is
 connected, its transport, its tools (names, descriptions, the ones
 switched off), its resources and prompts, the last error connecting
 it, and whether policy blocks it. Each server is asked in turn, so
@@ -165,7 +203,7 @@ List this session's configured MCP servers, in configuration order.
 async def servers(self) -> list[McpServerSummary]
 ```
 
-Takes no arguments. Returns one `{name, connected}` row per
+Returns one `{name, connected}` row per
 server.
 
 Takes no arguments.
@@ -186,6 +224,47 @@ The client waits up to 10 seconds.
 ```python
 for mcp_server_summary in await session.mcp.servers():
     print(mcp_server_summary.name, mcp_server_summary.connected)
+```
+
+## session.mcp.set_approval()
+
+Approve a configured MCP server, or withdraw its approval.
+
+```python
+async def set_approval(self, *, approved: bool, server_name: str) -> McpApproval
+```
+
+`server_name` names the server; `approved` is the answer.
+Approving records it for that server from that configuration file
+(in `~/.igni/mcp-approved.json`, which every session reads again
+when it changes); the server connects on the next `session.mcp.connect()` or
+start. Withdrawing disconnects it if it is connected. Returns the
+server's row as `session.mcp.list_approvals()` would. Fails for a server not
+configured, an extension's, or the user's own `~/.igni/.mcp.json`,
+which is always trusted. Only igni's window may call it.
+
+| Parameter | Type | Default | Meaning |
+|---|---|---|---|
+| `approved` | `bool` | required | `true` approves it; `false` withdraws its approval and disconnects it. |
+| `server_name` | `str` | required | The server's name in the MCP configuration. |
+
+**Returns** [`McpApproval`](/docs/sdk/igni-client/models-reference#mcpapproval).
+
+**How long** `io` — Reads or writes the project, the session's database or the disk; a few seconds at most.
+The client waits up to 30 seconds.
+
+**Access** [`window`](/docs/sdk/igni-client/access) — Through Fleet's gateway every connection stands as igni's window and makes this call. On the desktop only the app's own window does: a program — with the lockfile's token or an approver token — gets `AccessRefused`.
+
+**Raises** [`InvalidArguments`](/docs/sdk/igni-client/errors-reference#invalidarguments) · [`AccessRefused`](/docs/sdk/igni-client/errors-reference#accessrefused) when this connection does not stand as `window` · [`MethodFailed`](/docs/sdk/igni-client/errors-reference#methodfailed) · [`UnknownMethod`](/docs/sdk/igni-client/errors-reference#unknownmethod) · [`UnexpectedAnswer`](/docs/sdk/igni-client/errors-reference#unexpectedanswer) · [`Unavailable`](/docs/sdk/igni-client/errors-reference#unavailable) ([when each is raised](/docs/sdk/igni-client/errors-reference))
+
+**On the wire** RPC method `set_mcp_approval`, scope `session`, area `mcp`; igni answers with `rpc_response`.
+
+**Example**
+
+```python
+for server in await session.mcp.list_approvals():
+    if not server.approved:
+        await session.mcp.set_approval(server_name=server.name, approved=True)
 ```
 
 ## session.mcp.set_tool_enabled()
@@ -240,7 +319,7 @@ List this session's MCP servers and whether each is connected.
 async def status(self) -> list[McpServerStatus]
 ```
 
-Takes no arguments. Returns one `{name, connected}` row per
+Returns one `{name, connected}` row per
 server, in no particular order.
 
 Takes no arguments.

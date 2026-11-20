@@ -566,6 +566,16 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/putting-a-built-page-in-the-extension</loc>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/sdk/extension-bridge/testing-a-page</loc>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
     <loc>https://igni.sh/docs/sdk/extension-bridge/the-floor</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
