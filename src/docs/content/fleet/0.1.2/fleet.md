@@ -1,6 +1,6 @@
 **Fleet** gives each person and each app in your organisation its own igni agent, in its own microVM, on your servers. An idle VM is paused and then suspended to disk, and woken when something needs it: a person connecting, a command, an event from a service, or a task the agent scheduled. It is a paid module. This page covers what it is made of, what it needs, how it ties into igni server, and what is not finished.
 
-> **Note:** Fleet is at **0.1.2** and versions on its own cadence, in the `ignite-ember/igni__cloudvm` repository. Its gateway and node agent are built, but there are no deployment manifests for them yet, and the desktop app and CLI do not connect to Fleet. Read the last section before planning a rollout.
+> **Note:** Fleet is at **0.1.2** and versions on its own cadence, in the `ignite-ember/igni__cloudvm` repository. Its gateway and node agent are built, and clients can now reach it — the SDK's `igni-client` discovers a person's cloud igni from igni server, and the desktop app has a Local/Cloud switch — but there are still no deployment manifests, so the gateway those clients connect to is one you build and run from source. Read the last section before planning a rollout.
 
 The Fleet image is published to GitHub Container Registry at `ghcr.io/ignite-ember/igni-fleet:0.1.2`, and it is **public** — anyone can pull it without a registry login (running it still needs a licence):
 
@@ -139,7 +139,7 @@ The raw results, and earlier measurements with a smaller test guest and on bare 
 ## What is not finished
 
 - **No deployment manifests.** There is no Helm chart, compose file or systemd unit for the gateway or node agent, and they are not in the [offline update bundle](/docs/server/offline-updates). You build them from source (`scripts/build_agents.sh`, `patches/build_firecracker.sh`, `image/build_all.sh`).
-- **No client connects to Fleet yet.** The desktop app and CLI run igni on your own machine. Fleet's VMs are reached through the gateway's API, and by services and commands.
+- **Clients connect, but only to a gateway you built yourself.** The SDK's [`igni-client`](/docs/core/sdks) discovers a person's cloud igni from igni server (`Fleet.from_server`) and connects to the gateway, and the desktop app's **Local/Cloud switch** runs its pages against that cloud igni instead of the local backend. Fleet's VMs are also reached through the gateway's API, and by services and commands. What is missing is the deployment manifests above — until those land, the gateway these clients reach is one you built and ran from source.
 - **The node agent does not register itself** with igni server yet; an operator does it.
 - **The organisation's quota of awake VM time is recorded, not enforced.**
 - **A former member's export holds only their database rows**, not the files on their VM's volume.
