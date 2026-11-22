@@ -9,7 +9,8 @@ import { test, expect, devices } from '@playwright/test'
 test.describe('SDK docs', () => {
   test('the docs index leads to a package and its reference', async ({ page }) => {
     await page.goto('/docs')
-    await page.getByRole('link', { name: 'All SDK documentation' }).click()
+    // The product grid carries an SDK card alongside the packages.
+    await page.locator('.product-card', { hasText: 'SDKs' }).click()
     await expect(page.getByRole('heading', { level: 1, name: 'SDK documentation' })).toBeVisible()
 
     await page.locator('.sdk-package-card', { hasText: 'igni-client' }).getByRole('link', { name: /Overview/ }).click()
