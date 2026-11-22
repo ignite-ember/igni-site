@@ -1,12 +1,8 @@
 **Fleet** gives each person and each app in your organisation its own igni agent, in its own microVM, on your servers. An idle VM is paused and then suspended to disk, and woken when something needs it: a person connecting, a command, an event from a service, or a task the agent scheduled. It is a paid module. This page covers what it is made of, what it needs, how it ties into igni server, and what is not finished.
 
-> **Note:** Fleet is at **0.1.2** and versions on its own cadence, in the `ignite-ember/igni__cloudvm` repository. Its gateway and node agent are built, and clients can now reach it — the SDK's `igni-client` discovers a person's cloud igni from igni server, and the desktop app has a Local/Cloud switch — but there are still no deployment manifests, so the gateway those clients connect to is one you build and run from source. Read the last section before planning a rollout.
+> **Note:** Fleet is at **0.1.2** and versions on its own cadence, in the `ignite-ember/igni__cloudvm` repository. Its gateway and node agent now ship with deployment manifests — a Helm chart and a Compose file for the gateway, a systemd unit for the node agent (see [Deployment](#deployment)) — and clients can reach it: the SDK's `igni-client` discovers a person's cloud igni from igni server, and the desktop app has a Local/Cloud switch. The node agent still needs a real KVM host. Read [what is not finished](#what-is-not-finished) before planning a rollout.
 
-The Fleet image is published to GitHub Container Registry at `ghcr.io/ignite-ember/igni-fleet:0.1.2`, and it is **public** — anyone can pull it without a registry login (running it still needs a licence):
-
-```bash
-docker pull ghcr.io/ignite-ember/igni-fleet:0.1.2
-```
+A Fleet release is a **signed set of binaries and a guest image, not a runnable container**: the gateway, node agent, `cvm` and guest-agent binaries, the guest kernel and read-only base, and their SBOMs, pushed as one signed OCI artefact to `ghcr.io/ignite-ember/igni-fleet:0.1.2` and carried in igni server's [offline update bundle](/docs/server/offline-updates). The node host pulls and verifies it with `deploy/node-agent/fetch-release.sh`; you build the gateway's own container image from `deploy/gateway/Dockerfile`. Running Fleet still needs a licence.
 
 ## What runs where
 
@@ -67,6 +63,26 @@ The node agent needs at least `data_dir`, `[firecracker] binary` and `jailer`, `
 No ports have defaults; every listener is one you set. Inside each VM, igni listens on port 8765, and the guest agent on vsock port 1024.
 
 The gateway and the node agent each register with igni server as a **platform** client and are approved by a super admin on the portal's **Services** page, the same way a service is.
+
+## Deployment
+
+The two components deploy differently, because the gateway is a network service and the node agent runs microVMs on a KVM host. The manifests and their references are in [`deploy/`](https://github.com/ignite-ember/igni__cloudvm/tree/master/deploy) in the Fleet repository; deploy the gateway first, then register node agents with it.
+
+**The gateway** — a **Helm chart** (`deploy/gateway/chart`) on Kubernetes, or a **Docker Compose** file (`deploy/gateway/compose.yaml`) on a single host. The chart writes the whole `gateway.toml` from its values and mounts every secret and certificate it names as a file; it refuses `helm install` with a named reason for each thing it will not guess — the image, igni server's identity, the database DSN, the nodes listener's certificates. Because Fleet ships binaries rather than a container, you build the gateway image once from `deploy/gateway/Dockerfile` and push it to the registry your cluster pulls from:
+
+```bash
+docker build -f deploy/gateway/Dockerfile -t registry.example.com/igni/igni-gateway:0.1.2 .
+helm install fleet-gateway ./deploy/gateway/chart --namespace fleet --create-namespace \
+  --set image.repository=registry.example.com/igni/igni-gateway --set image.tag=0.1.2 \
+  --set igniServer.url=https://igni.example.com --set igniServer.clientId=<platform-client-id> \
+  --set-file secrets.igniServerKey=platform-key.pem \
+  --set secrets.databaseUrl='postgres://gateway:...@pg.internal:5432/igni_gateway' \
+  --set public.tls.existingSecret=gw-public-tls --set licence.existingSecret=fleet-licence
+```
+
+The gateway migrates its own schema on start under an advisory lock, so there is no separate migration step, and more than one replica is safe. Node agents reach it over mutual TLS the gateway terminates, so that listener is published with TLS passthrough, not an L7 ingress.
+
+**The node agent** — a **systemd unit** (`deploy/node-agent/igni-node-agent.service`) on each KVM host, not a container: it runs as root for the jailer, dm-crypt, namespaces and fscrypt, with a long stop timeout so a stop suspends every VM to disk rather than losing it. `deploy/node-agent/fetch-release.sh` pulls and verifies the signed release artefact and lays the binaries and guest image out; `deploy/node-agent/README.md` is the full install and config reference. `node-agent.example.toml` shows a production shape (OpenBao Transit keys, internal-only egress).
 
 ## How it ties into igni server
 
@@ -138,9 +154,10 @@ The raw results, and earlier measurements with a smaller test guest and on bare 
 
 ## What is not finished
 
-- **No deployment manifests.** There is no Helm chart, compose file or systemd unit for the gateway or node agent, and they are not in the [offline update bundle](/docs/server/offline-updates). You build them from source (`scripts/build_agents.sh`, `patches/build_firecracker.sh`, `image/build_all.sh`).
-- **Clients connect, but only to a gateway you built yourself.** The SDK's [`igni-client`](/docs/core/sdks) discovers a person's cloud igni from igni server (`Fleet.from_server`) and connects to the gateway, and the desktop app's **Local/Cloud switch** runs its pages against that cloud igni instead of the local backend. Fleet's VMs are also reached through the gateway's API, and by services and commands. What is missing is the deployment manifests above — until those land, the gateway these clients reach is one you built and ran from source.
-- **The node agent does not register itself** with igni server yet; an operator does it.
+- **The node agent still needs a real KVM host.** Its [manifest](#deployment) is a systemd unit on bare metal or a nested-virtualisation host, not a generic container or Kubernetes workload — one per host.
+- **The gateway image is one you build.** Fleet ships signed binaries, not a runnable container, so the Helm chart and Compose file point at a gateway image you build from `deploy/gateway/Dockerfile` and push to your own registry.
+- **Clients connect.** The SDK's [`igni-client`](/docs/core/sdks) discovers a person's cloud igni from igni server (`Fleet.from_server`) and connects to the gateway, and the desktop app's **Local/Cloud switch** runs its pages against that cloud igni instead of the local backend. Fleet's VMs are also reached through the gateway's API, and by services and commands.
+- **The node agent does not register itself** with igni server yet; an operator does it (through the gateway's admin API or `nodes.static_nodes`).
 - **The organisation's quota of awake VM time is recorded, not enforced.**
 - **A former member's export holds only their database rows**, not the files on their VM's volume.
 - **Discarding and erasing have been tested against simulated nodes**, not yet on a real Fleet host.

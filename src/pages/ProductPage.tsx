@@ -252,8 +252,8 @@ const PRODUCT_LIST: Product[] = [
       { title: 'No network inside the guest agent', desc: 'The agent inside each VM talks to its host only over vsock.' },
     ],
     notYet: [
-      'There are no deployment manifests yet, and Fleet is not in the offline update bundle.',
-      'The desktop app and the CLI do not connect to Fleet yet; services and commands reach its agents.',
+      'The node agent needs a real KVM host: it is a systemd unit on bare metal, not a container.',
+      'The gateway image is one you build; Fleet ships signed binaries, not a runnable container.',
       'Hosts are registered by an operator rather than registering themselves.',
       'The organisation’s quota of awake time is recorded, not enforced.',
     ],
