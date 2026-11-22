@@ -20,6 +20,7 @@ import { describe, expect, it } from 'vitest'
 import App from '../App'
 import { DOCS, LEGACY_REDIRECTS, docHref } from '../docs/docsManifest'
 import { routeObjects } from '../../scripts/site-routes.mjs'
+import { docVersionedPaths } from '../../scripts/generate-sitemap.mjs'
 import { SDK_PAGES } from '../docs/sdkManifest'
 
 /** Every `<Route>` in the element tree App returns, by its `path`. */
@@ -61,6 +62,20 @@ describe('the route copies the deploy uploads', () => {
     }
   })
 
+  it('cover every pinned and latest-alias version path', () => {
+    // A customer's deep link to an old version must serve index.html, not
+    // 404 — so every `docs/<pkg>/<version>[/<slug>]` and `latest` alias
+    // needs an object, even though none are in the sitemap.
+    const versioned = docVersionedPaths()
+    expect(versioned.length).toBeGreaterThan(0)
+    for (const path of versioned) expect(objects, path).toContain(path)
+    // Spot-checks: a pinned landing, a pinned article, and the aliases.
+    expect(objects).toContain('docs/server/0.8.0')
+    expect(objects).toContain('docs/server/0.8.0/self-hosting-the-server')
+    expect(objects).toContain('docs/server/latest')
+    expect(objects).toContain('docs/server/latest/self-hosting-the-server')
+  })
+
   it('cover every SDK page', () => {
     expect(SDK_PAGES.length).toBeGreaterThan(30)
     expect(objects).toContain('docs/sdk')
@@ -79,7 +94,11 @@ describe('the route copies the deploy uploads', () => {
 
   it('are object names, not files or the root', () => {
     for (const o of objects) {
-      expect(o).not.toMatch(/^\/|\/$|\.|:|\*/)
+      // No leading/trailing slash, no route parameter, no wildcard. A dot
+      // is allowed now — a version segment carries one (`docs/server/0.8.0`)
+      // — but an object that looks like a file (a real extension) is not.
+      expect(o).not.toMatch(/^\/|\/$|:|\*/)
+      expect(o, `${o} looks like a file`).not.toMatch(/\.(html?|xml|json|js|css|md|txt)$/)
     }
     expect(objects).not.toContain('')
     expect(new Set(objects).size).toBe(objects.length)

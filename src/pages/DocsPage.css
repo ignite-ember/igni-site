@@ -621,6 +621,13 @@
     color: var(--fgColor-muted);
   }
 
+  /* The version selector is a finger-sized tap target on a phone. The
+     descendant selector outranks the base `.doc-version-select` rule,
+     which is declared later in the file. */
+  .doc-version-selector .doc-version-select {
+    min-height: var(--base-size-44);
+  }
+
   .doc-toc-mobile summary::-webkit-details-marker {
     display: none;
   }
@@ -725,4 +732,48 @@
   .docs-search input {
     min-height: var(--base-size-44);
   }
+}
+
+/* ── Version selector and "not latest" banner (Phase 2) ───────────── */
+
+.doc-version-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--base-size-8, 8px);
+  white-space: nowrap;
+}
+
+.doc-version-selector-label {
+  font-size: var(--text-body-size-small, 12px);
+  color: var(--fgColor-muted);
+}
+
+.doc-version-select {
+  min-height: var(--base-size-32, 32px);
+  padding: var(--base-size-4, 4px) var(--base-size-8, 8px);
+  font: inherit;
+  font-size: var(--text-body-size-small, 12px);
+  color: var(--fgColor-default);
+  background-color: var(--bgColor-default, #fff);
+  border: var(--borderWidth-thin, 1px) solid var(--borderColor-default);
+  border-radius: var(--borderRadius-medium, 6px);
+  cursor: pointer;
+}
+
+.doc-version-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--base-size-8, 8px) var(--base-size-16, 16px);
+  padding: var(--base-size-12, 12px) var(--base-size-16, 16px);
+  font-size: var(--text-body-size-small, 13px);
+  color: var(--fgColor-default);
+  background-color: var(--bgColor-attention-muted, #fff8c5);
+  border: var(--borderWidth-thin, 1px) solid var(--borderColor-attention-emphasis, #d4a72c);
+  border-radius: var(--borderRadius-medium, 6px);
+}
+
+.doc-version-banner a {
+  color: var(--fgColor-accent, #1f6feb);
+  font-weight: 600;
 }

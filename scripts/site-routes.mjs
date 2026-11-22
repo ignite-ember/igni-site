@@ -22,7 +22,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
-import { docCanonicalPaths, docPackages, legacyDocPaths, sdkPaths } from './generate-sitemap.mjs'
+import { docCanonicalPaths, docPackages, docVersionedPaths, legacyDocPaths, sdkPaths } from './generate-sitemap.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -44,14 +44,26 @@ export function routeObjects() {
   const canonical = docCanonicalPaths()
   const packageLandings = new Set(docPackages().map((p) => `docs/${p.slug}`))
   const articlePaths = canonical.filter((p) => !packageLandings.has(p))
+  // Pinned and `latest`-alias paths, split by depth: `docs/<pkg>/<version>`
+  // landings (three segments) and `docs/<pkg>/<version>/<slug>` articles
+  // (four). These redirect to nothing — they render — but each needs a
+  // bucket object so an old-version deep link serves index.html.
+  const versioned = docVersionedPaths()
+  const versionedLandings = versioned.filter((s) => s.split('/').length === 3)
+  const versionedArticles = versioned.filter((s) => s.split('/').length === 4)
   for (const p of declaredPaths()) {
     if (p === '*') continue
     if (p === 'docs/:package') {
       // Each package's landing: `docs/<package>`.
       out.push(...packageLandings)
-    } else if (p === 'docs/:package/:slug') {
-      // Each multi-page package's articles: `docs/<package>/<slug>`.
-      out.push(...articlePaths)
+    } else if (p === 'docs/:package/:seg') {
+      // The ambiguous two-segment route: a multi-page package's articles
+      // at latest (`docs/<package>/<slug>`) and every pinned/`latest`
+      // landing (`docs/<package>/<version>`).
+      out.push(...articlePaths, ...versionedLandings)
+    } else if (p === 'docs/:package/:version/:slug') {
+      // Pinned and `latest`-alias articles: `docs/<package>/<version>/<slug>`.
+      out.push(...versionedArticles)
     } else if (p === 'docs/sdk/:pkg' || p === 'docs/sdk/:pkg/:page') {
       // The SDK pages, from igni-sdk's index: `docs/sdk/<package>` for
       // each overview, `docs/sdk/<package>/<page>` for the rest.

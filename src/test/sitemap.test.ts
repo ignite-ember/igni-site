@@ -20,6 +20,7 @@ import { describe, expect, it } from 'vitest'
 import {
   buildSitemap,
   docCanonicalPaths,
+  docVersionedPaths,
   legacyDocPaths,
   ORIGIN,
   sdkPaths,
@@ -60,6 +61,18 @@ describe('the committed sitemap', () => {
     ])
 
     expect(locs.filter((l) => !allowed.has(l))).toEqual([])
+  })
+
+  it('does not list pinned or latest-alias version URLs', () => {
+    // The SEO decision: only the canonical (latest, version-less) pages
+    // are indexed. The pinned snapshots and the `latest` alias get a
+    // bucket object (site-routes) so they resolve, but a crawler should
+    // index "the server docs", not every historical version.
+    const versioned = docVersionedPaths()
+    expect(versioned.length).toBeGreaterThan(0)
+    for (const path of versioned) {
+      expect(COMMITTED, path).not.toContain(`<loc>${ORIGIN}/${path}</loc>`)
+    }
   })
 
   it('does not list the retired redirect URLs', () => {

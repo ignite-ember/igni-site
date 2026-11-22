@@ -3,9 +3,10 @@
  *  import are declared. */
 
 export declare const ORIGIN: string
-export declare function docPackages(): { slug: string; single: boolean }[]
+export declare function docPackages(): { slug: string; single: boolean; versions: string[] }[]
 export declare function docArticles(): { slug: string; package: string; category: string }[]
 export declare function docCanonicalPaths(): string[]
 export declare function legacyDocPaths(): string[]
+export declare function docVersionedPaths(): string[]
 export declare function sdkPaths(): string[]
 export declare function buildSitemap(): string

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
 import { BaseStyles, ThemeProvider } from "@primer/react";
 import { LandingPage } from "./pages/LandingPage";
 import { ProductPage } from "./pages/ProductPage";
@@ -10,7 +10,7 @@ import { AgentCorePage } from "./pages/AgentCorePage";
 import { SdkLandingPage } from "./pages/SdkLandingPage";
 import { SdkArticlePage } from "./pages/SdkArticlePage";
 import { ScrollToTop } from "./components/ScrollToTop";
-import { LEGACY_REDIRECTS } from "./docs/docsManifest";
+import { LEGACY_REDIRECTS, docPackage, isKnownVersion } from "./docs/docsManifest";
 
 /**
  * Redirect a retired single-segment `/docs/<slug>` URL to its new
@@ -20,6 +20,21 @@ import { LEGACY_REDIRECTS } from "./docs/docsManifest";
 function LegacyDocRedirect({ to }: { to: string }) {
   const { hash } = useLocation();
   return <Navigate to={`${to}${hash}`} replace />;
+}
+
+/**
+ * `/docs/<package>/<seg>` is ambiguous: `<seg>` is a version (so this is
+ * a package landing pinned to it, e.g. `/docs/server/0.8.0`) or an
+ * article slug at the latest version (e.g. `/docs/server/inference-
+ * backends`). The manifest's version list decides which, so the two
+ * two-segment forms can share one route.
+ */
+function DocSecondSegment() {
+  const { package: pkg, seg } = useParams<{ package: string; seg: string }>();
+  if (isKnownVersion(docPackage(pkg), seg)) {
+    return <DocPackagePage package={pkg} version={seg} />;
+  }
+  return <DocArticlePage package={pkg} slug={seg} />;
 }
 
 /**
@@ -58,7 +73,7 @@ export default function App() {
             package's own index and its articles. */}
             <Route path="docs" element={<DocsPage />} />
             {/* The SDKs' documentation, generated in igni-sdk and
-            copied into src/docs/sdk/ (scripts/sync-sdk-docs.mjs).
+            copied into src/docs/sdk/ (scripts/sync-docs.mjs sdk).
             Declared before the generic docs/:package routes; React
             Router ranks the static `sdk` segment above the parameter
             either way. */}
@@ -76,8 +91,15 @@ export default function App() {
                 element={<LegacyDocRedirect to={to} />}
               />
             ))}
+            {/* Per-package, per-version docs (Phase 2). `/docs/<package>`
+            is the newest version; `/docs/<package>/<version>` and
+            `/docs/<package>/latest` pin the landing; the three-segment
+            forms pin an article. `<version>` carries a dot (0.8.0), which
+            React Router matches in a single segment. `DocSecondSegment`
+            tells a version from an article slug. */}
             <Route path="docs/:package" element={<DocPackagePage />} />
-            <Route path="docs/:package/:slug" element={<DocArticlePage />} />
+            <Route path="docs/:package/:seg" element={<DocSecondSegment />} />
+            <Route path="docs/:package/:version/:slug" element={<DocArticlePage />} />
             {/* Unlisted: nothing links here, it is absent from
             the sitemap and disallowed in robots.txt. A
             finished page waiting on the decision to launch
