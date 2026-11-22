@@ -65,8 +65,8 @@ test.describe('docs versions', () => {
     await expect(selector).toBeVisible()
 
     // Pinning the current release puts the version in the URL.
-    await selector.selectOption('0.8.0')
-    await expect(page).toHaveURL(/\/docs\/server\/0\.8\.0$/)
+    await selector.selectOption('0.8')
+    await expect(page).toHaveURL(/\/docs\/server\/0\.8$/)
     await expect(page.getByRole('heading', { level: 1, name: 'igni server' })).toBeVisible()
 
     // Back to "Latest" returns to the canonical, version-less URL.
@@ -78,8 +78,8 @@ test.describe('docs versions', () => {
     await page.goto('/docs/server/self-hosting-the-server')
     const title = await page.getByRole('heading', { level: 1 }).innerText()
 
-    await page.getByLabel('Documentation version').selectOption('0.8.0')
-    await expect(page).toHaveURL(/\/docs\/server\/0\.8\.0\/self-hosting-the-server$/)
+    await page.getByLabel('Documentation version').selectOption('0.8')
+    await expect(page).toHaveURL(/\/docs\/server\/0\.8\/self-hosting-the-server$/)
     // The same article, now at a pinned URL.
     await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible()
   })

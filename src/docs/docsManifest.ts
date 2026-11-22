@@ -178,7 +178,7 @@ export const PACKAGES: DocPackage[] = [
     title: 'igni server',
     tagline:
       'Self-hosting the API, portal and migrations: configuration, inference and cloud providers, administration, offline updates and licensing.',
-    versions: ['0.8.0'],
+    versions: ['0.8'],
   },
   {
     slug: 'fleet',
@@ -422,7 +422,7 @@ export const DOCS: DocArticle[] = [
   {
     slug: 'changelog',
     title: "igni server: changes and upgrades",
-    description: "The API, portal and migrations: the pools removal, the offline bundle's new shape, and the 0.7.1 and 0.8.0 releases.",
+    description: "The API, portal and migrations: the pools removal, the offline bundle's new shape, and the 0.7.1, 0.8.0 and 0.8.1 releases.",
     category: 'release-notes',
     package: 'server',
     content: latestContent('server', 'changelog'),

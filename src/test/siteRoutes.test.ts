@@ -70,8 +70,8 @@ describe('the route copies the deploy uploads', () => {
     expect(versioned.length).toBeGreaterThan(0)
     for (const path of versioned) expect(objects, path).toContain(path)
     // Spot-checks: a pinned landing, a pinned article, and the aliases.
-    expect(objects).toContain('docs/server/0.8.0')
-    expect(objects).toContain('docs/server/0.8.0/self-hosting-the-server')
+    expect(objects).toContain('docs/server/0.8')
+    expect(objects).toContain('docs/server/0.8/self-hosting-the-server')
     expect(objects).toContain('docs/server/latest')
     expect(objects).toContain('docs/server/latest/self-hosting-the-server')
   })
@@ -95,7 +95,7 @@ describe('the route copies the deploy uploads', () => {
   it('are object names, not files or the root', () => {
     for (const o of objects) {
       // No leading/trailing slash, no route parameter, no wildcard. A dot
-      // is allowed now — a version segment carries one (`docs/server/0.8.0`)
+      // is allowed now — a version segment carries one (`docs/server/0.8`)
       // — but an object that looks like a file (a real extension) is not.
       expect(o).not.toMatch(/^\/|\/$|:|\*/)
       expect(o, `${o} looks like a file`).not.toMatch(/\.(html?|xml|json|js|css|md|txt)$/)
