@@ -76,7 +76,7 @@ Every term igni uses, and what it means here. Where a word means more than one t
 
 **session** — one conversation, kept in SQLite. `igni -c` continues the most recent one; `/sessions` lists them in the app.
 
-**air-gap mode** — the setting under which igni makes no outbound connection of its own. See [Installing igni](/docs/installing-igni).
+**air-gap mode** — the setting under which igni makes no outbound connection of its own. See [Installing igni](/docs/app/installing-igni).
 
 **managed settings** — the file a sysadmin controls that a user cannot override: `/Library/Application Support/igni/managed-settings.yaml` on macOS, `/etc/igni/managed-settings.yaml` on Linux, `%PROGRAMDATA%\igni\managed-settings.yaml` on Windows.
 
@@ -106,7 +106,7 @@ Every term igni uses, and what it means here. Where a word means more than one t
 
 **guest agent** — the Fleet binary inside each microVM. It talks to the node over vsock and never opens a network socket.
 
-**offline release bundle** — the signed tarball that carries a release into a network with no route out. See [Offline updates](/docs/offline-updates).
+**offline release bundle** — the signed tarball that carries a release into a network with no route out. See [Offline updates](/docs/server/offline-updates).
 
 **licence** — the signed file that turns on the paid modules. It travels separately from any bundle.
 
@@ -131,6 +131,6 @@ Five words carry more than one sense in this documentation. Each is spelled out 
 
 ## Where to go next
 
-- **[Configuration and precedence](/docs/configuration-and-precedence)** — where a setting comes from, and which file wins.
-- **[Administering your organisation](/docs/administering-your-organisation)** — accounts, organisations, groups and the roles that decide what each may do.
-- **[Building extensions](/docs/building-extensions)** — the manifest, the host API and the services behind them.
+- **[Configuration and precedence](/docs/core/configuration-and-precedence)** — where a setting comes from, and which file wins.
+- **[Administering your organisation](/docs/server/administering-your-organisation)** — accounts, organisations, groups and the roles that decide what each may do.
+- **[Building extensions](/docs/core/building-extensions)** — the manifest, the host API and the services behind them.

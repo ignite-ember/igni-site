@@ -69,7 +69,7 @@ Every extension has a `manifest.json` at its root, against the schema `https://i
 | `workspace` | `none`, `read` or `write` — the person's project. `workspacePaths` narrows it with globs. |
 | `egress` | Hosts, or `host:port`, the extension may reach. Its own service is always allowed. |
 | `secrets` | Names. Each value arrives as `IGNI_SECRET_<NAME>`. |
-| `tools` | Every tool the agent may call, each with all four MCP hints. igni's permission modes decide on those hints — see [Permissions and safety](/docs/permissions-and-safety). |
+| `tools` | Every tool the agent may call, each with all four MCP hints. igni's permission modes decide on those hints — see [Permissions and safety](/docs/core/permissions-and-safety). |
 | `host` | Grants on the host API. See below. |
 | `toolAudience` | `all-agents` or `own-agents` — whether only the extension's own agents get its tools. |
 | `hooks` | Hook events it answers, such as `PreToolUse` or `PlanSubmit`. |
@@ -106,7 +106,7 @@ There is no extension marketplace. An extension reaches people only through its 
 
 igni then lists, downloads, verifies and installs the extension on each machine of that group, at start-up and sign-in, and removes one that is no longer listed. igni verifies the bundle against the key of the service that uploaded it. It does not sign or review anyone else's extension.
 
-**An update that asks for more waits for a super admin.** Once your service is approved, each new version is compared with the approved one. The same or less goes live at once. More — a new `egress` host, a `workspacePaths` path or wider `workspace`, a secret, a tool or a riskier tool hint, `toolAudience: all-agents`, a host capability, an RPC method, a hook, a `service` grant, a prompt override or section, an anchor, a command, a page, a plugin agent or skill — is **held**: the upload still answers `200`, with `"held": true`, a `reason` and the `added` grants, which `igni-service` logs, and every machine keeps the approved version until a super admin approves the new one on the **Services** page. If they reject it, it is discarded and the approved version stays. Uploading again replaces a held version; there is never more than one waiting. Name, version, menus, indicators, settings and the wording of prompt sections are not grants. How a super admin decides is in [Administering your organisation](/docs/administering-your-organisation).
+**An update that asks for more waits for a super admin.** Once your service is approved, each new version is compared with the approved one. The same or less goes live at once. More — a new `egress` host, a `workspacePaths` path or wider `workspace`, a secret, a tool or a riskier tool hint, `toolAudience: all-agents`, a host capability, an RPC method, a hook, a `service` grant, a prompt override or section, an anchor, a command, a page, a plugin agent or skill — is **held**: the upload still answers `200`, with `"held": true`, a `reason` and the `added` grants, which `igni-service` logs, and every machine keeps the approved version until a super admin approves the new one on the **Services** page. If they reject it, it is discarded and the approved version stays. Uploading again replaces a held version; there is never more than one waiting. Name, version, menus, indicators, settings and the wording of prompt sections are not grants. How a super admin decides is in [Administering your organisation](/docs/server/administering-your-organisation).
 
 ## The SDKs
 
@@ -283,5 +283,5 @@ It holds the manifest, the plugin, the pages and a wheelhouse for Python 3.12 on
 ## Where to go next
 
 - **[CodeIndex](/docs/codeindex)** — a complete extension with assets, prompt overrides, a hook and a status chip.
-- **[Administering your organisation](/docs/administering-your-organisation)** — approving services and switching extensions on per group.
-- **[Hooks, workflows and scheduled tasks](/docs/hooks-workflows-and-scheduled-tasks)** — the hook events an extension can answer.
+- **[Administering your organisation](/docs/server/administering-your-organisation)** — approving services and switching extensions on per group.
+- **[Hooks, workflows and scheduled tasks](/docs/core/hooks-workflows-and-scheduled-tasks)** — the hook events an extension can answer.

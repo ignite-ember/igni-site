@@ -40,7 +40,7 @@ While the local index covers `HEAD`, the extension changes what the agent is tol
 - **`/codeindex`**, a page showing the index, and the skill **`/resolve-issues`**.
 - **A status indicator** in the client showing whether the index is fresh, checked every 30 seconds.
 
-An administrator can switch the extension on or off per group. See [Administering your organisation](/docs/administering-your-organisation).
+An administrator can switch the extension on or off per group. See [Administering your organisation](/docs/server/administering-your-organisation).
 
 ## Languages
 
@@ -54,7 +54,7 @@ Parsing uses `tree-sitter` 0.25.2 and `tree-sitter-language-pack` 0.13.0. Langua
 
 Each repository has three switches: indexing, pull-request comments, and which categories of comment to post.
 
-Indexing uses **CodeIndex's own inference nodes**. The service reads its own node list from its own configuration — `INFERENCE_BACKENDS_PATH` or `INFERENCE_BACKENDS`, the setting names igni server uses for its own list — and re-reads it every 30 seconds. igni server does not pass its list on: it keeps one list of nodes, routes chat over them and nothing else, and CodeIndex runs its own nodes from its own configuration. See [Connecting your GPUs](/docs/inference-backends) for the format.
+Indexing uses **CodeIndex's own inference nodes**. The service reads its own node list from its own configuration — `INFERENCE_BACKENDS_PATH` or `INFERENCE_BACKENDS`, the setting names igni server uses for its own list — and re-reads it every 30 seconds. igni server does not pass its list on: it keeps one list of nodes, routes chat over them and nothing else, and CodeIndex runs its own nodes from its own configuration. See [Connecting your GPUs](/docs/server/inference-backends) for the format.
 
 ## Deploying it
 
@@ -91,7 +91,7 @@ The settings that matter:
 | `PUBLIC_BASE_URL` | `''` | This service's own URL, on a hostname of its own. |
 | `SERVICE_NAME` | `CodeIndex` | Its name on the portal's **Services** page. |
 | `IGNI_KEY_ENCRYPTION_KEY` | — | A Fernet key. It seals the service's own signing key and derives its other keys. |
-| `IGNI_LICENCE_FILE` | `/etc/igni/licence/licence.json` | See [Licensing and evaluations](/docs/licensing-and-evaluations). |
+| `IGNI_LICENCE_FILE` | `/etc/igni/licence/licence.json` | See [Licensing and evaluations](/docs/server/licensing-and-evaluations). |
 | `CHANGESET_STORAGE_BACKEND` | `filesystem` | `gcs`, `s3` or `filesystem`. |
 | `CHANGESET_STORAGE_PREFIX` | `changesets` | |
 | `CHANGESET_GCS_BUCKET` | `''` | |
@@ -126,7 +126,7 @@ Every route except repository discovery is checked against the git provider: a p
 
 ## When the licence lapses
 
-CodeIndex checks the licence file itself, offline, and re-reads it every 60 seconds, so a renewed file takes effect without a restart. The states are described in [Licensing and evaluations](/docs/licensing-and-evaluations). For CodeIndex they mean:
+CodeIndex checks the licence file itself, offline, and re-reads it every 60 seconds, so a renewed file takes effect without a restart. The states are described in [Licensing and evaluations](/docs/server/licensing-and-evaluations). For CodeIndex they mean:
 
 - **Grace** (90 days after expiry): everything works. Responses carry `igni-licence: grace; days-left=N`.
 - **Read-only**: reads still work. That includes changeset downloads, so every machine can still build and query its index. New work is refused: index runs, pull-request reviews, linking accounts and repositories, and settings changes. Webhooks are accepted and answered `{"accepted": false, "reason": "not_licensed"}`, and queued events are marked ignored.
@@ -142,6 +142,6 @@ A refused request gets **403** with a JSON body naming the module, the state and
 
 ## Where to go next
 
-- **[Building extensions](/docs/building-extensions)** — the extension CodeIndex ships is built on the same SDK.
-- **[Agents and orchestration](/docs/agents-and-orchestration)** — how work reaches `data-architect`.
-- **[Licensing and evaluations](/docs/licensing-and-evaluations)** — installing the licence file CodeIndex checks.
+- **[Building extensions](/docs/core/building-extensions)** — the extension CodeIndex ships is built on the same SDK.
+- **[Agents and orchestration](/docs/core/agents-and-orchestration)** — how work reaches `data-architect`.
+- **[Licensing and evaluations](/docs/server/licensing-and-evaluations)** — installing the licence file CodeIndex checks.

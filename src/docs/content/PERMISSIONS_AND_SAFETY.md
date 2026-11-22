@@ -4,7 +4,7 @@ Every tool call the agent makes runs through a permission pipeline before it exe
 
 Five gates run in order for every tool call:
 
-1. **`PreToolUse` hooks** — a hook may answer `deny`, `ask` or `allow`. Installed extensions answer this event too, before your configured hooks, and may change a call's arguments. See [Building extensions](/docs/building-extensions).
+1. **`PreToolUse` hooks** — a hook may answer `deny`, `ask` or `allow`. Installed extensions answer this event too, before your configured hooks, and may change a call's arguments. See [Building extensions](/docs/core/building-extensions).
 2. **Protected paths** — a write to a matching path pattern is blocked.
 3. **Blocked commands** — a shell command containing a configured pattern is blocked.
 4. **The permission evaluator** — modes and rules, described below.
@@ -151,7 +151,7 @@ Highest precedence first:
 10. `~/.igni/config.yaml`
 11. Built-in defaults
 
-Two environment variables sit above all of these: `IGNI_AIR_GAPPED=1` turns on air-gapped mode, which denies `web_search` and `web_fetch` and refuses connections igni starts itself to hosts outside your network (see [Installing igni](/docs/installing-igni#installing-with-no-internet-access)), and `IGNI_DATABASE_URL` sets where state is kept. In the cloud, the local files (4–10) are not read at all. Files 4–7 contribute `permissions` and `safety` only once you trust the folder — see [Workspace trust](#workspace-trust).
+Two environment variables sit above all of these: `IGNI_AIR_GAPPED=1` turns on air-gapped mode, which denies `web_search` and `web_fetch` and refuses connections igni starts itself to hosts outside your network (see [Installing igni](/docs/app/installing-igni#installing-with-no-internet-access)), and `IGNI_DATABASE_URL` sets where state is kept. In the cloud, the local files (4–10) are not read at all. Files 4–7 contribute `permissions` and `safety` only once you trust the folder — see [Workspace trust](#workspace-trust).
 
 The `settings.json` / `settings.local.json` files are Claude Code-style JSON fragments: only whitelisted top-level keys are lifted out of them, and a missing or malformed file is silently skipped.
 
@@ -235,6 +235,6 @@ These are client commands. `igni -m` and `igni -p` run one message and exit, wit
 
 ## Where to go next
 
-- **[Tools, MCP servers and language servers](/docs/tools-mcp-and-language-servers)** — the capabilities the six categories act on.
-- **[Configuration and precedence](/docs/configuration-and-precedence)** — where a permission rule may be set, and which one wins.
-- **[Troubleshooting](/docs/troubleshooting)** — what a paused run and an untrusted folder look like.
+- **[Tools, MCP servers and language servers](/docs/core/tools-mcp-and-language-servers)** — the capabilities the six categories act on.
+- **[Configuration and precedence](/docs/core/configuration-and-precedence)** — where a permission rule may be set, and which one wins.
+- **[Troubleshooting](/docs/core/troubleshooting)** — what a paused run and an untrusted folder look like.

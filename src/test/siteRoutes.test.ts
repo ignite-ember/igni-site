@@ -4,6 +4,11 @@
  * on a deep link or a reload, however well the app renders it. These
  * tests read the routes a second way — from the React tree App renders
  * and from the docs manifest itself — and fail if the list misses one.
+ *
+ * Since the per-package split, that includes a landing per package, a
+ * page per article, and the retired single-segment `/docs/<slug>`
+ * redirects (so an old deep link still serves index.html before the app
+ * redirects it).
  */
 
 import { Children, isValidElement, type ReactElement, type ReactNode } from 'react'
@@ -13,7 +18,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import App from '../App'
-import { DOCS } from '../docs/docsManifest'
+import { DOCS, LEGACY_REDIRECTS, docHref } from '../docs/docsManifest'
 import { routeObjects } from '../../scripts/site-routes.mjs'
 import { SDK_PAGES } from '../docs/sdkManifest'
 
@@ -36,14 +41,24 @@ describe('the route copies the deploy uploads', () => {
     expect(paths.length).toBeGreaterThanOrEqual(10)
     for (const p of paths) {
       if (p === '*') continue
-      if (p === 'docs/:slug' || p.startsWith('docs/sdk/:')) continue // expanded below
+      if (p.includes(':')) continue // a parameterised route, expanded below
       expect(objects, p).toContain(p)
     }
   })
 
   it('cover every article in the docs manifest', () => {
     expect(DOCS.length).toBeGreaterThanOrEqual(13)
-    for (const d of DOCS) expect(objects, d.slug).toContain(`docs/${d.slug}`)
+    for (const d of DOCS) {
+      expect(objects, `${d.package}/${d.slug}`).toContain(docHref(d).replace(/^\//, ''))
+    }
+  })
+
+  it('cover every retired /docs/<slug> redirect', () => {
+    // Each legacy URL redirects client-side, but needs an object so the
+    // deep link serves index.html in the first place.
+    for (const slug of Object.keys(LEGACY_REDIRECTS)) {
+      expect(objects, slug).toContain(`docs/${slug}`)
+    }
   })
 
   it('cover every SDK page', () => {

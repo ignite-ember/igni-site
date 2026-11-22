@@ -1,6 +1,6 @@
 igni is built to be reached from your own code. There are two different jobs people mean by "the SDK", and they use different surfaces. If you want to **send prompts to the models** igni serves, you point a standard OpenAI client at the server's OpenAI-compatible API — no igni-specific library needed. If you want to **build on igni itself** — a backend service that talks to people's agents, an extension that adds tools and pages, a page that runs inside the app — you use the igni SDKs: three Python packages and three npm packages. This page covers all of them: where they live, how you authenticate, every public surface, and a worked example of each, for the engineer integrating from outside.
 
-For the lifecycle around an extension — the manifest, how a service is approved, how an extension is distributed to machines — read [Building extensions](/docs/building-extensions). This page is the API reference the SDKs expose.
+For the lifecycle around an extension — the manifest, how a service is approved, how an extension is distributed to machines — read [Building extensions](/docs/core/building-extensions). This page is the API reference the SDKs expose.
 
 ## Which SDK for what
 
@@ -35,7 +35,7 @@ Every SDK release is also tagged `sdk-v<version>` on [github.com/ignite-ember/ig
 
 ## Calling igni's models: the OpenAI-compatible API
 
-The igni server exposes an **OpenAI-compatible REST API**. You do not install an igni library for this — you point the official `openai` client (or `curl`, or any OpenAI-compatible tool) at your server. Completions are proxied through the server to the inference nodes you run, so your code never holds a node's address or key. How the server routes that work is in [Connecting your GPUs](/docs/inference-backends).
+The igni server exposes an **OpenAI-compatible REST API**. You do not install an igni library for this — you point the official `openai` client (or `curl`, or any OpenAI-compatible tool) at your server. Completions are proxied through the server to the inference nodes you run, so your code never holds a node's address or key. How the server routes that work is in [Connecting your GPUs](/docs/server/inference-backends).
 
 The base URL is your server's public URL with `/v1` appended: `https://igni.example.com/v1`.
 
@@ -327,7 +327,7 @@ If you register no erasure or export handler, igni's call returns `501` and the 
 
 ### Errors
 
-Everything the SDK raises on purpose descends from `IgniError`: `IgniUnavailable` (and its `ServiceNotApproved` / `ServiceRevoked`), `EventRefused`, `NotificationRefused`, `VmProfileRefused`, `KeyStoreError`, `BundleError`, `ConfigurationError`, and `TokenRefused`. `igni-service` also installs the `igni-service-bundle` console script for building the extension bundle a service ships — covered in [Building extensions](/docs/building-extensions).
+Everything the SDK raises on purpose descends from `IgniError`: `IgniUnavailable` (and its `ServiceNotApproved` / `ServiceRevoked`), `EventRefused`, `NotificationRefused`, `VmProfileRefused`, `KeyStoreError`, `BundleError`, `ConfigurationError`, and `TokenRefused`. `igni-service` also installs the `igni-service-bundle` console script for building the extension bundle a service ships — covered in [Building extensions](/docs/core/building-extensions).
 
 ## The extension SDK: igni-extension (Python)
 
@@ -355,7 +355,7 @@ def main() -> None:        # the console script the manifest's python.entry name
     ext.run()
 ```
 
-Every tool must state all four `ToolHints` — `read_only`, `destructive`, `idempotent`, `open_world` — which are what igni's [permission modes](/docs/permissions-and-safety) read; `ext.run()` refuses to start a tool that leaves one unstated. A plain `def` tool runs in a worker thread. A parameter typed `Caller` receives whom the call is for and is not part of the tool's input.
+Every tool must state all four `ToolHints` — `read_only`, `destructive`, `idempotent`, `open_world` — which are what igni's [permission modes](/docs/core/permissions-and-safety) read; `ext.run()` refuses to start a tool that leaves one unstated. A plain `def` tool runs in a worker thread. A parameter typed `Caller` receives whom the call is for and is not part of the tool's input.
 
 `ext.service` is an `httpx.AsyncClient` subclass pointed at your service, carrying a ten-minute token for the signed-in person that the igni app fetches — the extension holds no address and no secret. `ext.service.anonymous` drops the token, `ext.service.for_(caller)` acts as another caller, and `ext.service.websocket(path)` opens an authenticated WebSocket. When nobody is signed in, a call raises `NotSignedIn`; when igni didn't start the process with what a call needs, `NotConfigured`.
 
@@ -370,7 +370,7 @@ created = await ext.host.sessions.create(title="Index: acme/api")
 await ext.host.sessions.chat(created.session_id).post("The index is ready.")
 ```
 
-Namespaces include `app`, `windows`, `ui`, `sessions`, `chat`, `plan`, `tasks`, `commands`, `agents`, `workflows`, `scheduler`, `processes`, `workspace`, `models`, `mcp`, `plugins`, `extensions`, `hooks`, `permissions`, `policy`, `account`, `notifications` and `self`. `ext.host.decide(context, questions)` asks igni's local decision model. The full host-API table — which namespaces exist and what each grant covers — is in [Building extensions](/docs/building-extensions).
+Namespaces include `app`, `windows`, `ui`, `sessions`, `chat`, `plan`, `tasks`, `commands`, `agents`, `workflows`, `scheduler`, `processes`, `workspace`, `models`, `mcp`, `plugins`, `extensions`, `hooks`, `permissions`, `policy`, `account`, `notifications` and `self`. `ext.host.decide(context, questions)` asks igni's local decision model. The full host-API table — which namespaces exist and what each grant covers — is in [Building extensions](/docs/core/building-extensions).
 
 ### Hooks, signals and the events a service sends
 
@@ -394,7 +394,7 @@ async def index_ready(event: ServiceEvent) -> None:
     await ext.host.sessions.chat(created.session_id).post(f"The index for {repo} is ready.")
 ```
 
-Deciding hooks (`PRE_TOOL_USE`, `POST_TOOL_USE`, `USER_PROMPT_SUBMIT`, `STOP`, `PLAN_SUBMIT`) answer `Allow()`, `Reject(reason)` or `Modify(value)` within two seconds — returning `None` allows; "told" events like `SESSION_START` decide nothing. One handler per event. A handler may take a second `Caller` parameter. The hook events are described in [Hooks, workflows and scheduled tasks](/docs/hooks-workflows-and-scheduled-tasks). `@ext.on_service_event()` with no type takes every type no other handler names; its return value is ignored. `ext.busy(reason)` / `async with ext.busy_while(reason):` keep igni from suspending the process while it works.
+Deciding hooks (`PRE_TOOL_USE`, `POST_TOOL_USE`, `USER_PROMPT_SUBMIT`, `STOP`, `PLAN_SUBMIT`) answer `Allow()`, `Reject(reason)` or `Modify(value)` within two seconds — returning `None` allows; "told" events like `SESSION_START` decide nothing. One handler per event. A handler may take a second `Caller` parameter. The hook events are described in [Hooks, workflows and scheduled tasks](/docs/core/hooks-workflows-and-scheduled-tasks). `@ext.on_service_event()` with no type takes every type no other handler names; its return value is ignored. `ext.busy(reason)` / `async with ext.busy_while(reason):` keep igni from suspending the process while it works.
 
 ## The page SDKs: extension-bridge, ui-react, ui-css (TypeScript)
 
@@ -477,7 +477,7 @@ igni --model platform-review-lora -m "review this branch"
 
 The Homebrew formula `ignite-ember/tap/ignite-ember` installs the published `ignite-ember` (the pre-split monolith, 1.0.3) and puts the `ignite-ember` command on your `PATH` — not `igni`; use `pip install igni-core` for the current backend.
 
-It reads its server from `~/.igni/config.yaml` (`api_url:`) and its token from `~/.igni/credentials.json`. Flags set the permission mode (`--read-only`, `--accept-edits`, `--auto-approve`, `--strict`), turn off web tools (`--no-web`), or add directories (`--add-dir`). Four subcommands exist: `igni ext` for extensions, `igni login` to sign in, `igni migrate` for igni's own database, and `igni trust` to record whether a folder may run its own code. There is no interactive terminal chat. Headless sign-in is `igni login`: it runs the same flow as the app's sign-in page and prints the address to open, for a machine with no browser of its own, and `igni login --token-stdin` keeps an access token read from stdin, once igni server has accepted it — the path for a script or a CI job. The token is never an argument, so it does not land in the shell's history or in the process list. See [Installing igni](/docs/installing-igni) for the full flag list.
+It reads its server from `~/.igni/config.yaml` (`api_url:`) and its token from `~/.igni/credentials.json`. Flags set the permission mode (`--read-only`, `--accept-edits`, `--auto-approve`, `--strict`), turn off web tools (`--no-web`), or add directories (`--add-dir`). Four subcommands exist: `igni ext` for extensions, `igni login` to sign in, `igni migrate` for igni's own database, and `igni trust` to record whether a folder may run its own code. There is no interactive terminal chat. Headless sign-in is `igni login`: it runs the same flow as the app's sign-in page and prints the address to open, for a machine with no browser of its own, and `igni login --token-stdin` keeps an access token read from stdin, once igni server has accepted it — the path for a script or a CI job. The token is never an argument, so it does not land in the shell's history or in the process list. See [Installing igni](/docs/app/installing-igni) for the full flag list.
 
 ## Testing your integration
 
@@ -495,7 +495,7 @@ uv add igni-service --find-links ./sdk-wheels
 # or: pip install --index-url https://pypi.example.internal/simple igni-service igni-extension
 ```
 
-and the npm packages from the packed tarballs (or your internal registry). An air-gapped igni deployment is set with `air_gapped: true`; a page's `egress` host outside the network is unreachable even when the manifest grants it, and the extension process reaches only its own service and declared hosts through igni's proxy. The build and deployment side of this is in [Offline updates](/docs/offline-updates) and [Installing igni](/docs/installing-igni).
+and the npm packages from the packed tarballs (or your internal registry). An air-gapped igni deployment is set with `air_gapped: true`; a page's `egress` host outside the network is unreachable even when the manifest grants it, and the extension process reaches only its own service and declared hosts through igni's proxy. The build and deployment side of this is in [Offline updates](/docs/server/offline-updates) and [Installing igni](/docs/app/installing-igni).
 
 ## Errors and limits
 
@@ -511,9 +511,22 @@ and the npm packages from the packed tarballs (or your internal registry). An ai
 
 **Not built yet.** A few surfaces are declared but not wired up: the host error code `stage_2` is reserved; some host-model JSON values are not yet part of the schema's shape promise; the page bridge has no `identity`, `setTitle`, `setStatus` or `storage` yet; a service cannot replace a view it showed (it shows a new one); sidecar (container) extensions are in the manifest schema but do not run — use a Python package; development mode has no hot reload; and secrets are plain environment variables, not handles. Deprecated in favour of clearer names: `igni_service` `Host.vm_profile()` (use `extension_vm_profile()`), and `IgniApp.request_vm_profile` / `vm_profile_request` (use the `app.vm_profile.{request,status,effective}` trio).
 
+## Versions and changes
+
+The SDKs are six packages, and they version together on their own cadence, in `ignite-ember/igni-sdk`. They moved together from 0.1.0 to 0.2.0, and the Python half has since had a patch, **0.2.1**, so there is no single "SDK version" today: the Python packages are at **0.2.1**, the npm packages at **0.2.0**.
+
+| | Package | Registry | Version now |
+|---|---|---|---|
+| Python | `igni-client`, `igni-service`, `igni-extension` | PyPI | 0.2.1 |
+| TypeScript | `@ignite-ember/extension-bridge`, `@ignite-ember/ui-react`, `@ignite-ember/ui-css` | npm | 0.2.0 |
+
+As of 2026-11-22, the three Python packages are published on PyPI at **0.2.1**, under the tag `sdk-v0.2.1`, with a GitHub Release for it. The three npm packages are still at **0.2.0** and not on npm yet: their publish waits on per-package trusted publishing being set up on the `@ignite-ember` scope.
+
+0.2.0 was a minor release because the refactor changed what an extension relies on — the fakes' shape, the typed client, the bridge's types. The notes are in each Python package's README, under *Changes since 0.1.0*; the npm packages that carry them write *Changed since 0.1.0, on purpose* instead, and `@ignite-ember/ui-css` has no such section. One large change is `igni_service.testing`: the fake is one object of collaborators now, so `fake.add_organisation(...)` is `fake.directory.add_organisation(Organisation(...))` and `fake.person_token(...)` is `fake.signer.person_token(...)`. 0.2.1 is a patch over that refactor; the `igni_service.testing` change is the one from 0.2.0 that most code has to follow.
+
 ## Where to go next
 
-- **[Building extensions](/docs/building-extensions)** — the manifest, permissions, approval and distribution, and the full host-API table.
-- **[Connecting your GPUs](/docs/inference-backends)** — how chat completions are routed to the inference nodes you own.
-- **[Administering your organisation](/docs/administering-your-organisation)** — approving a service and switching its extension on per group.
+- **[Building extensions](/docs/core/building-extensions)** — the manifest, permissions, approval and distribution, and the full host-API table.
+- **[Connecting your GPUs](/docs/server/inference-backends)** — how chat completions are routed to the inference nodes you own.
+- **[Administering your organisation](/docs/server/administering-your-organisation)** — approving a service and switching its extension on per group.
 - **[CodeIndex](/docs/codeindex)** — a complete extension built on exactly these SDKs.

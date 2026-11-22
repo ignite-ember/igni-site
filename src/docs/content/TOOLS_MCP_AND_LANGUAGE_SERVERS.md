@@ -21,7 +21,7 @@ On top of that the session attaches toolkits the registry never sees, in this or
 
 Two families are conditional: the LSP toolkit appears only when at least one language server is configured, and the monitors toolkit only when at least one monitor is. `Orchestrate` is a reserved name the registry skips silently — the agent builder attaches it. You may name it in an agent definition's `tools:` list, but declaring does not grant: the builder decides.
 
-CodeIndex and Artifacts are not built in any more. Their tools — CodeIndex's `codeindex_cypher`, Artifacts' document tools — come from their extensions over MCP, and only while the extension is switched on for you. See [CodeIndex](/docs/codeindex) and [Building extensions](/docs/building-extensions).
+CodeIndex and Artifacts are not built in any more. Their tools — CodeIndex's `codeindex_cypher`, Artifacts' document tools — come from their extensions over MCP, and only while the extension is switched on for you. See [CodeIndex](/docs/codeindex) and [Building extensions](/docs/core/building-extensions).
 
 ## There is no Read tool
 
@@ -56,7 +56,7 @@ def docker_down() -> str:
 
 Files beginning with `_` are skipped. A file that raises on import is logged and skipped, not fatal. Scan order is user dir, project dir, group-policy dir, then plugin dirs (namespaced `custom_<plugin>_<stem>`).
 
-There is **no sandboxing**. These files are imported and executed with your privileges. A project's `.igni/tools/` is therefore imported only once you trust the folder — opening a repository is not enough to run its tools; your own `~/.igni/tools/` and the group's are unaffected. See [Workspace trust](/docs/permissions-and-safety#workspace-trust).
+There is **no sandboxing**. These files are imported and executed with your privileges. A project's `.igni/tools/` is therefore imported only once you trust the folder — opening a repository is not enough to run its tools; your own `~/.igni/tools/` and the group's are unaffected. See [Workspace trust](/docs/core/permissions-and-safety#workspace-trust).
 
 ## Connecting an MCP server
 
@@ -143,6 +143,6 @@ A confirmation gate is only real if it names a function that exists. Two did not
 
 ## Where to go next
 
-- **[Building extensions](/docs/building-extensions)** — adding tools of your own.
-- **[Permissions and safety](/docs/permissions-and-safety)** — the six categories these tools fall into, and who may grant them.
-- **[Hooks, workflows and scheduled tasks](/docs/hooks-workflows-and-scheduled-tasks)** — running your own code when igni does something.
+- **[Building extensions](/docs/core/building-extensions)** — adding tools of your own.
+- **[Permissions and safety](/docs/core/permissions-and-safety)** — the six categories these tools fall into, and who may grant them.
+- **[Hooks, workflows and scheduled tasks](/docs/core/hooks-workflows-and-scheduled-tasks)** — running your own code when igni does something.

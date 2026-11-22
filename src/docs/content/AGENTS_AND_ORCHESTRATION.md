@@ -26,7 +26,7 @@ The tool names are a short, closed list. The registry catalog has eight entries 
 
 ## Agents an extension replaces
 
-An extension can ship `<agent>.<variant>.md` in its plugin. While the extension runs, that file *is* the agent: it loads under the plain name at priority 6, above everything in your project, and replaces the bundled one. When the extension stops, the plain agent comes back. CodeIndex uses this to replace `explorer` and `plan_researcher` while its index covers `HEAD`. An agent that only an extension ships, such as `data-architect`, is not in the pool at all without it, and spawning it returns an error. See [Building extensions](/docs/building-extensions).
+An extension can ship `<agent>.<variant>.md` in its plugin. While the extension runs, that file *is* the agent: it loads under the plain name at priority 6, above everything in your project, and replaces the bundled one. When the extension stops, the plain agent comes back. CodeIndex uses this to replace `explorer` and `plan_researcher` while its index covers `HEAD`. An agent that only an extension ships, such as `data-architect`, is not in the pool at all without it, and spawning it returns an error. See [Building extensions](/docs/core/building-extensions).
 
 ## The agent file format
 
@@ -123,7 +123,7 @@ Agents that arrive via a plugin are loaded under a security envelope. Their name
 
 ## Where to go next
 
-- **[Slash commands, skills and output styles](/docs/slash-commands-and-skills)** — the other thing you type after a slash, and the packaged procedures that ship with igni.
-- **[Tools, MCP servers and language servers](/docs/tools-mcp-and-language-servers)** — what an agent may call, and how you add more.
-- **[Building extensions](/docs/building-extensions)** — shipping your own agents to other people's machines.
-- **[Glossary](/docs/glossary)** — what "agent", "orchestrator", "team mode" and "plugin" mean here.
+- **[Slash commands, skills and output styles](/docs/core/slash-commands-and-skills)** — the other thing you type after a slash, and the packaged procedures that ship with igni.
+- **[Tools, MCP servers and language servers](/docs/core/tools-mcp-and-language-servers)** — what an agent may call, and how you add more.
+- **[Building extensions](/docs/core/building-extensions)** — shipping your own agents to other people's machines.
+- **[Glossary](/docs/core/glossary)** — what "agent", "orchestrator", "team mode" and "plugin" mean here.

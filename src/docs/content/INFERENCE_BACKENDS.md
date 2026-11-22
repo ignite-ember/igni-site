@@ -52,6 +52,113 @@ Settings are read from the environment case-insensitively (`INFERENCE_BACKENDS_P
 
 Nodes can also come from two other places: an admin adding one by hand in the portal (stored in Postgres, never expires), and nodes that register themselves. Precedence runs **static, then pinned, then registered** — the further from the deployment's own configuration, the less a node gets to override. The merged list is re-read every 30 seconds, so adding a GPU does not need a restart.
 
+## Cloud model providers
+
+A node does not have to be a GPU you run. igni server also speaks to the managed Claude and OpenAI-compatible endpoints of the three clouds, as nodes in the same list, routed and load-balanced the same way. Which provider a node is, is its **`kind`**:
+
+| `kind` | What it reaches | Wire |
+|---|---|---|
+| `openai` *(default)* | a vLLM node, or anything else that speaks the OpenAI API | `POST /v1/chat/completions` |
+| `azure_openai` | Azure OpenAI's v1 API | `POST /v1/chat/completions` |
+| `vertex_openai` | Vertex AI's OpenAI-compatible endpoint (Gemini, open models) | `POST /v1/chat/completions` |
+| `anthropic` | Anthropic's own API, or an Anthropic-compatible gateway | `POST /v1/messages` |
+| `bedrock` | Claude on AWS Bedrock | `POST /v1/messages` |
+| `vertex_anthropic` | Claude on Vertex AI | `POST /v1/messages` |
+| `azure_anthropic` | Claude in Microsoft Foundry | `POST /v1/messages` |
+
+Leave `kind` out and a node is `openai` — so the GPU nodes above need nothing new. A cloud node takes the same `id`, `models`, `max_concurrent` and `multimodal` fields, plus a few of its own:
+
+| Field | For | Notes |
+|---|---|---|
+| `kind` | all | One of the seven above. Defaults to `openai`. |
+| `base_url` | all | Required for `openai` and `azure_openai`. For the others it is **derived** from `kind`, `region` and `project` when left empty (see below); set it explicitly only to reach a private endpoint. |
+| `region` | `bedrock`, `vertex_openai`, `vertex_anthropic` | Required for those three; rejected on any other kind. |
+| `project` | `vertex_openai`, `vertex_anthropic` | The Google Cloud project. Required for Vertex; rejected on any other kind. |
+| `model_ids` | all | A map from the id the caller asks for to the provider's own name — an Azure deployment name, or `google/gemini-2.5-pro`. Every key must also appear in `models`. |
+| `auth` | all | How the server authenticates (see below). Omit it to take the kind's default. |
+| `auth_settings` | all | The non-secret settings the chosen method needs — a client id, a tenant, a service account, a role ARN. |
+| `credential` | some methods | The method's secret (a client secret, a service-account key, an AWS secret access key). Stored encrypted and never returned. |
+| `api_key` | some methods | A static bearer key, or Azure's resource key. Stored encrypted and never returned. |
+
+When `base_url` is empty, the server builds it from the kind:
+
+- `vertex_openai` / `vertex_anthropic` → `https://{region}-aiplatform.googleapis.com/...` for the project and region (the host drops the region prefix when `region` is `global`);
+- `bedrock` → `https://bedrock-runtime.{region}.amazonaws.com`;
+- `anthropic` → `https://api.anthropic.com`.
+
+### Ambient credentials, or static ones
+
+Each cloud kind can authenticate either with a **static** secret you give igni server, or with the server's **own cloud identity** — its instance role, workload identity or managed identity — so no key is stored at all. That is the `auth` field; omit it and the server picks the kind's default, which is `ambient` (the server's own identity) for every cloud kind, and `none` for a plain `openai` node.
+
+| `auth` | Cloud | What it uses | Needs |
+|---|---|---|---|
+| `none` | `openai` | no Authorization header | — |
+| `api_key` | `openai`, `azure_openai`, `azure_anthropic`, `anthropic` | a static key (Azure's own `api-key` header for `azure_openai`, otherwise `Authorization: Bearer`) | `api_key` |
+| `ambient` | Azure, Vertex, Bedrock | the server's own cloud identity — Azure `DefaultAzureCredential`, GCP Application Default Credentials, the AWS default credential chain | — |
+| `managed_identity` | `azure_openai`, `azure_anthropic` | a user-assigned Azure managed identity | `auth_settings.client_id` |
+| `client_secret` | `azure_openai`, `azure_anthropic` | an app registration | `auth_settings.tenant_id`, `auth_settings.client_id`, `credential` (the client secret) |
+| `impersonate` | `vertex_openai`, `vertex_anthropic` | the server identity impersonating a service account | `auth_settings.service_account` |
+| `service_account_key` | `vertex_openai`, `vertex_anthropic` | a service-account JSON key | `credential` (the JSON key) |
+| `assume_role` | `bedrock` | the server identity assumes an IAM role (STS) | `auth_settings.role_arn` (and optionally `external_id`) |
+| `access_keys` | `bedrock` | a static IAM user | `auth_settings.access_key_id`, `credential` (the secret access key) |
+
+`anthropic` offers only `api_key`; the other cloud kinds default to `ambient` and offer the static methods beside it. The ambient path means igni server reaches the model with the identity the machine already runs as — an instance profile or IRSA role on AWS, workload identity or an attached service account on GCP, a system managed identity on Azure — and there is nothing to rotate or leak. Bedrock requests are signed with SigV4 (not a bearer token) whichever AWS method is used; token-based methods are renewed by the server as they expire.
+
+A node whose fields do not fit its kind is refused at load with the reason — a Vertex node with no project, a `region` on an `anthropic` node, a method the kind does not offer, a missing setting, an `api_key` where a `credential` was wanted. A broken static file fails every request; the portal and node-registration paths refuse the one node and say why.
+
+### Examples
+
+A GPU node, an Azure OpenAI deployment, Claude on Bedrock with the server's own role, and Gemini on Vertex, in one list:
+
+```json
+[
+  {
+    "id": "gpu-fixed-01",
+    "base_url": "http://gpu-fixed-01.internal:8000/v1",
+    "model": "igni-1.0-4b",
+    "max_concurrent": 64
+  },
+  {
+    "id": "azure-eu",
+    "kind": "azure_openai",
+    "base_url": "https://acme.openai.azure.com/openai/v1",
+    "models": ["gpt-5"],
+    "model_ids": {"gpt-5": "gpt-5-deployment"}
+  },
+  {
+    "id": "bedrock-eu",
+    "kind": "bedrock",
+    "region": "eu-central-1",
+    "models": ["claude-opus-5-5"],
+    "auth": "ambient"
+  },
+  {
+    "id": "vertex-eu",
+    "kind": "vertex_openai",
+    "project": "acme-ai",
+    "region": "europe-west4",
+    "models": ["gemini-pro"],
+    "model_ids": {"gemini-pro": "google/gemini-2.5-pro"}
+  }
+]
+```
+
+Static secrets go in the same object. An Azure app registration:
+
+```json
+{
+  "id": "azure-eu",
+  "kind": "azure_openai",
+  "base_url": "https://acme.openai.azure.com/openai/v1",
+  "models": ["gpt-5"],
+  "auth": "client_secret",
+  "auth_settings": {"tenant_id": "...", "client_id": "..."},
+  "credential": "<the client secret>"
+}
+```
+
+A cloud node can come from any of the three sources below — the static file, the inline setting, or the portal (*Deployment → Inference*, where the secret is entered once and comes back only as "set"). The same precedence — static, then pinned, then registered — applies.
+
 ## Letting a cluster register itself
 
 Editing a ConfigMap and waiting for a rollout is the wrong workflow for hardware you start on Tuesday and stop on Wednesday. Set `node_registration_token` and three verbs appear, authenticated with `X-Igni-Node-Token`:
@@ -111,7 +218,7 @@ The agent never talks to a GPU. On start it calls `GET /v1/chat/models`, which r
 
 `api_url` defaults to empty, and discovery is skipped quietly until you set it in `~/.igni/config.yaml` — and again when no access token is stored, since the call is made with one. The fetch has a 3-second timeout and every failure is soft: the agent boots on whatever is already in local config.
 
-On the CLI, `--model` chooses, `-m/--message` sends one message and `-p/--pipe` reads stdin. There is no terminal chat UI; interactive use is the desktop app. How a model is chosen when nobody names one is in [Models and the Factory](/docs/models-and-the-factory).
+On the CLI, `--model` chooses, `-m/--message` sends one message and `-p/--pipe` reads stdin. There is no terminal chat UI; interactive use is the desktop app. How a model is chosen when nobody names one is in [Models and the Factory](/docs/core/models-and-the-factory).
 
 ## Limits worth knowing
 
@@ -124,6 +231,6 @@ On the CLI, `--model` chooses, `-m/--message` sends one message and `-p/--pipe` 
 
 ## Where to go next
 
-- **[Administering your organisation](/docs/administering-your-organisation)** — with models serving, the next step is admitting the people who will use them.
-- **[Server configuration reference](/docs/server-configuration)** — the backend, timeout and queue settings behind this page.
-- **[Models and the Factory](/docs/models-and-the-factory)** — igni's own models, and serving LoRA adapters.
+- **[Administering your organisation](/docs/server/administering-your-organisation)** — with models serving, the next step is admitting the people who will use them.
+- **[Server configuration reference](/docs/server/server-configuration)** — the backend, timeout and queue settings behind this page.
+- **[Models and the Factory](/docs/core/models-and-the-factory)** — igni's own models, and serving LoRA adapters.

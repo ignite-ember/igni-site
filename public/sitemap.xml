@@ -36,127 +36,152 @@
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://igni.sh/docs/installing-igni</loc>
-    <priority>0.8</priority>
+    <loc>https://igni.sh/docs/core</loc>
+    <priority>0.85</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://igni.sh/docs/your-first-session</loc>
-    <priority>0.8</priority>
+    <loc>https://igni.sh/docs/app</loc>
+    <priority>0.85</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://igni.sh/docs/models-and-the-factory</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/self-hosting-the-server</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/server-configuration</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/inference-backends</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/administering-your-organisation</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/running-the-documents-service</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/licensing-and-evaluations</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/offline-updates</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/changes-and-upgrades</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/troubleshooting</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/configuration-and-precedence</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/glossary</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/project-context-and-memory</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/permissions-and-safety</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/agents-and-orchestration</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/slash-commands-and-skills</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/tools-mcp-and-language-servers</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/hooks-workflows-and-scheduled-tasks</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/artifacts</loc>
-    <priority>0.8</priority>
-    <changefreq>monthly</changefreq>
-  </url>
-  <url>
-    <loc>https://igni.sh/docs/codeindex</loc>
-    <priority>0.8</priority>
+    <loc>https://igni.sh/docs/server</loc>
+    <priority>0.85</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
     <loc>https://igni.sh/docs/fleet</loc>
+    <priority>0.85</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/artifacts</loc>
+    <priority>0.85</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/codeindex</loc>
+    <priority>0.85</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/app/installing-igni</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://igni.sh/docs/sdks</loc>
+    <loc>https://igni.sh/docs/app/your-first-session</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>
   <url>
-    <loc>https://igni.sh/docs/building-extensions</loc>
+    <loc>https://igni.sh/docs/app/changelog</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/core/models-and-the-factory</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/core/configuration-and-precedence</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/core/glossary</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/core/project-context-and-memory</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/core/permissions-and-safety</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/core/agents-and-orchestration</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/core/slash-commands-and-skills</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/core/tools-mcp-and-language-servers</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/core/hooks-workflows-and-scheduled-tasks</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/core/building-extensions</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/core/sdks</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/core/troubleshooting</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/core/changelog</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/server/self-hosting-the-server</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/server/server-configuration</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/server/inference-backends</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/server/administering-your-organisation</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/server/running-the-documents-service</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/server/offline-updates</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/server/licensing-and-evaluations</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/server/changelog</loc>
     <priority>0.8</priority>
     <changefreq>monthly</changefreq>
   </url>

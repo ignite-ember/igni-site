@@ -1,4 +1,4 @@
-This page walks through one session, from an empty terminal to a finished task, and says what igni does at each step. It assumes the CLI. The desktop app does the same work behind a window, and [Installing igni](/docs/installing-igni) covers both.
+This page walks through one session, from an empty terminal to a finished task, and says what igni does at each step. It assumes the CLI. The desktop app does the same work behind a window, and [Installing igni](/docs/app/installing-igni) covers both.
 
 ## Install it
 
@@ -8,7 +8,7 @@ pip install 'igni-core[decisions]==1.0.5'
 
 Python 3.12 exactly. The command it installs is `igni`. That works today: `igni-core` is on PyPI at **1.0.5**.
 
-**Use `igni-core`, not `ignite-ember`.** The `ignite-ember` name on PyPI is still **1.0.3**, the pre-split monolith — so `pip install ignite-ember` gives you that older release, not the new backend, until the alias package ships. `igni-core` puts both `igni` and `ignite-ember` on your `PATH`, so `igni --version` works straight away. [Changes and upgrades](/docs/changes-and-upgrades) has the version story.
+**Use `igni-core`, not `ignite-ember`.** The `ignite-ember` name on PyPI is still **1.0.3**, the pre-split monolith — so `pip install ignite-ember` gives you that older release, not the new backend, until the alias package ships. `igni-core` puts both `igni` and `ignite-ember` on your `PATH`, so `igni --version` works straight away. [Changes and upgrades](/docs/core/changelog) has the version story.
 
 There is also a Homebrew formula, `brew install ignite-ember/tap/ignite-ember`. It installs the published `ignite-ember` (the pre-split monolith, 1.0.3) and puts the `ignite-ember` command on your `PATH` — not `igni`; use `pip install igni-core` for the current backend.
 
@@ -167,7 +167,7 @@ permissions:
 
 One rule covers one command. `Bash(cat *)` does not allow `cat x && rm -rf y` — every command on the line must be allowed. A pure filter after a pipe (`tail -20`, `head`, `grep x`, `wc -l`) needs no rule of its own, so `pytest -q 2>&1 | tail -20` runs under the pytest rule; `| tee`, `| sh` and `| xargs` do not.
 
-The full set of modes, and what each one acts on, is in [Permissions and safety](/docs/permissions-and-safety).
+The full set of modes, and what each one acts on, is in [Permissions and safety](/docs/core/permissions-and-safety).
 
 ## Continue the conversation
 
@@ -205,8 +205,8 @@ igni reads `CLAUDE.md`, `.claude/agents/`, `.claude/skills/`, `.claude/settings.
 
 ## Where to go next
 
-- **[Glossary](/docs/glossary)** — what each word means here, and where a word means more than one thing.
-- **[Project context, rules and memory](/docs/project-context-and-memory)** — what igni reads before it answers, and what it remembers between sessions.
-- **[Permissions and safety](/docs/permissions-and-safety)** — the five modes, in full.
-- **[Agents and orchestration](/docs/agents-and-orchestration)** — who does the work, and how to write your own agents.
-- **[Configuration and precedence](/docs/configuration-and-precedence)** — where each setting came from, when several files say different things.
+- **[Glossary](/docs/core/glossary)** — what each word means here, and where a word means more than one thing.
+- **[Project context, rules and memory](/docs/core/project-context-and-memory)** — what igni reads before it answers, and what it remembers between sessions.
+- **[Permissions and safety](/docs/core/permissions-and-safety)** — the five modes, in full.
+- **[Agents and orchestration](/docs/core/agents-and-orchestration)** — who does the work, and how to write your own agents.
+- **[Configuration and precedence](/docs/core/configuration-and-precedence)** — where each setting came from, when several files say different things.

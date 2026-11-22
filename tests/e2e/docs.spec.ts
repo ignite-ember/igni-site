@@ -2,20 +2,28 @@
  * The documentation, in a real browser.
  *
  * Moved from the igni server portal's `functional.spec.ts` when the
- * site got its own repository.
+ * site got its own repository. Since the per-package split, `/docs` is a
+ * product grid: a package card opens that package's landing, and the
+ * landing lists its articles.
  */
 import { test, expect } from '@playwright/test'
 
 test.describe('docs', () => {
-  test('an article opens from the index and the footer advances', async ({ page }) => {
+  test('a product opens, an article opens from it, and the footer advances', async ({ page }) => {
     await page.goto('/docs')
-    const first = page.locator('.doc-card').first()
-    const title = (await first.locator('.doc-card-title').innerText()).trim()
-    await first.click()
+
+    // The index is a product grid; open the first package.
+    await page.locator('.product-card').first().click()
+    await expect(page).toHaveURL(/\/docs\/[a-z]+$/)
+
+    // The package landing lists its own articles; open the first.
+    const firstArticle = page.locator('.doc-card').first()
+    const title = (await firstArticle.locator('.doc-card-title').innerText()).trim()
+    await firstArticle.click()
 
     await expect(page.getByRole('heading', { name: title, level: 1 })).toBeVisible()
 
-    // The prev/next footer is the only way through the set in order.
+    // The prev/next footer is the only way through the package in order.
     const next = page.locator('.doc-prev-next a, .doc-prev-next button').last()
     await next.click()
     await expect(page.getByRole('heading', { level: 1 })).not.toHaveText(title)
@@ -23,6 +31,8 @@ test.describe('docs', () => {
 
   test('a table-of-contents link lands on its heading', async ({ page }) => {
     await page.goto('/docs')
+    // Grid -> package landing -> an article.
+    await page.locator('.product-card').first().click()
     await page.locator('.doc-card').first().click()
     // Wait for the article: checking before it renders skipped the test.
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()

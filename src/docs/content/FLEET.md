@@ -27,7 +27,7 @@ The VMs are **Firecracker** microVMs on KVM. Fleet uses Firecracker 1.17.0 with 
 - **Restored.** A suspended VM is restored on demand, filling memory as the guest touches it and prefetching the pages it used last time.
 - **Offloaded.** After 7 days suspended, its encrypted state can move to an S3-compatible store.
 
-Memory is elastic. A VM runs with its normal memory and can grow up to its most while it needs more, if the node has room. These sizes come from the VM's **profile**, set in the portal. See [VM profiles](/docs/administering-your-organisation).
+Memory is elastic. A VM runs with its normal memory and can grow up to its most while it needs more, if the node has room. These sizes come from the VM's **profile**, set in the portal. See [VM profiles](/docs/server/administering-your-organisation).
 
 ## What a host needs
 
@@ -70,7 +70,7 @@ The gateway and the node agent each register with igni server as a **platform** 
 
 ## How it ties into igni server
 
-You manage Fleet from igni's portal, not from Fleet itself. The pages are **Apps**, **VM profiles**, **Commands in VMs**, **VM credentials** and, for a super admin, **Cloud limits**. What each does is in [Administering your organisation](/docs/administering-your-organisation).
+You manage Fleet from igni's portal, not from Fleet itself. The pages are **Apps**, **VM profiles**, **Commands in VMs**, **VM credentials** and, for a super admin, **Cloud limits**. What each does is in [Administering your organisation](/docs/server/administering-your-organisation).
 
 The defaults for the **Standard** profile, and the platform's caps, are igni server settings with the prefix `CLOUD_VM__`:
 
@@ -91,7 +91,7 @@ A VM is provisioned for each active producer from igni server's producer feed, s
 
 - a connection to the gateway (`GET /v1/connect`, a WebSocket);
 - a command, through **Commands in VMs** or `POST /v1/vm/commands` on igni server;
-- an event a service sends to the producer. See [Building extensions](/docs/building-extensions);
+- an event a service sends to the producer. See [Building extensions](/docs/core/building-extensions);
 - a task the agent scheduled for itself.
 
 Removing a person from the organisation closes their connection, suspends their VM, and keeps it for the organisation's retention period before erasing it.
@@ -110,7 +110,7 @@ Fleet's licence covers as many app and space VMs at a time as it does people. At
 
 ## When the licence lapses
 
-Only the gateway checks Fleet's licence, before it starts or resumes any VM. See [Licensing and evaluations](/docs/licensing-and-evaluations) for the states.
+Only the gateway checks Fleet's licence, before it starts or resumes any VM. See [Licensing and evaluations](/docs/server/licensing-and-evaluations) for the states.
 
 - **Read-only** refuses anything that starts, resumes or provisions a VM: connections, sign-in, commands, events, timed wakes and moves. Health, metrics, node registration, the admin API, suspending, erasures and exports keep working. Events and commands wait at igni server; nothing is lost.
 - A refused HTTP request gets `403`. A refused WebSocket is closed with code `1008`.
@@ -138,16 +138,16 @@ The raw results, and earlier measurements with a smaller test guest and on bare 
 
 ## What is not finished
 
-- **No deployment manifests.** There is no Helm chart, compose file or systemd unit for the gateway or node agent, and they are not in the [offline update bundle](/docs/offline-updates). You build them from source (`scripts/build_agents.sh`, `patches/build_firecracker.sh`, `image/build_all.sh`).
+- **No deployment manifests.** There is no Helm chart, compose file or systemd unit for the gateway or node agent, and they are not in the [offline update bundle](/docs/server/offline-updates). You build them from source (`scripts/build_agents.sh`, `patches/build_firecracker.sh`, `image/build_all.sh`).
 - **No client connects to Fleet yet.** The desktop app and CLI run igni on your own machine. Fleet's VMs are reached through the gateway's API, and by services and commands.
 - **The node agent does not register itself** with igni server yet; an operator does it.
 - **The organisation's quota of awake VM time is recorded, not enforced.**
 - **A former member's export holds only their database rows**, not the files on their VM's volume.
 - **Discarding and erasing have been tested against simulated nodes**, not yet on a real Fleet host.
 - **Building the guest kernel and image fetches packages** from the internet, so it is not yet an offline build.
-- **A valid licence is required outside development.** Ignite Ember's Ed25519 release key (`ie-2026`) is built into the Fleet gateway, which verifies the licence against it offline; without a valid licence Fleet starts no VM except in development (`[licence] trust_test_key = true`). See [Licensing and evaluations](/docs/licensing-and-evaluations).
+- **A valid licence is required outside development.** Ignite Ember's Ed25519 release key (`ie-2026`) is built into the Fleet gateway, which verifies the licence against it offline; without a valid licence Fleet starts no VM except in development (`[licence] trust_test_key = true`). See [Licensing and evaluations](/docs/server/licensing-and-evaluations).
 
 ## Where to go next
 
-- **[Administering your organisation](/docs/administering-your-organisation)** — apps, VM profiles, commands in VMs and VM credentials.
-- **[Building extensions](/docs/building-extensions)** — how a service reaches a producer's agent, in a VM or on a desktop.
+- **[Administering your organisation](/docs/server/administering-your-organisation)** — apps, VM profiles, commands in VMs and VM credentials.
+- **[Building extensions](/docs/core/building-extensions)** — how a service reaches a producer's agent, in a VM or on a desktop.

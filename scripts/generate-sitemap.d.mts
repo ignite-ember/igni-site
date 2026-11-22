@@ -3,6 +3,9 @@
  *  import are declared. */
 
 export declare const ORIGIN: string
-export declare function docSlugs(): string[]
+export declare function docPackages(): { slug: string; single: boolean }[]
+export declare function docArticles(): { slug: string; package: string; category: string }[]
+export declare function docCanonicalPaths(): string[]
+export declare function legacyDocPaths(): string[]
 export declare function sdkPaths(): string[]
 export declare function buildSitemap(): string

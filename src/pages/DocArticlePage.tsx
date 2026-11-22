@@ -18,7 +18,13 @@ import {
   BookIcon,
 } from '@primer/octicons-react'
 import { Blankslate } from '@primer/react/experimental'
-import { DOCS, extractSections } from '../docs/docsManifest'
+import {
+  articlesOf,
+  docHref,
+  docPackage,
+  extractSections,
+  findArticle,
+} from '../docs/docsManifest'
 import { markdownComponents } from '../docs/markdownComponents'
 import { MobileTableOfContents, TableOfContents } from '../docs/DocToc'
 import { useActiveSectionId } from '../docs/useActiveSectionId'
@@ -30,13 +36,15 @@ function stripH1(content: string): string {
 }
 
 export function DocArticlePage() {
-  const { slug } = useParams<{ slug: string }>()
+  const { package: pkgSlug, slug } = useParams<{ package: string; slug: string }>()
   const navigate = useNavigate()
-  const docIndex = DOCS.findIndex((d) => d.slug === slug)
-  const doc = docIndex >= 0 ? DOCS[docIndex] : undefined
+  const pkg = docPackage(pkgSlug)
+  const siblings = useMemo(() => articlesOf(pkgSlug), [pkgSlug])
+  const docIndex = siblings.findIndex((d) => d.slug === slug)
+  const doc = docIndex >= 0 ? siblings[docIndex] : findArticle(pkgSlug, slug)
   useDocumentTitle(doc ? `${doc.title} — Docs` : 'Documentation', doc?.description)
-  const prevDoc = docIndex > 0 ? DOCS[docIndex - 1] : null
-  const nextDoc = docIndex >= 0 && docIndex < DOCS.length - 1 ? DOCS[docIndex + 1] : null
+  const prevDoc = docIndex > 0 ? siblings[docIndex - 1] : null
+  const nextDoc = docIndex >= 0 && docIndex < siblings.length - 1 ? siblings[docIndex + 1] : null
 
   const body = useMemo(() => doc ? stripH1(doc.content) : '', [doc])
 
@@ -69,6 +77,9 @@ export function DocArticlePage() {
           <Breadcrumbs className="doc-breadcrumbs">
             <Breadcrumbs.Item as={Link} to="/">igni</Breadcrumbs.Item>
             <Breadcrumbs.Item as={Link} to="/docs">Docs</Breadcrumbs.Item>
+            {pkg && (
+              <Breadcrumbs.Item as={Link} to={`/docs/${pkg.slug}`}>{pkg.title}</Breadcrumbs.Item>
+            )}
             <Breadcrumbs.Item selected>{doc.title}</Breadcrumbs.Item>
           </Breadcrumbs>
 
@@ -89,7 +100,7 @@ export function DocArticlePage() {
                 variant="default"
                 size="large"
                 leadingVisual={ArrowLeftIcon}
-                onClick={() => { navigate(`/docs/${prevDoc.slug}`) }}
+                onClick={() => { navigate(docHref(prevDoc)) }}
               >
                 {prevDoc.title}
               </Button>
@@ -99,7 +110,7 @@ export function DocArticlePage() {
                 variant="default"
                 size="large"
                 trailingVisual={ArrowRightIcon}
-                onClick={() => { navigate(`/docs/${nextDoc.slug}`) }}
+                onClick={() => { navigate(docHref(nextDoc)) }}
               >
                 {nextDoc.title}
               </Button>

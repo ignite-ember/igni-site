@@ -144,5 +144,5 @@ The `users` number is never a hard limit. A module over its band keeps working, 
 
 ## Where to go next
 
-- **[Offline updates](/docs/offline-updates)** — the release bundle, which does not carry the licence file.
-- **[Self-hosting the igni server](/docs/self-hosting-the-server)** — where `licence.existingSecret` sits among the other chart values.
+- **[Offline updates](/docs/server/offline-updates)** — the release bundle, which does not carry the licence file.
+- **[Self-hosting the igni server](/docs/server/self-hosting-the-server)** — where `licence.existingSecret` sits among the other chart values.
