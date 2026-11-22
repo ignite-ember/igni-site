@@ -92,10 +92,24 @@ session is attached igni shows the approval again, and
 [`session.events()`](#watching-an-igni) offers it as an
 `ApprovalRequested`.
 
+Two things end a waiting run instead of answering it.
+`session.cancel()` ends it and answers `cancelled=True`; a new prompt
+sent to the session moves on from it. Either way its approvals are
+dropped: answering one afterwards runs nothing, and igni does not show
+it again, after a restart either. Ending the run refuses its approvals,
+so both take what answering takes: igni's window or an approver may, a
+program without an approver token may not. igni refuses that program's
+`session.cancel()` with `AccessRefused`. Its prompt gets igni's
+`ErrorMessage` and the end of its stream, so the `send()` loop yields
+the error and ends, and `ask()` raises `RunFailed` with igni's words:
+no run starts and nothing is queued. Either way the approvals stay.
+
 A program without an approver token cannot answer: `approve()`,
 `reject()` and `decide()` raise `AccessRefused` (a `NotAllowed`) before
 anything is sent, and the run keeps waiting (see
-[Who may call what](/docs/sdk/igni-client/concepts#who-may-call-what)). Where igni-client does not know
+[Who may call what](/docs/sdk/igni-client/concepts#who-may-call-what)). Nor can it end the waiting
+run, by `session.cancel()` or by a new prompt: igni refuses both, and
+drops nothing. Where igni-client does not know
 the standing (`Local(url=..., token=...)`), the answer is sent, and igni's
 refusal comes as `NotAllowed` from the `send()` loop.
 
@@ -125,7 +139,12 @@ async with FakeIgni() as fake:
 ```
 
 Without `approve=`, a pause raises `ApprovalRequired` (its
-`requirements` say what was asked); a failed run raises `RunFailed`.
+`requirements` say what was asked); a failed run raises `RunFailed`, or
+`SignInRequired` in Fleet when the VM's own credential was refused
+([see below](#when-the-connection-changes-under-you)). A prompt igni
+answers with an `error` and no run at all — refused, or blocked by a hook
+or the group policy — raises `RunFailed` too, in igni's words, rather
+than returning an empty `Reply`.
 `session.queue(text)` adds a prompt for after the run that is going.
 
 ## Calls that stream
@@ -201,7 +220,7 @@ These calls are followed, each by what igni's events carry:
 | `session.scheduler.start()` | this session's `scheduler_started` and `scheduler_completed` | when you leave the block |
 | `igni.auth.login()` | `login_status`, `login_result` | `login_result` |
 | `igni.sessions.attach()` | the approvals it shows again and the runs it continues (`run_paused`, `requirement_details`, `stream_end`) | the `stream_end` |
-| `session.cancel()` | the `info` and `stream_end` of the turn it stops | that `stream_end`, or the answer when no turn was running |
+| `session.cancel()` | the `info` and `stream_end` of the turn it stops, running or paused on an approval | the `stream_end` of that `info`'s stream (not an attach's), or the answer when no turn was running or paused |
 | `session.run_shell(command)` | `process_started`, `process_line`, `process_exited`, `background_process_done` of the command's pid, when it outlives the wait | `background_process_done`, or the answer when the command finished inside the wait |
 | `session.scheduler.execute(...)` | what the task's tools push: `orchestrate_event`, `file_edited`, `todos_updated`, `process_started`, `permission_mode_changed`, `plan_submitted` | the answer |
 | `session.auth.sign_out()`, `igni.notifications.list()`, `.mark_read()` | `notifications_changed` of that cause | the answer |
@@ -306,7 +325,30 @@ on.
   producer yet" for a moment; calls are asked again.
 - **Refused.** `AuthError` for a credential igni does not accept,
   `NotAllowed` for a producer that is no longer active, a lapsed licence,
-  or a command in somebody else's VM. Neither is retried.
+  or a command in somebody else's VM; `GroupIsLocalOnly`, a `NotAllowed`,
+  when the person's group runs igni only on the desktop (see
+  [Where the group runs igni](/docs/sdk/igni-client/fleet-discovery-and-signing-in#where-the-group-runs-igni)). None is retried.
+- **The token ran out.** The gateway closes a socket whose token expired
+  (`1008 token_expired`); the client opens it again with a fresh token,
+  as after a drop.
+- **The VM's own credential was refused.** A Fleet VM keeps a credential
+  of its own, which igni exchanges for the tokens its model calls use.
+  When igni server refuses it (revoked, the person signed out or was
+  removed) igni says so with a `vm_credential` push, which
+  `igni.vm_credential` keeps (igni also sends it to a client that connects
+  later, as it attaches). From then on `session.ask()` raises
+  `SignInRequired` - still a `RunFailed`, so code that catches that keeps
+  working - with the run's own `RunFailed` (the model provider's own words)
+  as its cause. The client does not sign in by
+  itself: your program signs the person in again at the gateway with
+  `igni.sign_in()` (`POST /v1/sign-in` with their bearer token), which
+  wakes the VM and hands igni their session for a new credential (the
+  platform's `vm_sign_in`). The gateway answers the credential's state
+  (`signed.credential.state == "ready"`), igni pushes `ready`, and the
+  next `ask()` works ([Signing in to the VM's igni](/docs/sdk/igni-client/fleet-discovery-and-signing-in#signing-in-to-the-vm-s-igni)). An app's VM raises `ReissueRequired` instead: an
+  organisation admin re-issues its credential, and the VM takes it at its
+  next start. Before igni has noticed a revocation (up to its next token
+  renewal) a run can still fail with a plain `RunFailed`.
 
 ```python
 from igni_client import Backoff, IgniClient, Person
