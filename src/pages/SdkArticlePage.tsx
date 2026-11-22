@@ -22,7 +22,7 @@ import './SdkDocs.css'
  * One page of an SDK's documentation: `/docs/sdk/<package>` (its
  * overview) and `/docs/sdk/<package>/<page>`.
  *
- * The pages are igni-sdk's, copied by `scripts/sync-sdk-docs.mjs`; this
+ * The pages are igni-sdk's, copied by `scripts/sync-docs.mjs sdk`; this
  * renders them with the documentation's own renderer, between the
  * package's page list and the page's table of contents. Every method of
  * igni-client is a `##` heading, so it has an anchor and a place in the

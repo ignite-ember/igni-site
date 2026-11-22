@@ -1,11 +1,11 @@
 /**
- * The documentation index — per package.
+ * The documentation index — per package, per version.
  *
  * Every article was written by reading the code (never the previous,
  * drifted documentation) and checked by a second pass that opened each
  * cited file and ruled on every factual claim.
  *
- * Phase 1 of the docs-versioning plan splits what used to be one mixed
+ * Phase 1 of the docs-versioning plan split what used to be one mixed
  * index — a single set of articles at one version that blended every
  * product — into a documentation set per package. The packages are
  * `core`, `app`, `server` (the portal is documented inside it), `fleet`,
@@ -14,44 +14,40 @@
  * grid, each package has its own index and left-nav, and the combined
  * changelog is split into one changelog per package.
  *
- * Version history and the version selector are Phase 2; here each package
- * shows its single current version (the Phase 0 numbers). Rebuilding an
- * article means adding its markdown under `content/` and one entry below,
- * with its `package`.
+ * Phase 2 adds version history. Each package's pages are frozen snapshots
+ * under `content/<package>/<version>/<slug>.md`; `PACKAGES[i].versions`
+ * lists the released versions newest-first, and the first entry is
+ * "latest". A page is addressable three ways:
+ *
+ *   /docs/<package>/<version>/<slug>   a pinned snapshot
+ *   /docs/<package>/latest/<slug>      an alias that follows the newest
+ *   /docs/<package>/<slug>             the same alias, version omitted
+ *
+ * and the package landing likewise (`/docs/<package>`, `/docs/<package>/
+ * <version>`, `/docs/<package>/latest`). The version-less form is the
+ * canonical one the nav, the sitemap and the in-article links use; it
+ * always resolves to the newest snapshot, so a bookmark keeps working
+ * across releases. A future release adds a new `content/<package>/
+ * <version>/` folder and prepends the version to that package's
+ * `versions` — the old folders are never touched. See `src/docs/README.md`.
  *
  * `scripts/generate-sitemap.mjs` and `scripts/site-routes.mjs` read this
  * file as text (plain node cannot import a module that does `?raw`
  * imports), so keep `PACKAGES`, `DOCS` and `RETIRED_DOC_SLUGS` as plain
- * literals with `slug:` and `package:` on their own.
+ * literals with `slug:`, `package:`, `category:` and `versions:` on their
+ * own.
  */
 
-import projectContextAndMemoryRaw from './content/PROJECT_CONTEXT_AND_MEMORY.md?raw'
-import permissionsAndSafetyRaw from './content/PERMISSIONS_AND_SAFETY.md?raw'
-import configurationAndPrecedenceRaw from './content/CONFIGURATION_AND_PRECEDENCE.md?raw'
-import agentsAndOrchestrationRaw from './content/AGENTS_AND_ORCHESTRATION.md?raw'
-import slashCommandsAndSkillsRaw from './content/SLASH_COMMANDS_AND_SKILLS.md?raw'
-import toolsMcpAndLanguageServersRaw from './content/TOOLS_MCP_AND_LANGUAGE_SERVERS.md?raw'
-import hooksWorkflowsAndScheduledTasksRaw from './content/HOOKS_WORKFLOWS_AND_SCHEDULED_TASKS.md?raw'
-import artifactsRaw from './content/ARTIFACTS.md?raw'
-import selfHostingTheServerRaw from './content/SELF_HOSTING_THE_SERVER.md?raw'
-import serverConfigurationRaw from './content/SERVER_CONFIGURATION.md?raw'
-import inferenceBackendsRaw from './content/INFERENCE_BACKENDS.md?raw'
-import runningTheDocumentsServiceRaw from './content/RUNNING_THE_DOCUMENTS_SERVICE.md?raw'
-import administeringYourOrganisationRaw from './content/ADMINISTERING_YOUR_ORGANISATION.md?raw'
-import installingIgniRaw from './content/INSTALLING_IGNI.md?raw'
-import modelsAndTheFactoryRaw from './content/MODELS_AND_THE_FACTORY.md?raw'
-import licensingAndEvaluationsRaw from './content/LICENSING_AND_EVALUATIONS.md?raw'
-import offlineUpdatesRaw from './content/OFFLINE_UPDATES.md?raw'
-import codeindexRaw from './content/CODEINDEX.md?raw'
-import fleetRaw from './content/FLEET.md?raw'
-import buildingExtensionsRaw from './content/BUILDING_EXTENSIONS.md?raw'
-import sdksRaw from './content/SDKS.md?raw'
-import yourFirstSessionRaw from './content/FIRST_SESSION.md?raw'
-import glossaryRaw from './content/GLOSSARY.md?raw'
-import troubleshootingRaw from './content/TROUBLESHOOTING.md?raw'
-import coreChangelogRaw from './content/CORE_CHANGELOG.md?raw'
-import appChangelogRaw from './content/APP_CHANGELOG.md?raw'
-import serverChangelogRaw from './content/SERVER_CHANGELOG.md?raw'
+/**
+ * The frozen page snapshots, keyed `./content/<package>/<version>/<slug>.md`.
+ * Loaded eagerly as raw markdown: the hand-written docs render
+ * synchronously, the way they did before the per-version split.
+ */
+const CONTENT = import.meta.glob<string>('./content/**/*.md', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+})
 
 /** The stable URL slug of a documentation package. */
 export type DocPackageSlug =
@@ -70,9 +66,14 @@ export interface DocPackage {
   title: string
   /** One line for the product grid and the package landing. */
   tagline: string
-  /** The current version, shown as a label. Undefined for a parked module. */
-  version?: string
-  /** The label text when there is no version to show (a parked module). */
+  /**
+   * The released versions, newest first. The first entry is "latest":
+   * what `/docs/<package>` and the canonical links resolve to. A parked
+   * module with no release number uses the single sentinel `current`.
+   */
+  versions: string[]
+  /** The label text when there is no version number to show (a parked
+   *  module): shown in place of a version selector. */
   versionLabel?: string
   /**
    * A single-page package: its one article is its landing, rendered at
@@ -88,6 +89,9 @@ export interface DocArticle {
   description: string
   category: DocCategory
   package: DocPackageSlug
+  /** The latest snapshot's markdown. The page renders whichever version
+   *  the URL selects via `articleContent`; this is the default (latest)
+   *  and what search and the link checks read. */
   content: string
 }
 
@@ -147,6 +151,10 @@ export const CATEGORY_META: Record<DocCategory, { label: string; description: st
  * The documentation packages, in the order the `/docs` product grid lists
  * them. igni is not "four things": it is these six documented packages,
  * plus the SDK packages under `sdk/`.
+ *
+ * `versions` is newest-first; `versions[0]` is "latest". When a release
+ * ships, prepend its number here and drop its snapshot under
+ * `content/<slug>/<version>/` — the existing folders do not move.
  */
 export const PACKAGES: DocPackage[] = [
   {
@@ -155,14 +163,14 @@ export const PACKAGES: DocPackage[] = [
     title: 'igni core',
     tagline:
       'The engine, the igni CLI and the agent: configuration, project context, permissions, agents, tools, hooks, models, and extending igni.',
-    version: '1.0.5',
+    versions: ['1.0.5'],
   },
   {
     slug: 'app',
     name: 'igni app',
     title: 'igni app',
     tagline: 'The desktop app and the web client: installing igni and your first session.',
-    version: '1.0.5',
+    versions: ['1.0.5'],
   },
   {
     slug: 'server',
@@ -170,14 +178,14 @@ export const PACKAGES: DocPackage[] = [
     title: 'igni server',
     tagline:
       'Self-hosting the API, portal and migrations: configuration, inference and cloud providers, administration, offline updates and licensing.',
-    version: '0.8.0',
+    versions: ['0.8.0'],
   },
   {
     slug: 'fleet',
     name: 'Fleet',
     title: 'Fleet',
     tagline: 'A cloud agent in an isolated microVM for every person and app, on your own servers.',
-    version: '0.1.2',
+    versions: ['0.1.2'],
     single: true,
   },
   {
@@ -185,6 +193,7 @@ export const PACKAGES: DocPackage[] = [
     name: 'Artifacts',
     title: 'Artifacts',
     tagline: 'Shared documents the agent writes, with versions, comments and lineage.',
+    versions: ['current'],
     versionLabel: 'Paid module',
     single: true,
   },
@@ -193,10 +202,33 @@ export const PACKAGES: DocPackage[] = [
     name: 'CodeIndex',
     title: 'CodeIndex',
     tagline: 'A queryable graph of your code for the agent to search and review.',
+    versions: ['current'],
     versionLabel: 'Paid module',
     single: true,
   },
 ]
+
+/** The newest version of a package — "latest". */
+export function latestVersion(slug: string | undefined): string | undefined {
+  return docPackage(slug)?.versions[0]
+}
+
+/** A snapshot's markdown, or `''` when that (package, version, slug) has no
+ *  file. The page uses this to render whichever version the URL selects. */
+export function articleContent(
+  pkg: string | undefined,
+  version: string | undefined,
+  slug: string | undefined,
+): string {
+  if (!pkg || !version || !slug) return ''
+  return CONTENT[`./content/${pkg}/${version}/${slug}.md`] ?? ''
+}
+
+/** The latest snapshot's markdown, for the manifest's default `content`. */
+function latestContent(pkg: DocPackageSlug, slug: string): string {
+  const version = PACKAGES.find((p) => p.slug === pkg)!.versions[0]
+  return articleContent(pkg, version, slug)
+}
 
 export const DOCS: DocArticle[] = [
   // ── igni app ──────────────────────────────────────────────────────
@@ -206,7 +238,7 @@ export const DOCS: DocArticle[] = [
     description: "Installing the desktop app and the CLI, signing in to your server, and installing on a machine with no internet access.",
     category: 'getting-started',
     package: 'app',
-    content: installingIgniRaw,
+    content: latestContent('app', 'installing-igni'),
   },
   {
     slug: 'your-first-session',
@@ -214,7 +246,7 @@ export const DOCS: DocArticle[] = [
     description: "One run, from an empty terminal to a finished task: installing it, signing in, saying what it may do, and where to go next.",
     category: 'getting-started',
     package: 'app',
-    content: yourFirstSessionRaw,
+    content: latestContent('app', 'your-first-session'),
   },
   {
     slug: 'changelog',
@@ -222,7 +254,7 @@ export const DOCS: DocArticle[] = [
     description: "The desktop app and web client's releases, and what changes when you cross a version boundary.",
     category: 'release-notes',
     package: 'app',
-    content: appChangelogRaw,
+    content: latestContent('app', 'changelog'),
   },
   // ── igni core ─────────────────────────────────────────────────────
   {
@@ -231,7 +263,7 @@ export const DOCS: DocArticle[] = [
     description: "igni's own models, serving them and their LoRA adapters on your GPUs, how a model is chosen, and what the Factory is.",
     category: 'core-concepts',
     package: 'core',
-    content: modelsAndTheFactoryRaw,
+    content: latestContent('core', 'models-and-the-factory'),
   },
   {
     slug: 'configuration-and-precedence',
@@ -239,7 +271,7 @@ export const DOCS: DocArticle[] = [
     description: "The settings files igni reads, the order they win in, and the same tiering applied to agents, skills, commands and plugins.",
     category: 'core-concepts',
     package: 'core',
-    content: configurationAndPrecedenceRaw,
+    content: latestContent('core', 'configuration-and-precedence'),
   },
   {
     slug: 'glossary',
@@ -247,7 +279,7 @@ export const DOCS: DocArticle[] = [
     description: "Every term igni uses, and what it means here. Where a word means more than one thing, the entry says which sense is meant.",
     category: 'core-concepts',
     package: 'core',
-    content: glossaryRaw,
+    content: latestContent('core', 'glossary'),
   },
   {
     slug: 'project-context-and-memory',
@@ -255,7 +287,7 @@ export const DOCS: DocArticle[] = [
     description: "The files igni reads before it answers — igni.md, rules directories, personal overrides — and what it remembers between sessions.",
     category: 'core-concepts',
     package: 'core',
-    content: projectContextAndMemoryRaw,
+    content: latestContent('core', 'project-context-and-memory'),
   },
   {
     slug: 'permissions-and-safety',
@@ -263,7 +295,7 @@ export const DOCS: DocArticle[] = [
     description: "The five permission modes, the categories they act on, the CLI flags that set them, and the safety rules that sit underneath.",
     category: 'core-concepts',
     package: 'core',
-    content: permissionsAndSafetyRaw,
+    content: latestContent('core', 'permissions-and-safety'),
   },
   {
     slug: 'agents-and-orchestration',
@@ -271,7 +303,7 @@ export const DOCS: DocArticle[] = [
     description: "The main agent, the specialists that ship with igni, how to write your own, and how work gets handed to a team.",
     category: 'core-concepts',
     package: 'core',
-    content: agentsAndOrchestrationRaw,
+    content: latestContent('core', 'agents-and-orchestration'),
   },
   {
     slug: 'slash-commands-and-skills',
@@ -279,7 +311,7 @@ export const DOCS: DocArticle[] = [
     description: "Everything you can type after a slash — the built-ins, the markdown commands you write yourself, and the skills that package a procedure.",
     category: 'features',
     package: 'core',
-    content: slashCommandsAndSkillsRaw,
+    content: latestContent('core', 'slash-commands-and-skills'),
   },
   {
     slug: 'tools-mcp-and-language-servers',
@@ -287,7 +319,7 @@ export const DOCS: DocArticle[] = [
     description: "The eight built-in tools, why there is no Read or Grep, how to add your own, and how to attach MCP servers.",
     category: 'features',
     package: 'core',
-    content: toolsMcpAndLanguageServersRaw,
+    content: latestContent('core', 'tools-mcp-and-language-servers'),
   },
   {
     slug: 'hooks-workflows-and-scheduled-tasks',
@@ -295,7 +327,7 @@ export const DOCS: DocArticle[] = [
     description: "Running your own code when igni does something — event hooks, scripted workflows and tasks that run later.",
     category: 'features',
     package: 'core',
-    content: hooksWorkflowsAndScheduledTasksRaw,
+    content: latestContent('core', 'hooks-workflows-and-scheduled-tasks'),
   },
   {
     slug: 'building-extensions',
@@ -303,7 +335,7 @@ export const DOCS: DocArticle[] = [
     description: "The manifest, approval and distribution, the host API, the SDKs, and the two ways a service reaches a person's agent.",
     category: 'extending',
     package: 'core',
-    content: buildingExtensionsRaw,
+    content: latestContent('core', 'building-extensions'),
   },
   {
     slug: 'sdks',
@@ -312,7 +344,7 @@ export const DOCS: DocArticle[] = [
       "Building on igni from your own code: the OpenAI-compatible model API, igni-client, igni-service and igni-extension, the TypeScript page packages, and the CLI — with install, authentication and worked examples.",
     category: 'extending',
     package: 'core',
-    content: sdksRaw,
+    content: latestContent('core', 'sdks'),
   },
   {
     slug: 'troubleshooting',
@@ -320,7 +352,7 @@ export const DOCS: DocArticle[] = [
     description: "The errors igni actually prints, what each one means, and what to do about it.",
     category: 'operations',
     package: 'core',
-    content: troubleshootingRaw,
+    content: latestContent('core', 'troubleshooting'),
   },
   {
     slug: 'changelog',
@@ -328,7 +360,7 @@ export const DOCS: DocArticle[] = [
     description: "The backend, the igni command and the decisions service: the package rename, where igni keeps things, and the current release.",
     category: 'release-notes',
     package: 'core',
-    content: coreChangelogRaw,
+    content: latestContent('core', 'changelog'),
   },
   // ── igni server ───────────────────────────────────────────────────
   {
@@ -337,7 +369,7 @@ export const DOCS: DocArticle[] = [
     description: "Deploying the API, portal and migrations with Helm or Docker Compose, and knowing when the thing is actually up.",
     category: 'operations',
     package: 'server',
-    content: selfHostingTheServerRaw,
+    content: latestContent('server', 'self-hosting-the-server'),
   },
   {
     slug: 'server-configuration',
@@ -345,7 +377,7 @@ export const DOCS: DocArticle[] = [
     description: "Every setting an operator sets, what it does, and which ones are safe to leave empty.",
     category: 'operations',
     package: 'server',
-    content: serverConfigurationRaw,
+    content: latestContent('server', 'server-configuration'),
   },
   {
     slug: 'inference-backends',
@@ -353,7 +385,7 @@ export const DOCS: DocArticle[] = [
     description: "How the server routes chat over the inference nodes and cloud providers you own, and how capacity is shared between them.",
     category: 'operations',
     package: 'server',
-    content: inferenceBackendsRaw,
+    content: latestContent('server', 'inference-backends'),
   },
   {
     slug: 'administering-your-organisation',
@@ -361,7 +393,7 @@ export const DOCS: DocArticle[] = [
     description: "Admitting developers, publishing where your server is so they never type a URL, shipping them a standard set of agents and skills, and taking access away again.",
     category: 'operations',
     package: 'server',
-    content: administeringYourOrganisationRaw,
+    content: latestContent('server', 'administering-your-organisation'),
   },
   {
     slug: 'running-the-documents-service',
@@ -369,7 +401,7 @@ export const DOCS: DocArticle[] = [
     description: "The optional deployment behind shared documents: what it needs, how it pairs with the server, and what is not yet packaged.",
     category: 'operations',
     package: 'server',
-    content: runningTheDocumentsServiceRaw,
+    content: latestContent('server', 'running-the-documents-service'),
   },
   {
     slug: 'offline-updates',
@@ -377,7 +409,7 @@ export const DOCS: DocArticle[] = [
     description: "Carrying a release into a network with no route out, verifying it, and importing it into your own registry with igni-import.",
     category: 'operations',
     package: 'server',
-    content: offlineUpdatesRaw,
+    content: latestContent('server', 'offline-updates'),
   },
   {
     slug: 'licensing-and-evaluations',
@@ -385,7 +417,7 @@ export const DOCS: DocArticle[] = [
     description: "The offline, signed licence file the paid modules check, where it goes, and what happens when a licence or an evaluation runs out.",
     category: 'operations',
     package: 'server',
-    content: licensingAndEvaluationsRaw,
+    content: latestContent('server', 'licensing-and-evaluations'),
   },
   {
     slug: 'changelog',
@@ -393,7 +425,7 @@ export const DOCS: DocArticle[] = [
     description: "The API, portal and migrations: the pools removal, the offline bundle's new shape, and the 0.7.1 and 0.8.0 releases.",
     category: 'release-notes',
     package: 'server',
-    content: serverChangelogRaw,
+    content: latestContent('server', 'changelog'),
   },
   // ── Fleet (single page) ───────────────────────────────────────────
   {
@@ -402,7 +434,7 @@ export const DOCS: DocArticle[] = [
     description: "The gateway, node agent and Firecracker microVMs behind Fleet, what a host needs, how it ties into igni server, and what is not finished.",
     category: 'modules',
     package: 'fleet',
-    content: fleetRaw,
+    content: latestContent('fleet', 'fleet'),
   },
   // ── Artifacts (single page) ───────────────────────────────────────
   {
@@ -411,7 +443,7 @@ export const DOCS: DocArticle[] = [
     description: "Artifacts are the documents the agent writes. Publishing one to a link your colleagues can open, versioning a set together, and tracking what each was built on.",
     category: 'modules',
     package: 'artifacts',
-    content: artifactsRaw,
+    content: latestContent('artifacts', 'artifacts'),
   },
   // ── CodeIndex (single page) ───────────────────────────────────────
   {
@@ -420,7 +452,7 @@ export const DOCS: DocArticle[] = [
     description: "What CodeIndex builds from your repositories, the index on each developer's machine, what the agent gets from it, and deploying the service.",
     category: 'modules',
     package: 'codeindex',
-    content: codeindexRaw,
+    content: latestContent('codeindex', 'codeindex'),
   },
 ]
 
@@ -436,6 +468,24 @@ export const RETIRED_DOC_SLUGS: Record<string, string> = {
 
 export function docPackage(slug: string | undefined): DocPackage | undefined {
   return PACKAGES.find((p) => p.slug === slug)
+}
+
+/** Whether `v` names a version this package has (or the `latest` alias). */
+export function isKnownVersion(pkg: DocPackage | undefined, v: string | undefined): boolean {
+  if (!pkg) return false
+  return v === 'latest' || (!!v && pkg.versions.includes(v))
+}
+
+/** The concrete version `v` selects: the newest for `undefined`/`latest`. */
+export function resolveVersion(pkg: DocPackage | undefined, v: string | undefined): string {
+  if (!pkg) return v ?? ''
+  if (!v || v === 'latest') return pkg.versions[0]
+  return v
+}
+
+/** Whether `version` is this package's newest. */
+export function isLatest(pkg: DocPackage | undefined, version: string): boolean {
+  return !!pkg && version === pkg.versions[0]
 }
 
 /** A package's articles, in category order then manifest order. */
@@ -458,26 +508,47 @@ export function findArticle(pkg: string | undefined, slug: string | undefined): 
   return DOCS.find((d) => d.package === pkg && d.slug === slug)
 }
 
-/** The site path of an article. A single-page package's article is its
- *  landing (`/docs/<pkg>`); every other article is `/docs/<pkg>/<slug>`. */
+/** The canonical (latest-tracking, version-less) site path of an article.
+ *  A single-page package's article is its landing (`/docs/<pkg>`); every
+ *  other article is `/docs/<pkg>/<slug>`. */
 export function docHref(a: DocArticle): string {
   return docPackage(a.package)?.single ? `/docs/${a.package}` : `/docs/${a.package}/${a.slug}`
 }
 
+/** An article's path at a specific version: the canonical path when that is
+ *  the latest, else the pinned `/docs/<pkg>/<version>[/<slug>]`. */
+export function docHrefAt(a: DocArticle, version: string): string {
+  const pkg = docPackage(a.package)
+  if (isLatest(pkg, version)) return docHref(a)
+  return pkg?.single ? `/docs/${a.package}/${version}` : `/docs/${a.package}/${version}/${a.slug}`
+}
+
+/** The canonical (latest) path of a package landing. */
 export function packageHref(pkg: DocPackage): string {
   return `/docs/${pkg.slug}`
 }
 
-/** The version label a package shows: its version, or its parked-module text. */
+/** A package landing's path at a specific version. */
+export function packageHrefAt(pkg: DocPackage, version: string): string {
+  return isLatest(pkg, version) ? `/docs/${pkg.slug}` : `/docs/${pkg.slug}/${version}`
+}
+
+/** The version label a package shows: `v<latest>`, or its parked-module text. */
 export function packageVersionLabel(pkg: DocPackage): string {
-  return pkg.version ? `v${pkg.version}` : (pkg.versionLabel ?? '')
+  return pkg.versionLabel ?? `v${pkg.versions[0]}`
+}
+
+/** How a given version is shown in the selector and banner. */
+export function versionLabel(pkg: DocPackage, version: string): string {
+  return pkg.versionLabel ?? `v${version}`
 }
 
 /**
  * Every legacy `/docs/<slug>` URL and where it now resolves. Moved
  * articles (those in multi-page packages) redirect to their new path;
  * the single-page packages keep their original `/docs/<slug>` URL and so
- * need no redirect; `RETIRED_DOC_SLUGS` adds the rest.
+ * need no redirect; `RETIRED_DOC_SLUGS` adds the rest. The targets are
+ * the canonical (latest) paths, so an old link lands on the newest docs.
  */
 export const LEGACY_REDIRECTS: Record<string, string> = {
   ...Object.fromEntries(

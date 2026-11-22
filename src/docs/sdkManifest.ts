@@ -6,7 +6,7 @@
  * package README cut at its sections, igni-client's reference from
  * igni-core's RPC contract, the other two Python ones' from their code,
  * the npm ones' from their TypeScript and CSS) with an `index.json` that
- * says what each is, and `scripts/sync-sdk-docs.mjs` copies them into
+ * says what each is, and `scripts/sync-docs.mjs sdk` copies them into
  * `sdk/`. This module reads that index and the pages it names;
  * `/docs/sdk/...` renders them with the same renderer as the rest of the
  * documentation.

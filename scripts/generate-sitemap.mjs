@@ -56,12 +56,21 @@ function field(objectText, key) {
   return m ? m[1] : undefined
 }
 
-/** The packages: their slug and whether they are single-page. */
+/** A `key: ['a', 'b']` array field, as the list of its string literals. */
+function arrayField(objectText, key) {
+  const m = objectText.match(new RegExp(`\\b${key}:\\s*\\[([^\\]]*)\\]`))
+  if (!m) return []
+  return [...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1])
+}
+
+/** The packages: their slug, whether they are single-page, and the
+ *  released versions newest-first (`versions[0]` is "latest"). */
 export function docPackages() {
   const block = exportBlock(manifestSource(), 'PACKAGES')
   return objects(block).map((o) => ({
     slug: field(o, 'slug'),
     single: /\bsingle: true/.test(o),
+    versions: arrayField(o, 'versions'),
   }))
 }
 
@@ -110,8 +119,34 @@ export function legacyDocPaths() {
 }
 
 /**
+ * The versioned documentation paths that are NOT canonical: every pinned
+ * `/docs/<package>/<version>[/<slug>]` and the `latest` literal alias
+ * `/docs/<package>/latest[/<slug>]`. These are deliberately absent from
+ * the sitemap — only the latest (canonical, version-less) pages are
+ * indexed — but each still needs a bucket object so a customer's deep
+ * link to an old version serves index.html instead of 404ing. A new
+ * release adds its folder and prepends its version in the manifest; this
+ * walks `package × version × page` so the new URLs appear automatically.
+ */
+export function docVersionedPaths() {
+  const packages = docPackages()
+  const articlesBy = (slug) => docArticles().filter((a) => a.package === slug)
+  const out = []
+  for (const p of packages) {
+    // `latest` is a literal alias segment alongside each concrete version.
+    for (const v of ['latest', ...p.versions]) {
+      out.push(`docs/${p.slug}/${v}`)
+      if (!p.single) {
+        for (const a of articlesBy(p.slug)) out.push(`docs/${p.slug}/${v}/${a.slug}`)
+      }
+    }
+  }
+  return [...new Set(out)]
+}
+
+/**
  * The SDK documentation's paths, from the index igni-sdk generates
- * (copied into `src/docs/sdk/` by `scripts/sync-sdk-docs.mjs`): the
+ * (copied into `src/docs/sdk/` by `scripts/sync-docs.mjs sdk`): the
  * landing page, each package (its overview) and each other page.
  */
 export function sdkPaths() {
