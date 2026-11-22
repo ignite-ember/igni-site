@@ -4,10 +4,10 @@ igni is four things that ship separately. This page says which is which, what ch
 
 | Product | What it is | Repository | Version now |
 |---|---|---|---|
-| igni-core | the backend, the `igni` command, the decisions service | `ignite-ember/igni-core` | 1.0.4 |
-| igni app | the desktop app and the web client | `ignite-ember/igni-app` | 1.0.4 |
-| igni server | the API, the portal, the migrations | `ignite-ember/igni-server` | 0.7.0 |
-| the SDKs | igni-client, igni-service, igni-extension, and the npm packages | `ignite-ember/igni-sdk` | 0.2.0 |
+| igni-core | the backend, the `igni` command, the decisions service | `ignite-ember/igni-core` | 1.0.5 |
+| igni app | the desktop app and the web client | `ignite-ember/igni-app` | 1.0.5 |
+| igni server | the API, the portal, the migrations | `ignite-ember/igni-server` | 0.8.0 |
+| the SDKs | igni-client, igni-service, igni-extension, and the npm packages | `ignite-ember/igni-sdk` | 0.2.1 (Python) · 0.2.0 (npm) |
 
 igni-core and igni app share one version number and are released in lockstep: the app installs the backend at its own version, and the app's release refuses to build unless that version of igni-core is already on PyPI. igni server and the SDKs version independently, because different people install them at different times.
 
@@ -15,16 +15,16 @@ igni-core and igni app share one version number and are released in lockstep: th
 
 ## What is published, and what this documentation describes
 
-As of 2026-11-10:
+As of 2026-11-22:
 
 | | Published | Not published |
 |---|---|---|
-| igni-core | `ignite-ember` **1.0.3** on PyPI — the pre-split monolith, whose module is `ember_code` | `igni-core` is not on PyPI, and neither is `igni-cloud`. 1.0.4 lives on the `release/1.0.4` branch. |
-| igni app | GitHub Release **v1.0.3** | v1.0.4 is not tagged |
-| igni server | the git tag **v0.7.0** | no GitHub Release, and no image publicly readable in the container registry |
-| the SDKs | PyPI **0.1.0** for the three Python packages | 0.2.0 is not tagged, and npm has no `@ignite-ember` scope |
+| igni-core | `igni-core` on PyPI, at **1.0.4** and **1.0.5** — the post-split package, whose module is `igni_core` | `igni-cloud` is not on PyPI; and `ignite-ember` on PyPI is still the pre-split monolith (**1.0.3**, module `ember_code`), not yet the alias that re-exports `igni-core` |
+| igni app | GitHub Release **v1.0.5** (and **v1.0.4**) | — |
+| igni server | the git tags **v0.8.0** (and **v0.7.1**, **v0.7.0**) | — |
+| the SDKs | PyPI **0.2.1** for the three Python packages, under the tag `sdk-v0.2.1` | the three npm packages are at **0.2.0** and not on npm yet |
 
-**This documentation describes 1.0.4 and 0.7.0** — the versions in the source trees, which are the versions the rest of these pages are written against. Where that is ahead of what is published, this page says so. [Installing igni](/docs/installing-igni) carries the same note.
+**This documentation describes 1.0.5 and 0.8.0** — the current releases, which are the versions the rest of these pages are written against. Where that is ahead of what is published, this page says so. [Installing igni](/docs/installing-igni) carries the same note.
 
 ## igni-core 1.0.4: the package and the module were renamed
 
@@ -40,10 +40,10 @@ The monolith was split. igni's backend and CLI are now the **`igni-core`** distr
 The alias package is not a fork. It carries metadata and nothing else, and depends on `igni-core` at the same version:
 
 ```bash
-pip install 'ignite-ember[decisions]==1.0.4'   # installs igni-core 1.0.4
+pip install 'igni-core[decisions]==1.0.5'   # the backend and the decisions service
 ```
 
-Nothing on PyPI answers to that yet — 1.0.4 is not published — but the alias re-exports every extra `igni-core` has, so the command above will install the decisions service along with the backend.
+`igni-core` is on PyPI now (1.0.4 and 1.0.5), so that command works today. The `ignite-ember` name, however, still serves the pre-split monolith (1.0.3) on PyPI; the alias package that re-exports `igni-core` is not published yet, so `pip install ignite-ember` does **not** give you the new backend for the moment — install `igni-core` directly. Once the alias ships, it re-exports every extra `igni-core` has, so `ignite-ember[decisions]` will install the decisions service along with the backend.
 
 Both commands point at the same entry point, `igni_core.__main__:main`, so an existing shell alias or script keeps working.
 
@@ -85,6 +85,15 @@ The rename is deliberately boring, because the home directory holds `credentials
 
 `ember.md` and `igni.md` are both read, so a project that still has `ember.md` keeps working. A new project gets `igni.md`.
 
+## igni-core and igni app 1.0.5
+
+1.0.5 is the current release of igni-core and igni app, and it is published: `igni-core` **1.0.5** on PyPI, and the app's GitHub Release **v1.0.5**. (1.0.4 was the first post-split release; 1.0.5 follows it in the same lockstep, so the app installs `igni-core==1.0.5` on first launch and refuses to build unless that version is on PyPI.) It carries the fixes the end-to-end test campaign turned up against the real backend, server and model, each one held by a test:
+
+- **The window tells the truth about the igni server.** The account chip's `cloud_connected` follows the last real request the session made — a connection error, a timeout or a 5xx makes it false, the next success makes it true — with no polling and no extra traffic. A 401 or 403 stays a credentials problem, not a reachability one.
+- **A signed-in person is not pushed to a login form because the server is down.** The sign-in wall follows the account, not the connection: the chip reads "signed in, but the igni server is not answering" and the person stays signed in.
+- **A pending approval survives the tab it was asked in.** Closing the tab no longer strands a run that is waiting for an answer.
+- **The app's per-launch window token no longer sits in the process list.** The shell hands the backend its token over a pipe (`IGNI_WS_TOKEN_FD`) rather than on the command line.
+
 ## igni server 0.7.0: the pools are gone
 
 0.7.0 is the first release of igni server that has ever shipped, and it changes an interface.
@@ -110,9 +119,27 @@ The rename is deliberately boring, because the home directory holds `credentials
 
 So verify the first format-2 bundle by hand, or with the `igni-import` from this release. See [Offline updates](/docs/offline-updates).
 
-## The SDKs 0.2.0
+## igni server 0.7.1 and 0.8.0
 
-The SDKs are six packages that carry one version:
+The server has moved on twice since 0.7.0. **0.8.0 is the current release** (the git tag `v0.8.0`); `v0.7.1` sits between it and `v0.7.0`.
+
+**0.7.1** changes no interface — every entry is a fix, an addition that keeps what it was, or a documentation correction. It carries the end-to-end campaign's server-side findings:
+
+- **The chart can mount files into the API pod.** `extraVolumes` / `extraVolumeMounts` let `INFERENCE_BACKENDS_PATH` name a file, not only the inline `INFERENCE_BACKENDS`.
+- **A second igni can run on the same host.** The production compose file's container names follow `IGNI_STACK` and its host ports `IGNI_API_PORT` / `IGNI_PORTAL_PORT`; the defaults are unchanged.
+- **Organisation databases have a downgrade.** `python -m app.db.sql.tenant_migrations --downgrade <revision>` (and `make downgrade-tenants REV=...`) takes the tenant template and every active organisation back, so a rollback to the previous image does not stop at a missing revision.
+- **The portal shows and keeps a VM profile's volume.** The profile form now shows and sends `volume_gib` and `volume_max_gib`, so a portal edit no longer resets a volume set through the API.
+- **A group's pinned model is one chat completions actually serves.** Saving refuses a pin that only `/v1/messages` serves and says why, and the portal offers only the chat-completions models.
+- **The scheduled vulnerability scan scans the newest release's images** — it checks out the newest `vX.Y.Z` tag and builds that, rather than the moving default branch.
+
+**0.8.0** tightens the trust model of a release:
+
+- **A release build trusts only the release key.** The images and the offline bundle are verified against the one release key and nothing else; a signature from any other key is refused.
+- **A tamper-evident central licence clock.** The licence check reads a central, tamper-evident clock rather than the machine's own, so a deployment cannot extend a lapsed licence by moving its system time back.
+
+## The SDKs 0.2.0, and 0.2.1 on PyPI
+
+The SDKs are six packages. They moved together from 0.1.0 to 0.2.0, and the Python half has since had a patch, **0.2.1**, so there is no single "SDK version" today: the Python packages are at **0.2.1**, the npm packages at **0.2.0**.
 
 | | Package | Registry |
 |---|---|---|
@@ -121,7 +148,11 @@ The SDKs are six packages that carry one version:
 
 0.2.0 is a minor release because the refactor changed what an extension relies on — the fakes' shape, the typed client, the bridge's types. The notes are in each Python package's README, under *Changes since 0.1.0*; the npm packages that carry them write *Changed since 0.1.0, on purpose* instead, and `@ignite-ember/ui-css` has no such section. One large change is `igni_service.testing`: the fake is one object of collaborators now, so `fake.add_organisation(...)` is `fake.directory.add_organisation(Organisation(...))` and `fake.person_token(...)` is `fake.signer.person_token(...)`.
 
-Nothing is published for 0.2.0 yet. The tag it will carry is `sdk-v0.2.0`, and publishing waits for it — and, for the npm half, for the `@ignite-ember` scope to exist.
+The three Python packages are published on PyPI at **0.2.1**, under the tag `sdk-v0.2.1`, with a GitHub Release for it. The three npm packages are still at **0.2.0** and not on npm yet: their publish waits on per-package trusted publishing being set up on the `@ignite-ember` scope. 0.2.1 is a patch over the 0.2.0 refactor; the `igni_service.testing` change above is the one from 0.2.0 that most code has to follow.
+
+## Fleet 0.1.2
+
+Fleet — the gateway, the node agent and the Firecracker microVMs that give each person and app its own igni agent — is a paid module and versions on its own cadence, in the `ignite-ember/igni__cloudvm` repository. The current version is **0.1.2**. It is early (0.x): the gateway and node agent are built, but there are no deployment manifests for them yet, and the desktop app and the CLI do not connect to Fleet. See [Fleet](/docs/fleet) for what is made of what, and what is not finished.
 
 ## Coming from Claude Code
 

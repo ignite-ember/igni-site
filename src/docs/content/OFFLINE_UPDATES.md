@@ -2,12 +2,12 @@ Each igni release ships as one signed file, `igni-bundle-<version>.tar`. You car
 
 ## Where images and bundles come from
 
-igni's release images are published to GitHub Container Registry, at `ghcr.io/ignite-ember/<name>` under the same names the bundle uses. A release is an unprefixed tag such as `0.7.0`, and the commit it was built from is tagged with that commit's SHA. There are no `dev` or `stage` images: 0.7.0 removed them, because nothing deployed them. Each bundle is built from those release images, and Ignite Ember hands it to you. An air-gapped install never contacts the registry: everything it needs is in the bundle.
+igni's release images are published to GitHub Container Registry, at `ghcr.io/ignite-ember/<name>` under the same names the bundle uses. A release is an unprefixed tag such as `0.8.0`, and the commit it was built from is tagged with that commit's SHA. There are no `dev` or `stage` images: 0.7.0 removed them, because nothing deployed them. The server images (`igni-api`, `igni-portal`) are **public** — anyone can pull them without a registry login — while the offline bundle is **private**, because it carries the paid modules' images. Each bundle is built from those release images, and Ignite Ember hands it to you. An air-gapped install never contacts the registry: everything it needs is in the bundle.
 
-A bundle is also kept beside those images, as an OCI artefact holding the tarball and its `.sha256`. On a machine with a route out you can fetch it yourself:
+A bundle is also kept beside those images, as a private OCI artefact holding the tarball and its `.sha256`. With authorized access and a route out you can fetch it yourself (log in first, `oras login ghcr.io`); otherwise Ignite Ember hands it to you:
 
 ```bash
-oras pull ghcr.io/ignite-ember/igni-bundle:0.7.0    # igni-bundle-0.7.0.tar and .sha256
+oras pull ghcr.io/ignite-ember/igni-bundle:0.8.0    # igni-bundle-0.8.0.tar and .sha256
 ```
 
 Where it came from does not matter to `igni-import`: the signature does.
@@ -15,7 +15,7 @@ Where it came from does not matter to `igni-import`: the signature does.
 ## What is in a bundle
 
 ```
-igni-bundle-0.7.0/
+igni-bundle-0.8.0/
   MANIFEST            format, version, commit, and the sha256 of every other file
   MANIFEST.sig        cosign signature over MANIFEST, with the release key
   igni-import         the import tool, covered by the MANIFEST like everything else
@@ -60,13 +60,13 @@ The import host needs `tar`, `cosign` and `skopeo`. `tar` and `skopeo` are in th
 
 ```bash
 # Verify only: the signature and every hash. Nothing is pushed.
-./igni-import --bundle igni-bundle-0.7.0.tar --public-key cosign.pub \
-              --expect-version 0.7.0 --verify-only --keep ./igni-0.7.0
+./igni-import --bundle igni-bundle-0.8.0.tar --public-key cosign.pub \
+              --expect-version 0.8.0 --verify-only --keep ./igni-0.8.0
 
 # Import into your registry. Log in first: skopeo login registry.example.internal
-./igni-import --bundle igni-bundle-0.7.0.tar --public-key cosign.pub \
-              --registry registry.example.internal/igni --expect-version 0.7.0 \
-              --cosign-key cosign.pub --keep ./igni-0.7.0
+./igni-import --bundle igni-bundle-0.8.0.tar --public-key cosign.pub \
+              --registry registry.example.internal/igni --expect-version 0.8.0 \
+              --cosign-key cosign.pub --keep ./igni-0.8.0
 ```
 
 | Flag | What it does |
@@ -102,11 +102,11 @@ On success it prints `Verified igni <version>`, then each image as `registry/nam
 `igni-import` imports images only. It does not install anything. Install the chart from the kept directory and point it at your registry:
 
 ```bash
-helm upgrade --install igni ./igni-0.7.0/igni-bundle-0.7.0/charts/igni-0.2.0.tgz \
+helm upgrade --install igni ./igni-0.8.0/igni-bundle-0.8.0/charts/igni-0.2.0.tgz \
   --namespace igni \
   --set image.repository=registry.example.internal/igni/igni-api \
   --set portalImage.repository=registry.example.internal/igni/igni-portal \
-  --set image.tag=0.7.0 --set portalImage.tag=0.7.0 \
+  --set image.tag=0.8.0 --set portalImage.tag=0.8.0 \
   --reuse-values
 ```
 
@@ -119,7 +119,7 @@ Before upgrading, take a backup. A `helm rollback` moves the pods back but not t
 For a security team that would rather not run the script:
 
 ```bash
-tar -xf igni-bundle-0.7.0.tar && cd igni-bundle-0.7.0
+tar -xf igni-bundle-0.8.0.tar && cd igni-bundle-0.8.0
 cosign verify-blob --key cosign.pub --insecure-ignore-tlog=true \
   --signature MANIFEST.sig MANIFEST             # the signature
 head -n 4 MANIFEST                              # format, version, commit, date
@@ -166,7 +166,7 @@ The rule that makes this a policy: **nobody deletes a release tag or a release b
 
 ## What is not finished
 
-- **Nothing is published for you to pull yet.** `v0.7.0` is a signed tag on the release commit, and the release workflow signs every image and the bundle it builds, but the images and the bundle are not publicly readable on GitHub Container Registry: an anonymous pull of `ghcr.io/ignite-ember/igni-api:0.7.0` is refused. Ask Ignite Ember for the bundle and for the public key.
+- **The server images are public; the bundle is not.** `v0.8.0` is a signed tag on the release commit, and the release workflow signs every image and the bundle it builds. The server images are publicly readable on GitHub Container Registry now — an anonymous `docker pull ghcr.io/ignite-ember/igni-api:0.8.0` works — but the offline bundle (`igni-bundle`) stays private, because it carries the paid modules' images. If you cannot reach it, ask Ignite Ember for the bundle and for the public key.
 - **The release is built in private.** The workflow that builds and signs it, `.github/workflows/release.yml`, runs from a private repository, which holds the `release` environment and the signing key. The public repository holds the workflow's logic and its tests; the key is in Cloud KMS and is not exportable.
 - **The release key has not been published to customers yet.** Ask Ignite Ember for the fingerprint before your first import.
 - **The desktop app updates outside the bundle.** It can be pointed at a release mirror you host (`update_endpoint`), but the bundle does not carry the desktop builds or their update manifest, and only the macOS build is in that manifest today. On an air-gapped machine, the simplest course is to turn update checks off and install new versions by hand. See [Installing igni](/docs/installing-igni).

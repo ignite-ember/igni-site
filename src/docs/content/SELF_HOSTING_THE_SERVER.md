@@ -29,16 +29,22 @@ Without a relay, sign-in and password-reset codes are sent nowhere: the log reco
 
 Two images, `igni-api` and `igni-portal`. Three ways to get them:
 
-- **Pull a release** from `ghcr.io/ignite-ember/igni-api` and `ghcr.io/ignite-ember/igni-portal`. Both images are tagged with the release version (`0.7.0`), with the commit they were built from, and with a moving `:latest`. Release tags are unprefixed — there are no `dev` or `stage` images, because 0.7.0 removed them. Mirror the images into your own registry if your cluster should not pull from the internet.
-- **Import them from a release's signed offline bundle**, which carries them with their signatures and SBOMs — see [Offline updates](/docs/offline-updates). On a network with no route out, this is the only way.
+- **Pull a release** from `ghcr.io/ignite-ember/igni-api` and `ghcr.io/ignite-ember/igni-portal`. These images are **public**: anyone can pull them with no registry login (running the server still needs a licence). Both are tagged with the release version (`0.8.0`), with the commit they were built from, and with a moving `:latest` that points at `0.8.0`. Release tags are unprefixed — there are no `dev` or `stage` images, because 0.7.0 removed them. Mirror the images into your own registry if your cluster should not pull from the internet.
+
+  ```bash
+  docker pull ghcr.io/ignite-ember/igni-api:0.8.0
+  docker pull ghcr.io/ignite-ember/igni-portal:0.8.0   # :latest resolves to 0.8.0 too
+  ```
+
+- **Import them from a release's signed offline bundle**, which carries them with their signatures and SBOMs — see [Offline updates](/docs/offline-updates). The bundle is private (it carries the paid modules' images); on a network with no route out, it is the only way.
 - **Build them yourself.**
 
 Either way the chart has no default repository and `fail()`s rather than guessing: an unqualified name would resolve to Docker Hub and pull somebody else's, and an air-gapped cluster has to name its own registry.
 
 ```bash
 # from the repository root
-docker build -f containers/be/Dockerfile  -t registry.example.com/igni/igni-api:0.7.0 .
-docker build -f portal/Dockerfile         -t registry.example.com/igni/igni-portal:0.7.0 portal/
+docker build -f containers/be/Dockerfile  -t registry.example.com/igni/igni-api:0.8.0 .
+docker build -f portal/Dockerfile         -t registry.example.com/igni/igni-portal:0.8.0 portal/
 ```
 
 Note the build contexts differ: the API builds from the repository root, the portal from its own directory.
@@ -49,7 +55,7 @@ The embedder that document search uses is not one of them. It belongs to the doc
 
 ## Deploying with Helm
 
-The chart is version 0.2.0 and deploys application 0.7.0. The two move independently: a customer taking a fixed chart template need not move the image.
+The chart is version 0.2.0 and deploys application 0.8.0. The two move independently: a customer taking a fixed chart template need not move the image.
 
 These have no default and the chart calls `fail()` naming each: the image repositories, `postgres.host`, `redis.host`, `secrets.secretEncryptionKey` (a Fernet key), and — outside `appEnv: dev` — an `https://` `urls.publicBase`, which the Ingress host supplies when the Ingress is on. Mirror the images into your own registry first — an unqualified repository name resolves to Docker Hub.
 
@@ -67,9 +73,9 @@ helm install igni ./charts/igni \
   --set secrets.secretEncryptionKey="$(python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')"
 ```
 
-Tags default to `.Chart.AppVersion`, currently `0.7.0`. A tag of `latest` is refused outright — it cannot be rolled back to, and an unchanged tag gives Kubernetes no reason to roll pods.
+Tags default to `.Chart.AppVersion`, currently `0.8.0`. A tag of `latest` is refused outright — it cannot be rolled back to, and an unchanged tag gives Kubernetes no reason to roll pods.
 
-**Both images answer to the version the chart defaults to.** The release workflow pushes `igni-api` and `igni-portal` under the commit they were built from, under the release version (`0.7.0`) and under a moving `:latest`, so the default tags resolve in the registry without a `--set`. The offline bundle carries the same version tag, so an imported install needs nothing either.
+**Both images answer to the version the chart defaults to.** The release workflow pushes `igni-api` and `igni-portal` under the commit they were built from, under the release version (`0.8.0`) and under a moving `:latest`, so the default tags resolve in the registry without a `--set`. The offline bundle carries the same version tag, so an imported install needs nothing either.
 
 The values that matter:
 
@@ -206,7 +212,7 @@ An upgrade is the same command with the new release's tag. The chart's own versi
 
 ```bash
 helm upgrade igni ./charts/igni --namespace igni --reuse-values \
-  --set image.tag=0.7.0 --set portalImage.tag=0.7.0
+  --set image.tag=0.8.0 --set portalImage.tag=0.8.0
 ```
 
 The migration hook runs **before** the new pods, at weight `-5`, and the release stops if it fails — so a bad migration leaves the old version running against an unmigrated database rather than a new version against a broken one.
@@ -255,8 +261,8 @@ A run counts only when every archive in it passed: each is listed with `pg_resto
 ```bash
 cd containers
 IGNI_ENV_FILE=.env.prod \
-IGNI_IMAGE=registry.example.com/igni/igni-api:0.7.0 \
-IGNI_PORTAL_IMAGE=registry.example.com/igni/igni-portal:0.7.0 \
+IGNI_IMAGE=registry.example.com/igni/igni-api:0.8.0 \
+IGNI_PORTAL_IMAGE=registry.example.com/igni/igni-portal:0.8.0 \
 docker compose -f docker-compose.prod.yml --profile bundled up -d
 ```
 
