@@ -45,6 +45,15 @@
   font-size: var(--text-body-size-medium, 14px) !important;
 }
 
+/* Product cards on the /docs grid: a touch larger than an article card,
+   and with room for the version Label beside the title. */
+.product-card-title {
+  font-size: var(--text-body-size-large, 16px) !important;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
 .doc-category-title {
   font-size: var(--text-title-size-small, 20px) !important;
 }

@@ -36,9 +36,9 @@ The images are `igni-api`, `igni-portal`, `igni-artifacts`, `igni-artifacts-embe
 
 **What a bundle does not carry:**
 
-- **The desktop app and the CLI.** See [Installing igni](/docs/installing-igni).
-- **Model weights.** Your inference nodes are yours to run. See [Models and the Factory](/docs/models-and-the-factory).
-- **The licence file.** It comes from Ignite Ember separately. See [Licensing and evaluations](/docs/licensing-and-evaluations).
+- **The desktop app and the CLI.** See [Installing igni](/docs/app/installing-igni).
+- **Model weights.** Your inference nodes are yours to run. See [Models and the Factory](/docs/core/models-and-the-factory).
+- **The licence file.** It comes from Ignite Ember separately. See [Licensing and evaluations](/docs/server/licensing-and-evaluations).
 
 ## The one key
 
@@ -112,7 +112,7 @@ helm upgrade --install igni ./igni-0.8.0/igni-bundle-0.8.0/charts/igni-0.2.0.tgz
 
 Every image the chart names comes from beside `image.repository`. The CodeIndex and Artifacts images are deployed from your own manifests; igni's chart does not deploy them.
 
-Before upgrading, take a backup. A `helm rollback` moves the pods back but not the database schema. See [Upgrading, and what a rollback does not undo](/docs/self-hosting-the-server).
+Before upgrading, take a backup. A `helm rollback` moves the pods back but not the database schema. See [Upgrading, and what a rollback does not undo](/docs/server/self-hosting-the-server).
 
 ## Verify by hand
 
@@ -169,9 +169,9 @@ The rule that makes this a policy: **nobody deletes a release tag or a release b
 - **The server images are public; the bundle is not.** `v0.8.0` is a signed tag on the release commit, and the release workflow signs every image and the bundle it builds. The server images are publicly readable on GitHub Container Registry now — an anonymous `docker pull ghcr.io/ignite-ember/igni-api:0.8.0` works — but the offline bundle (`igni-bundle`) stays private, because it carries the paid modules' images. If you cannot reach it, ask Ignite Ember for the bundle and for the public key.
 - **The release is built in private.** The workflow that builds and signs it, `.github/workflows/release.yml`, runs from a private repository, which holds the `release` environment and the signing key. The public repository holds the workflow's logic and its tests; the key is in Cloud KMS and is not exportable.
 - **The release key has not been published to customers yet.** Ask Ignite Ember for the fingerprint before your first import.
-- **The desktop app updates outside the bundle.** It can be pointed at a release mirror you host (`update_endpoint`), but the bundle does not carry the desktop builds or their update manifest, and only the macOS build is in that manifest today. On an air-gapped machine, the simplest course is to turn update checks off and install new versions by hand. See [Installing igni](/docs/installing-igni).
+- **The desktop app updates outside the bundle.** It can be pointed at a release mirror you host (`update_endpoint`), but the bundle does not carry the desktop builds or their update manifest, and only the macOS build is in that manifest today. On an air-gapped machine, the simplest course is to turn update checks off and install new versions by hand. See [Installing igni](/docs/app/installing-igni).
 
 ## Where to go next
 
-- **[Self-hosting the igni server](/docs/self-hosting-the-server)** — the chart values the install command above sets.
-- **[Licensing and evaluations](/docs/licensing-and-evaluations)** — the licence file, which the bundle does not carry.
+- **[Self-hosting the igni server](/docs/server/self-hosting-the-server)** — the chart values the install command above sets.
+- **[Licensing and evaluations](/docs/server/licensing-and-evaluations)** — the licence file, which the bundle does not carry.

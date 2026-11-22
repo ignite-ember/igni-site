@@ -1,4 +1,4 @@
-**Artifacts** are the documents the agent writes — a design note, an understanding of a subsystem, a decision record — with their versions, comments, drafts and a record of what each version was built on. They are a paid module: a service you deploy beside igni server, and an igni extension the service ships to people's machines. This page is about what your team gets from it: how documents are written and shared, who may open one, and what versions, comments and lineage do once more than one person is involved. Deploying the service is [Running the documents service](/docs/running-the-documents-service).
+**Artifacts** are the documents the agent writes — a design note, an understanding of a subsystem, a decision record — with their versions, comments, drafts and a record of what each version was built on. They are a paid module: a service you deploy beside igni server, and an igni extension the service ships to people's machines. This page is about what your team gets from it: how documents are written and shared, who may open one, and what versions, comments and lineage do once more than one person is involved. Deploying the service is [Running the documents service](/docs/server/running-the-documents-service).
 
 ## Where documents live
 
@@ -14,7 +14,7 @@ The extension also replaces four sections of igni's main prompt — what the mai
 
 **The archivist's Cypher runs in the service, not on your machine.** `artifact_cypher` and `artifact_ask` send a query to `POST /v1/artifacts/cypher`. The service runs it in a read-only session and rewrites it first so that every node it can touch is a document the caller may open, in the folder's project. A lineage path through a document you cannot open stops there. Procedure calls, several statements and writes are refused. A query runs for at most 10 seconds and returns at most 200 rows.
 
-**Switching it off.** Artifacts reaches a group only when an org admin switches its extension on for that group. Switched off, the archivist and its tools are gone, and igni's own prompt tells the agent there is nowhere to file project knowledge this session: it says so plainly rather than promising to record something, and it will not file a codebase convention into your personal memory instead. See [Administering your organisation](/docs/administering-your-organisation).
+**Switching it off.** Artifacts reaches a group only when an org admin switches its extension on for that group. Switched off, the archivist and its tools are gone, and igni's own prompt tells the agent there is nowhere to file project knowledge this session: it says so plainly rather than promising to record something, and it will not file a codebase convention into your personal memory instead. See [Administering your organisation](/docs/server/administering-your-organisation).
 
 ## Sharing a document
 
@@ -119,7 +119,7 @@ Everything above is served by a second deployment — the documents service of t
 
 It has no `users` table. It **checks** user tokens and never issues them: igni server signs them with a key only it holds, and the documents service checks them against the public half igni server publishes, and that each names the documents service's own URL as its audience. Names and addresses it asks of igni server's directory. Nothing secret is shared between the two in either direction — the documents service signs its own requests with a key it generated and registered.
 
-It is deployed with two addresses, igni server's and its own, and nothing is configured on igni server for it: the server knows it only as a registered service. It registers itself on first start and serves nobody until a super admin approves it on the portal's *Services* page; see [running the documents service](/docs/running-the-documents-service).
+It is deployed with two addresses, igni server's and its own, and nothing is configured on igni server for it: the server knows it only as a registered service. It registers itself on first start and serves nobody until a super admin approves it on the portal's *Services* page; see [running the documents service](/docs/server/running-the-documents-service).
 
 igni server does not proxy document traffic. The documents service ships its igni extension through igni server, which hands it to the machines of every group an org admin switched it on for; on a person's machine, the igni app gets the extension a ten-minute token for the documents service, and the extension calls the service directly. What crosses between the two services is the directory, notifications for people's feeds, and igni server's erasure and subject-access requests. A deployment that has approved no documents service simply has no documents, which is a supported configuration rather than a broken one.
 
@@ -129,7 +129,7 @@ One last operational note: a document records the organisation it was created in
 
 ## Licence
 
-Artifacts checks the paid modules' licence file itself, offline (`IGNI_LICENCE_FILE`, default `/etc/igni/licence/licence.json`). The states are in [Licensing and evaluations](/docs/licensing-and-evaluations). For Artifacts:
+Artifacts checks the paid modules' licence file itself, offline (`IGNI_LICENCE_FILE`, default `/etc/igni/licence/licence.json`). The states are in [Licensing and evaluations](/docs/server/licensing-and-evaluations). For Artifacts:
 
 | Always | Read — still allowed when read-only | Write — refused when read-only |
 |---|---|---|
@@ -139,6 +139,6 @@ A refused request gets `403` with a JSON body naming the module, state and reaso
 
 ## Where to go next
 
-- **[Running the documents service](/docs/running-the-documents-service)** — deploying the service that serves them.
-- **[Administering your organisation](/docs/administering-your-organisation)** — switching the extension on for a group.
-- **[Licensing and evaluations](/docs/licensing-and-evaluations)** — the licence file the module checks.
+- **[Running the documents service](/docs/server/running-the-documents-service)** — deploying the service that serves them.
+- **[Administering your organisation](/docs/server/administering-your-organisation)** — switching the extension on for a group.
+- **[Licensing and evaluations](/docs/server/licensing-and-evaluations)** — the licence file the module checks.

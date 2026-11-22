@@ -211,7 +211,7 @@ For an app, **Enable cloud** on the app's page issues one. Nobody sees it: the n
 
 ### MCP approvals and events
 
-In the cloud, a person's approvals of MCP servers are kept on igni server (`/v1/me/mcp-approvals`), not in a file in their VM; group policy still decides which servers are offered at all. A service can reach one of your producers' agents two ways: a **message**, which igni posts in a chat of the service's own and which starts or resumes the agent's run, or an **event**, which igni hands to the service's extension to act on. igni refuses either unless that producer has the extension switched on (through their group, or the app's own list), and a message needs grants the super admin approved with the service. igni keeps each item until the producer's igni takes it — waking their VM in the cloud — for at most 14 days, after which it expires and the service can see that it did. Either can start work with nobody present. How a service sends them is in [Building extensions](/docs/building-extensions).
+In the cloud, a person's approvals of MCP servers are kept on igni server (`/v1/me/mcp-approvals`), not in a file in their VM; group policy still decides which servers are offered at all. A service can reach one of your producers' agents two ways: a **message**, which igni posts in a chat of the service's own and which starts or resumes the agent's run, or an **event**, which igni hands to the service's extension to act on. igni refuses either unless that producer has the extension switched on (through their group, or the app's own list), and a message needs grants the super admin approved with the service. igni keeps each item until the producer's igni takes it — waking their VM in the cloud — for at most 14 days, after which it expires and the service can see that it did. Either can start work with nobody present. How a service sends them is in [Building extensions](/docs/core/building-extensions).
 
 ## Onboarding a developer
 
@@ -250,7 +250,7 @@ The builds are on each release at [ignite-ember/igni-app](https://github.com/ign
 
 **2. It installs its own backend, on first launch.** The app downloads `uv`, uses it to provision a pinned CPython 3.12, creates a managed virtualenv, installs `igni-core` at the version the app was built against, and downloads igni's decision model. Everything lands in a per-user cache — `~/Library/Caches/igni` on macOS, `%LOCALAPPDATA%\igni` on Windows, `$XDG_CACHE_HOME/igni` on Linux — so later launches skip straight to starting the backend.
 
-Two things to put in the onboarding ticket: it checks for at least **1 GB free** before it starts, and the decision model it then downloads is about 1.7 GB on top; and it needs **network access on first run**. If your developers cannot reach the internet at all, provision the backend yourself and point the app at it with `runtime_python` — see [Installing igni](/docs/installing-igni).
+Two things to put in the onboarding ticket: it checks for at least **1 GB free** before it starts, and the decision model it then downloads is about 1.7 GB on top; and it needs **network access on first run**. If your developers cannot reach the internet at all, provision the backend yourself and point the app at it with `runtime_python` — see [Installing igni](/docs/app/installing-igni).
 
 **3. They sign in with their work email.** The app opens on a sign-in wall rather than behind a dismissable prompt — a session with no account has nowhere to put anything. They type the address, discovery finds your server from the domain, and sign-in hands off to **your** deployment's sign-in page, which renders the methods you enabled: password, whichever OAuth providers, your SSO button under the name you chose. Picking an organisation mints an org-scoped token that lasts 30 days.
 
@@ -315,6 +315,6 @@ For the periodic review an auditor asks for, `GET /v1/portal/access-review` (adm
 ## Where to go next
 
 - **[Artifacts](/docs/artifacts)** — if you are deploying the documents service, this is what your team gets from it.
-- **[Configuration: files, precedence and where igni loads things from](/docs/configuration-and-precedence)** — how your group policy interacts with what a developer sets locally.
-- **[Building extensions](/docs/building-extensions)** — what a service's extension can do on your people's machines, before you approve one.
-- **[Licensing and evaluations](/docs/licensing-and-evaluations)** — installing the licence file the paid modules check.
+- **[Configuration: files, precedence and where igni loads things from](/docs/core/configuration-and-precedence)** — how your group policy interacts with what a developer sets locally.
+- **[Building extensions](/docs/core/building-extensions)** — what a service's extension can do on your people's machines, before you approve one.
+- **[Licensing and evaluations](/docs/server/licensing-and-evaluations)** — installing the licence file the paid modules check.

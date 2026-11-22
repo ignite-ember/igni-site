@@ -36,7 +36,7 @@ Two images, `igni-api` and `igni-portal`. Three ways to get them:
   docker pull ghcr.io/ignite-ember/igni-portal:0.8.0   # :latest resolves to 0.8.0 too
   ```
 
-- **Import them from a release's signed offline bundle**, which carries them with their signatures and SBOMs — see [Offline updates](/docs/offline-updates). The bundle is private (it carries the paid modules' images); on a network with no route out, it is the only way.
+- **Import them from a release's signed offline bundle**, which carries them with their signatures and SBOMs — see [Offline updates](/docs/server/offline-updates). The bundle is private (it carries the paid modules' images); on a network with no route out, it is the only way.
 - **Build them yourself.**
 
 Either way the chart has no default repository and `fail()`s rather than guessing: an unqualified name would resolve to Docker Hub and pull somebody else's, and an air-gapped cluster has to name its own registry.
@@ -51,7 +51,7 @@ Note the build contexts differ: the API builds from the repository root, the por
 
 Push both to a registry your cluster can reach, then give the chart those names. **Tag with a version, never `latest`** — the chart refuses `latest` outright, because a `latest` tag cannot be rolled back to and an unchanged tag gives Kubernetes no reason to roll pods on upgrade.
 
-The embedder that document search uses is not one of them. It belongs to the documents service and is built and deployed from the Artifacts module's own repository — see [Running the documents service](/docs/running-the-documents-service). This chart deploys no embedder and no documents service: there is no `embedder`, `embedderImage` or `artifacts` value in it. It used to deploy `<release>-embedder` and set `EMBEDDER_URL`; `helm upgrade` deletes that Deployment and Service, so a documents service that pointed `EMBEDDER_URL` there needs the Artifacts embedder deployed first.
+The embedder that document search uses is not one of them. It belongs to the documents service and is built and deployed from the Artifacts module's own repository — see [Running the documents service](/docs/server/running-the-documents-service). This chart deploys no embedder and no documents service: there is no `embedder`, `embedderImage` or `artifacts` value in it. It used to deploy `<release>-embedder` and set `EMBEDDER_URL`; `helm upgrade` deletes that Deployment and Service, so a documents service that pointed `EMBEDDER_URL` there needs the Artifacts embedder deployed first.
 
 ## Deploying with Helm
 
@@ -91,7 +91,7 @@ The values that matter:
 | `postgres.poolTimeout` | `10` | Seconds a request waits for a free connection |
 | `service.apiPort` / `portalPort` | `7777` / `3000` | |
 | `ingress.enabled` | `false` | `/v1` and `/.well-known` to the API, everything else to the portal |
-| `licence.existingSecret` | `""` | A Secret holding the paid modules' licence under the key `licence.json`, mounted read-only at `/etc/igni/licence/` in the API so the portal can show it. The base needs none. See [Licensing and evaluations](/docs/licensing-and-evaluations) |
+| `licence.existingSecret` | `""` | A Secret holding the paid modules' licence under the key `licence.json`, mounted read-only at `/etc/igni/licence/` in the API so the portal can show it. The base needs none. See [Licensing and evaluations](/docs/server/licensing-and-evaluations) |
 
 The chart sets no ingress annotations (`ingress.annotations` defaults to `{}`), which matters for one thing in particular: the API accepts request bodies up to **32 MiB** (`MAX_REQUEST_BODY_BYTES`), and most ingress controllers cap them far lower — nginx at 1 MiB by default. A long chat context or a large changeset then gets a 413 from a component the server never sees, so nothing in its logs explains it. Raise the controller's limit to match:
 
@@ -113,6 +113,19 @@ ingress:
 ```
 
 The shipped Caddyfile allows 400 MiB on the extension upload and 32 MB everywhere else. The portal's own nginx caps `/v1` at 32 MB, so an upload that goes through the portal is refused at 32 MB; the chart's Ingress sends `/v1` straight to the API, which is where the larger limits apply.
+
+**TLS on the Ingress.** The chart terminates TLS at the Ingress when you turn it on: set `ingress.tls.enabled: true` and `ingress.tls.secretName` to the Secret that holds the certificate for `ingress.host`. The certificate itself can be one you load into that Secret, or one cert-manager issues — point a `cert-manager.io/cluster-issuer` (or `cert-manager.io/issuer`) annotation at your issuer under `ingress.annotations` and cert-manager fills the Secret in. This is the Kubernetes equivalent of the Caddy automatic-HTTPS and the Compose TLS overlay below.
+
+```yaml
+ingress:
+  enabled: true
+  host: igni.example.com
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+  tls:
+    enabled: true
+    secretName: igni-tls
+```
 
 | `retention.auditDays` | `0` | 0 keeps forever; the retention runner does not start |
 | `monitoring.serviceMonitor.enabled` | `false` | Needs the Prometheus Operator CRDs |
@@ -157,7 +170,7 @@ The destinations people forget:
 - your **SMTP relay or SES endpoint**, or invitations stop sending silently;
 - the **inference nodes** themselves;
 - every **service you approve** — Artifacts, CodeIndex — at the URL it registered with. The server calls each one when an organisation admin runs an erasure or a subject-access export; blocked, the erasure answers 502 and the export comes back marked truncated;
-- your **OpenTelemetry collector**, if you set `OTEL_EXPORTER_OTLP_ENDPOINT` ([Server configuration](/docs/server-configuration)). Blocked, traces are dropped and nothing else breaks.
+- your **OpenTelemetry collector**, if you set `OTEL_EXPORTER_OTLP_ENDPOINT` ([Server configuration](/docs/server/server-configuration)). Blocked, traces are dropped and nothing else breaks.
 
 Both failures land on your users rather than on you: a sign-in page whose SSO button does nothing, and invitations that report success and never arrive.
 
@@ -167,7 +180,7 @@ Both failures land on your users rather than on you: a sign-in page whose SSO bu
 
 Writing your own alerts for failures the chart already covers is the common outcome of not knowing these exist.
 
-Traces are a fourth, off by default and set outside the chart's values: `OTEL_EXPORTER_OTLP_ENDPOINT` (and the other standard `OTEL_*` variables) through `extraEnv`, pointing at your own collector. There is no default endpoint, and request bodies are never exported. See [Server configuration](/docs/server-configuration).
+Traces are a fourth, off by default and set outside the chart's values: `OTEL_EXPORTER_OTLP_ENDPOINT` (and the other standard `OTEL_*` variables) through `extraEnv`, pointing at your own collector. There is no default endpoint, and request bodies are never exported. See [Server configuration](/docs/server/server-configuration).
 
 ### One host, or the browser blocks you
 
@@ -185,7 +198,7 @@ A service — Artifacts, CodeIndex, anything later — is served on a hostname o
 
 So each service needs its own DNS name and its own certificate, and its `PUBLIC_BASE_URL` is exactly `https://<that name>` — reachable from the server as well as from people's machines.
 
-**This chart deploys no service.** It used to carry an `artifacts` block that published the documents service on a second Ingress of its own, with a ConfigMap beside it; 0.7.0 removed the block, and the chart now renders one host — the server's. A service is deployed from its own repository, on a host of its own, and registers itself with the server. The single-instance Caddyfile routes only the server; a service run beside it gets a site block of its own for its own domain. How to stand the documents service up is in [Running the documents service](/docs/running-the-documents-service).
+**This chart deploys no service.** It used to carry an `artifacts` block that published the documents service on a second Ingress of its own, with a ConfigMap beside it; 0.7.0 removed the block, and the chart now renders one host — the server's. A service is deployed from its own repository, on a host of its own, and registers itself with the server. The single-instance Caddyfile routes only the server; a service run beside it gets a site block of its own for its own domain. How to stand the documents service up is in [Running the documents service](/docs/server/running-the-documents-service).
 
 To rotate the signing key, run `python tools/rotate_signing_key.py --stage` from a checkout of the server repository with the deployment's Postgres settings and `SECRET_ENCRYPTION_KEY` in its environment. The new key is published at once and signs ten minutes later, so every replica and every service has it before it is used; nothing restarts.
 
@@ -208,7 +221,7 @@ Locally: `make migrate`, and `make downgrade-one` for `alembic downgrade -1`.
 
 ## Upgrading, and what a rollback does not undo
 
-An upgrade is the same command with the new release's tag. The chart's own version moves independently of the application's: 0.7.0 shipped chart 0.2.0, which dropped the `artifacts` block. On a network with no route out, import the release's images from its signed bundle first — see [Offline updates](/docs/offline-updates):
+An upgrade is the same command with the new release's tag. The chart's own version moves independently of the application's: 0.7.0 shipped chart 0.2.0, which dropped the `artifacts` block. On a network with no route out, import the release's images from its signed bundle first — see [Offline updates](/docs/server/offline-updates):
 
 ```bash
 helm upgrade igni ./charts/igni --namespace igni --reuse-values \
@@ -309,8 +322,8 @@ For development, `make up` builds and runs `containers/docker-compose.local.yml`
 
 The server being up is the halfway point. In order:
 
-1. **[Server configuration reference](/docs/server-configuration)** — every setting, and which ones are safe to leave empty.
-2. **[Connecting your GPUs](/docs/inference-backends)** — until a node is registered there is nothing for the agent to talk to.
-3. **[Administering your organisation](/docs/administering-your-organisation)** — invite your developers, decide how they sign in, and ship them a standard set of agents and skills. Publishing the discovery record there is what turns onboarding into "install it and type your work email".
-4. **[Running the documents service](/docs/running-the-documents-service)** — the optional deployment, if you want it.
-5. **[Licensing and evaluations](/docs/licensing-and-evaluations)** — if you run any paid module, its licence file.
+1. **[Server configuration reference](/docs/server/server-configuration)** — every setting, and which ones are safe to leave empty.
+2. **[Connecting your GPUs](/docs/server/inference-backends)** — until a node is registered there is nothing for the agent to talk to.
+3. **[Administering your organisation](/docs/server/administering-your-organisation)** — invite your developers, decide how they sign in, and ship them a standard set of agents and skills. Publishing the discovery record there is what turns onboarding into "install it and type your work email".
+4. **[Running the documents service](/docs/server/running-the-documents-service)** — the optional deployment, if you want it.
+5. **[Licensing and evaluations](/docs/server/licensing-and-evaluations)** — if you run any paid module, its licence file.

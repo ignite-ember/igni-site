@@ -11,11 +11,11 @@ A hook lives in the `hooks` block of a settings file. The loader reads these in 
 
 `settings.hooks.cross_tool_support` defaults to `true`, which appends the `.claude` sibling of all four paths after the `.igni` ones. A cached org settings file, when one exists, is read last.
 
-**A project's hooks need trust.** Files 3 and 4, and the project's `.claude/settings*.json`, are read only once you trust the folder — a hook is a shell command the repository brings with it. In an untrusted folder only your own and your organisation's hooks run. See [Workspace trust](/docs/permissions-and-safety#workspace-trust).
+**A project's hooks need trust.** Files 3 and 4, and the project's `.claude/settings*.json`, are read only once you trust the folder — a hook is a shell command the repository brings with it. In an untrusted folder only your own and your organisation's hooks run. See [Workspace trust](/docs/core/permissions-and-safety#workspace-trust).
 
 Plugins ship hooks in `<plugin>/hooks/hooks.json`. That file *is* the hooks block — no outer `hooks` key — and plugin hooks are **prepended**, so project hooks still run last and keep the veto.
 
-Extensions answer the same events from their own process (`@ext.hook` in the SDK). They are asked first, one at a time in the priority order a super admin keeps, and your configured hooks then run on the result. If an extension does not answer in time, a tool call or a message to the model does not go ahead. See [Building extensions](/docs/building-extensions).
+Extensions answer the same events from their own process (`@ext.hook` in the SDK). They are asked first, one at a time in the priority order a super admin keeps, and your configured hooks then run on the result. If an extension does not answer in time, a tool call or a message to the model does not go ahead. See [Building extensions](/docs/core/building-extensions).
 
 A broken file does not abort the load. Invalid JSON, a non-object `hooks` key, an event bucket that isn't a list, and a hook that fails validation each become a structured warning and are skipped.
 
@@ -126,12 +126,12 @@ Every iteration's prompt is wrapped in a `<loop-iteration index="N">` block tell
 
 A workflow is an `.mjs` file run in a Node subprocess. Three directories are scanned, in increasing priority: the org policy cache, `<project>/.claude/workflows`, then `<project>/.igni/workflows` — same stem, later layer wins. Node must be on `PATH`.
 
-The file must `export const meta = {name, description, whenToUse, phases}`; discovery re-runs the file with `--discovery` just to read it, cached by mtime. Because discovery runs the file, a project's workflows (both `.claude/workflows` and `.igni/workflows`) are neither listed nor run until you trust the folder; the org's still are. See [Workspace trust](/docs/permissions-and-safety#workspace-trust). Inside the body you get `phase(title)`, `agent(prompt, opts)`, `parallel(thunks)`, `pipeline(steps)` and `log(text)` as globals. `agent()` calls are bridged back to the session's team; each has a **600-second** default timeout, overridable per call with `timeoutSeconds`.
+The file must `export const meta = {name, description, whenToUse, phases}`; discovery re-runs the file with `--discovery` just to read it, cached by mtime. Because discovery runs the file, a project's workflows (both `.claude/workflows` and `.igni/workflows`) are neither listed nor run until you trust the folder; the org's still are. See [Workspace trust](/docs/core/permissions-and-safety#workspace-trust). Inside the body you get `phase(title)`, `agent(prompt, opts)`, `parallel(thunks)`, `pipeline(steps)` and `log(text)` as globals. `agent()` calls are bridged back to the session's team; each has a **600-second** default timeout, overridable per call with `timeoutSeconds`.
 
 There is no `/workflow` slash command — workflows are driven entirely by the `list_workflows`, `run_workflow` and `cancel_workflow` RPCs, so you need a client that exposes them. `run_workflow` returns a `workflow_run_id` immediately and progress arrives as `workflow_event` pushes. Cancellation notifies the subprocess, waits 5 seconds, then escalates to SIGTERM and SIGKILL. **Resume is not implemented**: the runner's `resume()` returns `None` by design, and re-running a workflow starts it from the top.
 
 ## Where to go next
 
-- **[Tools, MCP servers and language servers](/docs/tools-mcp-and-language-servers)** — the capabilities a hook can allow, deny or modify.
-- **[Permissions and safety](/docs/permissions-and-safety)** — what a hook may decide, and the trust model around one.
-- **[Building extensions](/docs/building-extensions)** — shipping hooks, workflows and agents as part of an extension.
+- **[Tools, MCP servers and language servers](/docs/core/tools-mcp-and-language-servers)** — the capabilities a hook can allow, deny or modify.
+- **[Permissions and safety](/docs/core/permissions-and-safety)** — what a hook may decide, and the trust model around one.
+- **[Building extensions](/docs/core/building-extensions)** — shipping hooks, workflows and agents as part of an extension.

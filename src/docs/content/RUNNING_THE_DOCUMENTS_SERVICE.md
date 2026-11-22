@@ -39,7 +39,7 @@ It refuses to start without igni server's URL, its own public URL, a service nam
 
 **`REDIS_URL` is a hard dependency that startup does not check.** `/ready` reports an empty or unreachable Redis as `unavailable` — a draft lives in Redis before it is published, so there is nowhere to put unsaved work. The service will start and then never become ready. Set it.
 
-The service is two images: the API and its embedder. Both are in each release's signed offline bundle, as `igni-artifacts` and `igni-artifacts-embedder` — see [Offline updates](/docs/offline-updates) — or you can build them from the Artifacts module's own repository. `make run` uses `PORT ?= 7777`, which contradicts the Dockerfile's 8100.
+The service is two images: the API and its embedder. Both are in each release's signed offline bundle, as `igni-artifacts` and `igni-artifacts-embedder` — see [Offline updates](/docs/server/offline-updates) — or you can build them from the Artifacts module's own repository. `make run` uses `PORT ?= 7777`, which contradicts the Dockerfile's 8100.
 
 ```bash
 docker build -f containers/be/Dockerfile -t igni-artifacts .              # API, :8100, no torch
@@ -85,9 +85,9 @@ Finally, the server and the documents service may share one physical Redis and o
 
 The documents service checks the paid modules' licence file itself, offline, at `IGNI_LICENCE_FILE` (default `/etc/igni/licence/licence.json`), and re-reads it at most once a minute, so a renewed file needs no restart. igni's Helm chart mounts the licence only into igni server, so mount the same Secret at the same path in this Deployment yourself. The test key is trusted only with `ENVIRONMENT=dev` — never with the default, `development`.
 
-When the licence is read-only, every `GET`, the archivist's read-only Cypher and finding a folder's project still work; sharing, new versions, drafts, comments and every other change are refused with `403` and an `igni-licence: <state>` header, and the document room's WebSocket is closed with `4403`. `GET /v1/licence` reports the module's state. The full rules are in [Licensing and evaluations](/docs/licensing-and-evaluations), and what each state means for documents is on the [Artifacts](/docs/artifacts) page.
+When the licence is read-only, every `GET`, the archivist's read-only Cypher and finding a folder's project still work; sharing, new versions, drafts, comments and every other change are refused with `403` and an `igni-licence: <state>` header, and the document room's WebSocket is closed with `4403`. `GET /v1/licence` reports the module's state. The full rules are in [Licensing and evaluations](/docs/server/licensing-and-evaluations), and what each state means for documents is on the [Artifacts](/docs/artifacts) page.
 
 ## Where to go next
 
 - **[Artifacts](/docs/artifacts)** — what the documents service gives your team once it is running.
-- **[Licensing and evaluations](/docs/licensing-and-evaluations)** — the licence file it checks.
+- **[Licensing and evaluations](/docs/server/licensing-and-evaluations)** — the licence file it checks.

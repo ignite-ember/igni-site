@@ -1,6 +1,6 @@
 igni reaches a developer in two forms: the **desktop app**, which is how a person uses it, and the **CLI**, for scripts and CI. Both run the same agent on the developer's own machine and talk to your igni server for sign-in and models. This page covers installing each, signing in, and installing on a machine with no internet access. There are no IDE plugins; the desktop app and the CLI are the clients.
 
-> **Note:** This documentation describes **1.0.5**, the current release. It is on PyPI as `igni-core`, so `pip install igni-core` gives you 1.0.5. The `ignite-ember` name on PyPI is still the pre-split monolith — **1.0.3**, whose module is `ember_code` and which keeps its files in `~/.ember` — so `pip install ignite-ember` still gives you 1.0.3 until the alias package ships. `igni-core` keeps its files in `~/.igni` and moves an existing `~/.ember` there on first start. [Changes and upgrades](/docs/changes-and-upgrades) has the whole version story.
+> **Note:** This documentation describes **1.0.5**, the current release. It is on PyPI as `igni-core`, so `pip install igni-core` gives you 1.0.5. The `ignite-ember` name on PyPI is still the pre-split monolith — **1.0.3**, whose module is `ember_code` and which keeps its files in `~/.ember` — so `pip install ignite-ember` still gives you 1.0.3 until the alias package ships. `igni-core` keeps its files in `~/.igni` and moves an existing `~/.ember` there on first start. [Changes and upgrades](/docs/core/changelog) has the whole version story.
 
 ## The desktop app
 
@@ -73,9 +73,9 @@ igni -c -m "and the tests?"            # continue the last session
 igni --model platform-review-lora -m "review this branch"
 ```
 
-Other flags set the permission mode (`--read-only`, `--accept-edits`, `--auto-approve`, `--strict`), turn off web tools (`--no-web`), work in a git worktree (`--worktree`) or add directories (`--add-dir`). See [Permissions and safety](/docs/permissions-and-safety).
+Other flags set the permission mode (`--read-only`, `--accept-edits`, `--auto-approve`, `--strict`), turn off web tools (`--no-web`), work in a git worktree (`--worktree`) or add directories (`--add-dir`). See [Permissions and safety](/docs/core/permissions-and-safety).
 
-Four subcommands exist: `igni ext`, for [extensions](/docs/building-extensions); `igni login`, which signs in to your igni server; `igni migrate`, which migrates igni's own database; and `igni trust`, which records whether a folder may run its own code.
+Four subcommands exist: `igni ext`, for [extensions](/docs/core/building-extensions); `igni login`, which signs in to your igni server; `igni migrate`, which migrates igni's own database; and `igni trust`, which records whether a folder may run its own code.
 
 ### `igni ext`
 
@@ -96,7 +96,7 @@ Four subcommands exist: `igni ext`, for [extensions](/docs/building-extensions);
 
 ## Signing in
 
-Neither client asks for a server address if you have published one. A developer types their work email; igni looks up the address's domain and finds your server from a record you publish, either the file `https://<domain>/.well-known/igni.json` or the DNS TXT record `_igni.<domain>`. How to publish it is in [Administering your organisation](/docs/administering-your-organisation). Without a record, the app asks "Where is your igni?" and takes a URL.
+Neither client asks for a server address if you have published one. A developer types their work email; igni looks up the address's domain and finds your server from a record you publish, either the file `https://<domain>/.well-known/igni.json` or the DNS TXT record `_igni.<domain>`. How to publish it is in [Administering your organisation](/docs/server/administering-your-organisation). Without a record, the app asks "Where is your igni?" and takes a URL.
 
 Sign-in then opens **your** deployment's sign-in page in a browser, with whichever methods you enabled. Picking an organisation gives the client a token for 30 days. The CLI writes it to `~/.igni/credentials.json` with mode `0600`.
 
@@ -118,7 +118,7 @@ The token is never taken as an argument, so it does not land in the shell's hist
 
 Signing in through a browser also fetches your group's pack of agents, skills, hooks and settings, verifies it and caches it on disk under `~/.igni/group-policy/`. The `--token-stdin` path keeps the token and nothing else; the pack arrives the next time you sign in through a browser.
 
-After sign-in, the client asks your server which models it serves and registers them. See [Models and the Factory](/docs/models-and-the-factory).
+After sign-in, the client asks your server which models it serves and registers them. See [Models and the Factory](/docs/core/models-and-the-factory).
 
 ## Where igni keeps things
 
@@ -130,7 +130,7 @@ After sign-in, the client asks your server which models it serves and registers 
 | `<project>/.igni/` | The project's settings, agents, skills and commands |
 | `<project>/igni.md` | The project's instructions to the agent |
 
-The full order in which these apply is in [Configuration and precedence](/docs/configuration-and-precedence).
+The full order in which these apply is in [Configuration and precedence](/docs/core/configuration-and-precedence).
 
 ## Installing with no internet access
 
@@ -195,10 +195,10 @@ Then copy `/tmp/laya/hub/models--convaiinnovations--laya` into the target machin
 - **No Intel Mac build.** macOS builds are for Apple silicon only.
 - **Windows and Linux builds are not code-signed and do not update themselves.**
 - **The desktop app has no headless sign-in.** The CLI signs in headlessly with `igni login --token-stdin`, as above.
-- **The offline update bundle does not carry the clients.** See [Offline updates](/docs/offline-updates).
+- **The offline update bundle does not carry the clients.** See [Offline updates](/docs/server/offline-updates).
 
 ## Where to go next
 
-- **[Project context, rules and memory](/docs/project-context-and-memory)** — what igni reads in a project before it answers.
-- **[Agents and orchestration](/docs/agents-and-orchestration)** — the agents that ship, and how to write your own.
-- **[Changes and upgrades](/docs/changes-and-upgrades)** — which version is which, where each one's release notes live, and what changed between them.
+- **[Project context, rules and memory](/docs/core/project-context-and-memory)** — what igni reads in a project before it answers.
+- **[Agents and orchestration](/docs/core/agents-and-orchestration)** — the agents that ship, and how to write your own.
+- **[Changes and upgrades](/docs/core/changelog)** — which version is which, where each one's release notes live, and what changed between them.

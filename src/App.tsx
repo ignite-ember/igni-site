@@ -1,14 +1,26 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { BaseStyles, ThemeProvider } from "@primer/react";
 import { LandingPage } from "./pages/LandingPage";
 import { ProductPage } from "./pages/ProductPage";
 import { DownloadPage } from "./pages/DownloadPage";
 import { DocsPage } from "./pages/DocsPage";
+import { DocPackagePage } from "./pages/DocPackagePage";
 import { DocArticlePage } from "./pages/DocArticlePage";
 import { AgentCorePage } from "./pages/AgentCorePage";
 import { SdkLandingPage } from "./pages/SdkLandingPage";
 import { SdkArticlePage } from "./pages/SdkArticlePage";
 import { ScrollToTop } from "./components/ScrollToTop";
+import { LEGACY_REDIRECTS } from "./docs/docsManifest";
+
+/**
+ * Redirect a retired single-segment `/docs/<slug>` URL to its new
+ * per-package path, keeping any `#anchor` the visitor arrived with so a
+ * deep link into an article still lands on its section.
+ */
+function LegacyDocRedirect({ to }: { to: string }) {
+  const { hash } = useLocation();
+  return <Navigate to={`${to}${hash}`} replace />;
+}
 
 /**
  * The public site — what igni.sh (and ignite-ember.sh) serves.
@@ -41,13 +53,31 @@ export default function App() {
             <Route path="factory" element={<ProductPage slug="factory" />} />
             {/* Comparisons with other platforms, one page each. */}
             <Route path="compare/agentcore" element={<AgentCorePage />} />
+            {/* The documentation, per package (Phase 1 of the docs
+            versioning plan): a product grid at /docs, then each
+            package's own index and its articles. */}
             <Route path="docs" element={<DocsPage />} />
-            <Route path="docs/:slug" element={<DocArticlePage />} />
             {/* The SDKs' documentation, generated in igni-sdk and
-            copied into src/docs/sdk/ (scripts/sync-sdk-docs.mjs). */}
+            copied into src/docs/sdk/ (scripts/sync-sdk-docs.mjs).
+            Declared before the generic docs/:package routes; React
+            Router ranks the static `sdk` segment above the parameter
+            either way. */}
             <Route path="docs/sdk" element={<SdkLandingPage />} />
             <Route path="docs/sdk/:pkg" element={<SdkArticlePage />} />
             <Route path="docs/sdk/:pkg/:page" element={<SdkArticlePage />} />
+            {/* Retired single-segment /docs/<slug> URLs redirect to their
+            new per-package path, so every old link keeps resolving. The
+            single-page packages (fleet, artifacts, codeindex) keep their
+            own /docs/<slug> URL and are served by docs/:package below. */}
+            {Object.entries(LEGACY_REDIRECTS).map(([slug, to]) => (
+              <Route
+                key={slug}
+                path={`docs/${slug}`}
+                element={<LegacyDocRedirect to={to} />}
+              />
+            ))}
+            <Route path="docs/:package" element={<DocPackagePage />} />
+            <Route path="docs/:package/:slug" element={<DocArticlePage />} />
             {/* Unlisted: nothing links here, it is absent from
             the sitemap and disallowed in robots.txt. A
             finished page waiting on the decision to launch

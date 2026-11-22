@@ -1,14 +1,11 @@
 /**
  * The sitemap must describe the site that exists.
  *
- * The committed `public/sitemap.xml` listed twelve URLs, of which nine
- * were wrong: `/pricing`, `/login` and `/signup` — which the public
- * build sends to `/` — and seven documentation slugs from before the
- * documentation was rebuilt (`docs/onboarding`, `docs/agents`,
- * `docs/tools`, `docs/orchestration`, `docs/codeindex`,
- * `docs/configuration`, `docs/migration`). A sitemap is the one file
- * written *for* a crawler, so a stale entry is not a cosmetic problem:
- * it is an instruction to index a redirect.
+ * Since the per-package split, the sitemap walks `package × article`: a
+ * landing for each package and a page for each article a multi-page
+ * package carries, plus the SDK pages. The retired single-segment
+ * `/docs/<slug>` URLs are deliberately absent — they redirect, and a
+ * sitemap entry is an instruction to index a page, not a redirect.
  *
  * Nothing had connected the slug list to the manifest, so the rule here
  * is that the file equals what `scripts/generate-sitemap.mjs` writes.
@@ -20,18 +17,26 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-import { buildSitemap, docSlugs, ORIGIN, sdkPaths } from '../../scripts/generate-sitemap.mjs'
+import {
+  buildSitemap,
+  docCanonicalPaths,
+  legacyDocPaths,
+  ORIGIN,
+  sdkPaths,
+} from '../../scripts/generate-sitemap.mjs'
 
 // `import.meta.url` is an http: URL under the vite dev transform, so
 // the path is resolved from the project root instead.
 const COMMITTED = readFileSync(join(process.cwd(), 'public/sitemap.xml'), 'utf8')
 
 describe('the generator reads something', () => {
-  it('finds every article', () => {
+  it('finds every package landing and the articles under them', () => {
     // Guards the regex: a parser that matched nothing would make the
     // comparison below pass against an empty sitemap.
-    expect(docSlugs().length).toBeGreaterThanOrEqual(13)
-    expect(docSlugs()).toContain('artifacts')
+    expect(docCanonicalPaths().length).toBeGreaterThanOrEqual(20)
+    expect(docCanonicalPaths()).toContain('docs/artifacts')
+    expect(docCanonicalPaths()).toContain('docs/server/inference-backends')
+    expect(docCanonicalPaths()).toContain('docs/app/installing-igni')
   })
 })
 
@@ -40,9 +45,7 @@ describe('the committed sitemap', () => {
     expect(COMMITTED).toBe(buildSitemap())
   })
 
-  it('lists only routes the public build serves', () => {
-    // `/`, the product pages, the AgentCore comparison, `/docs` and
-    // `/docs/:slug` — see App.tsx. Everything else is a redirect to `/`.
+  it('lists only canonical routes the public build serves', () => {
     const locs = [...COMMITTED.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) =>
       m[1].slice(ORIGIN.length),
     )
@@ -52,11 +55,26 @@ describe('the committed sitemap', () => {
       '/docs',
       '/compare/agentcore',
       ...products,
-      ...docSlugs().map((s) => `/docs/${s}`),
+      ...docCanonicalPaths().map((s) => `/${s}`),
       ...sdkPaths().map((s) => `/${s}`),
     ])
 
     expect(locs.filter((l) => !allowed.has(l))).toEqual([])
+  })
+
+  it('does not list the retired redirect URLs', () => {
+    // Those still get a bucket object (site-routes), but a sitemap entry
+    // for a redirect tells a crawler to index the redirect.
+    for (const legacy of legacyDocPaths()) {
+      expect(COMMITTED).not.toContain(`<loc>${ORIGIN}/${legacy}</loc>`)
+    }
+  })
+
+  it('lists each package landing and its articles', () => {
+    expect(COMMITTED).toContain(`<loc>${ORIGIN}/docs/server</loc>`)
+    expect(COMMITTED).toContain(`<loc>${ORIGIN}/docs/server/self-hosting-the-server</loc>`)
+    expect(COMMITTED).toContain(`<loc>${ORIGIN}/docs/core/changelog</loc>`)
+    expect(COMMITTED).toContain(`<loc>${ORIGIN}/docs/fleet</loc>`)
   })
 
   it('lists the SDK documentation, down to a reference page', () => {
@@ -65,7 +83,7 @@ describe('the committed sitemap', () => {
     expect(COMMITTED).toContain(`<loc>${ORIGIN}/docs/sdk/igni-client/scheduler</loc>`)
   })
 
-  it('lists the npm packages\u2019 pages too', () => {
+  it('lists the npm packages’ pages too', () => {
     expect(COMMITTED).toContain(`<loc>${ORIGIN}/docs/sdk/extension-bridge</loc>`)
     expect(COMMITTED).toContain(`<loc>${ORIGIN}/docs/sdk/ui-react</loc>`)
     expect(COMMITTED).toContain(`<loc>${ORIGIN}/docs/sdk/ui-css</loc>`)

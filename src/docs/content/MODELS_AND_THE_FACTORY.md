@@ -33,7 +33,7 @@ The id is whatever the node reports — with vLLM, the name you give `--served-m
  "models": ["igni-1.0-4b", "sql", "docs"]}
 ```
 
-When an admin adds a node in the portal, the node itself is asked for its ids, so adapter names come from what the operator passed to `--lora-modules`. How nodes are added and chosen between is in [Connecting your GPUs](/docs/inference-backends).
+When an admin adds a node in the portal, the node itself is asked for its ids, so adapter names come from what the operator passed to `--lora-modules`. How nodes are added and chosen between is in [Connecting your GPUs](/docs/server/inference-backends).
 
 ## Choosing a model
 
@@ -44,7 +44,7 @@ igni has no built-in default model. A model is chosen, most specific first:
 3. **The group's `default_model`**, set by an org admin, for a request that names no model — usually a LoRA adapter, such as a legal team pinned to a legal-review adapter. A name no node serves is refused when it is set, with a list of what is served.
 4. **The deployment's default:** the first model the chosen node advertises.
 
-After sign-in, the client asks the server for the models it serves (`GET /v1/chat/models`) and registers each one. Only ids come back, never a node's address. Entries you wrote yourself are never overwritten. See [Administering your organisation](/docs/administering-your-organisation) for group defaults.
+After sign-in, the client asks the server for the models it serves (`GET /v1/chat/models`) and registers each one. Only ids come back, never a node's address. Entries you wrote yourself are never overwritten. See [Administering your organisation](/docs/server/administering-your-organisation) for group defaults.
 
 ## The small models igni runs itself
 
@@ -56,7 +56,7 @@ Two kinds of model run outside the nodes you serve, and both run without a netwo
 | `sentence-transformers/all-MiniLM-L6-v2` and the reranker `cross-encoder/ms-marco-MiniLM-L-6-v2` | Artifacts | In the documents service's embedder image, baked in at build time |
 | Laya (`convaiinnovations/laya`) | Bypass mode's last check, and `host.decide` for extensions | On each developer's machine, installed with `igni-core[decisions]` |
 
-Both CodeIndex and Artifacts keep their vectors in **Neo4j**: CodeIndex in a local database per project and commit, Artifacts in a database per organisation. See [CodeIndex](/docs/codeindex) and [Running the documents service](/docs/running-the-documents-service).
+Both CodeIndex and Artifacts keep their vectors in **Neo4j**: CodeIndex in a local database per project and commit, Artifacts in a database per organisation. See [CodeIndex](/docs/codeindex) and [Running the documents service](/docs/server/running-the-documents-service).
 
 ## The Factory
 
@@ -67,11 +67,11 @@ What that means for a deployment today:
 - **The Factory runs at Ignite Ember, not in your deployment.** Its outputs — model weights and adapters — are handed over, and you serve them on your own nodes like any other model.
 - **Nothing in igni server, the portal or the clients is the Factory.** There is no Factory service, screen or command to deploy.
 - **Factory models carry no licence and no expiry.** A model you received keeps working whatever happens to the licence.
-- **The Factory is a licensed module**, listed in the licence file with its own expiry and no user band. Nothing enforces it yet. See [Licensing and evaluations](/docs/licensing-and-evaluations).
+- **The Factory is a licensed module**, listed in the licence file with its own expiry and no user band. Nothing enforces it yet. See [Licensing and evaluations](/docs/server/licensing-and-evaluations).
 
 **Autopilot** is listed in the licence file and requires the Factory in the same licence. It has no code in igni yet.
 
 ## Where to go next
 
-- **[Connecting your GPUs](/docs/inference-backends)** — registering nodes, and how a request picks one.
-- **[Installing igni](/docs/installing-igni)** — the clients that use these models, and pre-seeding the decision model offline.
+- **[Connecting your GPUs](/docs/server/inference-backends)** — registering nodes, and how a request picks one.
+- **[Installing igni](/docs/app/installing-igni)** — the clients that use these models, and pre-seeding the decision model offline.

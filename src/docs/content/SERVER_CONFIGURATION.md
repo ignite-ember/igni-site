@@ -148,7 +148,7 @@ The other three are wrong for every real install and only fail when somebody cli
 | `MCP_GATEWAY_URL` | `http://mcp_gateway:7778` | A compose name; the chart replaces it with an in-cluster one. |
 | `CHAT_QUEUE_MAX_WAIT_SECONDS` | `900` | When every model node is full, a request waits its turn — fairly between organisations, then between people and apps — for at most this long, then gets a 429. |
 | `CHAT_QUEUE_MAX_LENGTH` | `2000` | The most requests that may wait in one API replica; past it, a 429 at once. |
-| `IGNI_LICENCE_FILE` | `/etc/igni/licence/licence.json` | The paid modules' licence. The server only shows it on the portal, installs an uploaded one, and audits it daily; the base ignores a missing file. See [Licensing and evaluations](/docs/licensing-and-evaluations). |
+| `IGNI_LICENCE_FILE` | `/etc/igni/licence/licence.json` | The paid modules' licence. The server only shows it on the portal, installs an uploaded one, and audits it daily; the base ignores a missing file. See [Licensing and evaluations](/docs/server/licensing-and-evaluations). |
 | `SERVICE_EVENTS_PER_MINUTE` | `600` | How many events one service may ask igni to deliver to producers per minute (`POST /v1/service-events`); past it, a 429 with `Retry-After`. `0` removes the limit. |
 | `SERVICE_EVENT_MAX_WAIT_SECONDS` | `1209600` (14 days) | The longest an undelivered event waits. An event without `expires_at` gets this; a later `expires_at` is cut to it. Then it expires: no longer handed out, and its service reads it as `expired`. |
 | `SERVICE_EVENT_RETENTION_DAYS` | `30` | Days an event is kept after it was delivered, expired or dropped, so its service can read what became of it; then the daily retention round deletes it. `0` keeps them. |
@@ -199,5 +199,5 @@ A handful of settings have no named chart value and no entry in `dist.env` — `
 
 ## Where to go next
 
-- **[Connecting your GPUs](/docs/inference-backends)** — the settings here describe the node list; that page describes what fills it.
-- **[Administering your organisation](/docs/administering-your-organisation)** — the configuration above decides which sign-in methods exist; that page is where you use them.
+- **[Connecting your GPUs](/docs/server/inference-backends)** — the settings here describe the node list; that page describes what fills it.
+- **[Administering your organisation](/docs/server/administering-your-organisation)** — the configuration above decides which sign-in methods exist; that page is where you use them.

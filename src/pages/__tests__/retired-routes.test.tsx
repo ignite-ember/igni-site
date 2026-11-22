@@ -29,10 +29,12 @@
  * behind a `VITE_PUBLIC_SITE` build flag; the portal's own `/` opens its
  * dashboard, and that is tested there.
  */
-import { beforeEach, describe, expect, test } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { beforeAll, beforeEach, describe, expect, test } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+
+import { LEGACY_REDIRECTS } from '../../docs/docsManifest'
 
 // The whole app is imported, which can take several seconds when the
 // full suite is running in parallel.
@@ -45,6 +47,23 @@ async function loadApp() {
 // `import.meta.url` is not a file: URL under the jsdom environment, so the
 // path is resolved from the vitest working directory (the repository root) instead.
 const APP_SOURCE = readFileSync(resolve(process.cwd(), 'src/App.tsx'), 'utf8')
+
+// The legacy redirects land on real article pages, which build an
+// IntersectionObserver and scroll to an anchor — neither exists in jsdom.
+beforeAll(() => {
+  class StubObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() {
+      return []
+    }
+  }
+  ;(globalThis as unknown as { IntersectionObserver: unknown }).IntersectionObserver = StubObserver
+  if (!Element.prototype.scrollIntoView) {
+    Element.prototype.scrollIntoView = () => {}
+  }
+})
 
 describe('retired public routes redirect to the live page', () => {
   beforeEach(() => {
@@ -104,3 +123,74 @@ describe('the retired component is gone', () => {
     expect(Object.keys(pages)).toContain('../LandingPage.tsx')
   })
 })
+
+describe('retired per-package /docs/<slug> URLs redirect to their new path', () => {
+  beforeEach(() => {
+    window.history.pushState({}, '', '/')
+  })
+
+  // A sample across the moved packages, plus the one hand-listed retired
+  // slug (the combined changelog, split per package).
+  test.each([
+    ['/docs/installing-igni', '/docs/app/installing-igni'],
+    ['/docs/self-hosting-the-server', '/docs/server/self-hosting-the-server'],
+    ['/docs/inference-backends', '/docs/server/inference-backends'],
+    ['/docs/sdks', '/docs/core/sdks'],
+    ['/docs/changes-and-upgrades', '/docs/core/changelog'],
+  ])('%s lands on %s, not a 404', async (from, to) => {
+    window.history.pushState({}, '', from)
+    const App = await loadApp()
+
+    render(<App />)
+
+    await waitFor(() => expect(window.location.pathname).toBe(to))
+    // The target is a real article, not the not-found blankslate: a
+    // redirect to a dead page is no better than a 404.
+    expect(screen.queryByText(/Article not found/i)).not.toBeInTheDocument()
+  }, IMPORT_TIMEOUT_MS)
+
+  test('a legacy deep link keeps its #anchor', async () => {
+    // `#workspace-trust` is lost if the redirect drops the hash. The
+    // in-article links were rewritten to the new paths, but an external
+    // bookmark to the old URL still carries one.
+    window.history.pushState({}, '', '/docs/permissions-and-safety#workspace-trust')
+    const App = await loadApp()
+
+    render(<App />)
+
+    await waitFor(() => expect(window.location.pathname).toBe('/docs/core/permissions-and-safety'))
+    expect(window.location.hash).toBe('#workspace-trust')
+  }, IMPORT_TIMEOUT_MS)
+
+  test('the single-page packages keep their original /docs/<slug> URL', async () => {
+    // Fleet, Artifacts and CodeIndex are now packages; their old
+    // /docs/<slug> URL is the package landing, so it does not redirect.
+    window.history.pushState({}, '', '/docs/fleet')
+    const App = await loadApp()
+
+    render(<App />)
+
+    await waitFor(() => expect(document.querySelector('h1')).toBeTruthy())
+    expect(window.location.pathname).toBe('/docs/fleet')
+    expect(screen.queryByText(/not found/i)).not.toBeInTheDocument()
+  }, IMPORT_TIMEOUT_MS)
+
+  test('every retired slug has a redirect target', () => {
+    // The map the route table is generated from: a slug with an empty or
+    // same-page target is a redirect that goes nowhere useful.
+    const entries = Object.entries(LEGACY_REDIRECTS)
+    expect(entries.length).toBeGreaterThan(10)
+    for (const [slug, to] of entries) {
+      expect(to.startsWith('/docs/')).toBe(true)
+      expect(to).not.toBe(`/docs/${slug}`)
+    }
+  })
+
+  test('the route table generates the redirects', () => {
+    // Read from the source: the redirects are mapped from LEGACY_REDIRECTS
+    // in App.tsx, so this is what keeps the mechanism in place.
+    expect(APP_SOURCE).toContain('LEGACY_REDIRECTS')
+    expect(APP_SOURCE).toContain('LegacyDocRedirect')
+  })
+})
+

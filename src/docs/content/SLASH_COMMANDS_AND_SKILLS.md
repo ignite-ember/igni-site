@@ -8,7 +8,7 @@ You type slash commands in a client attached to a running backend (`python -m ig
 
 1. **Built-in registry** — the table in `backend/builtin_command_registry.py`.
 2. **Markdown commands** — `.igni/commands/*.md` and friends, discovered fresh on every invocation (no caching, so you can edit a command file in another editor and the next invocation picks it up).
-3. **Extension commands** — what an installed extension declares under `contributes.commands`. They come after the built-ins, so an extension cannot take `/clear`; see [Building extensions](/docs/building-extensions).
+3. **Extension commands** — what an installed extension declares under `contributes.commands`. They come after the built-ins, so an extension cannot take `/clear`; see [Building extensions](/docs/core/building-extensions).
 4. **Skills** — matched against the session's skill pool, only if `user-invocable` is true.
 
 A skill loses to a markdown file of the same name. Nothing matches at all, you get `Unknown command: /foo`.
@@ -165,6 +165,6 @@ Markdown-command shell tokens run with no confirmation and no permission check. 
 
 ## Where to go next
 
-- **[Agents and orchestration](/docs/agents-and-orchestration)** — the agents a command can hand work to.
-- **[Tools, MCP servers and language servers](/docs/tools-mcp-and-language-servers)** — what a command may call.
-- **[Building extensions](/docs/building-extensions)** — shipping skills and commands as part of an extension.
+- **[Agents and orchestration](/docs/core/agents-and-orchestration)** — the agents a command can hand work to.
+- **[Tools, MCP servers and language servers](/docs/core/tools-mcp-and-language-servers)** — what a command may call.
+- **[Building extensions](/docs/core/building-extensions)** — shipping skills and commands as part of an extension.

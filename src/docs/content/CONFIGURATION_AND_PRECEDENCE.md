@@ -64,7 +64,7 @@ Validation happens once, at the end: the accumulated dict is passed through `Set
 
 ## A project's config waits for trust
 
-Tiers 4–7 come with the repository, and anyone who can commit to it writes them. So until you trust the folder, its config may not set `permissions` (rules, categories and `mode`) or `safety` (the protected-path, blocked-command and confirmation lists, the Bypass guard) — those keys are dropped with a warning and the rest of the file applies. Some keys a project may never set, trusted or not: `network`, `air_gapped`, `api_url`, `portal_url`, `update_endpoint`, `plugins.marketplaces`, `storage.data_dir` and `workspace_trust`. What else trust gates, and how you grant it, is on [Permissions & safety](/docs/permissions-and-safety#workspace-trust).
+Tiers 4–7 come with the repository, and anyone who can commit to it writes them. So until you trust the folder, its config may not set `permissions` (rules, categories and `mode`) or `safety` (the protected-path, blocked-command and confirmation lists, the Bypass guard) — those keys are dropped with a warning and the rest of the file applies. Some keys a project may never set, trusted or not: `network`, `air_gapped`, `api_url`, `portal_url`, `update_endpoint`, `plugins.marketplaces`, `storage.data_dir` and `workspace_trust`. What else trust gates, and how you grant it, is on [Permissions & safety](/docs/core/permissions-and-safety#workspace-trust).
 
 **Managed values are final.** A permission field set in `managed-settings.yaml` or your group's policy cannot be loosened by any tier below it, a trusted project included. A managed `shell_execute: ask` holds against a project's `allow: [Bash]`, even though `ask` is the default.
 
@@ -166,7 +166,7 @@ In a folder you have not trusted, project plugins are not loaded and a project c
 
 Markdown slash commands are loaded in order `~/.claude/commands`, `~/.igni/commands`, group cache, `<project>/.claude/commands`, `<project>/.igni/commands` — later roots overwrite earlier ones by name. A file's basename is the command name, so `commands/review.md` is `/review`; the body supports `$ARGUMENTS`, `` !`cmd` `` shell substitution and `@<path>` file inlining.
 
-An extension can replace an agent while it runs: its plugin ships `<agent>.<variant>.md`, and that file is the agent until the extension stops. See [Building extensions](/docs/building-extensions).
+An extension can replace an agent while it runs: its plugin ships `<agent>.<variant>.md`, and that file is the agent until the extension stops. See [Building extensions](/docs/core/building-extensions).
 
 Plugins — directories containing `.claude-plugin/plugin.json` — are scanned across seven roots: `~/.claude/plugins` (1), `~/.igni/plugins` (2), `<project>/.claude/plugins` (3), `<project>/.igni/plugins` (4), `<data_dir>/group-policy/plugins` (5), `<managed>/.claude/plugins` (6), `<managed>/.igni/plugins` (7). The managed tiers win, and the "you can't `--auto-approve` your way out of org policy" rule extends to "you can't disable an org-enforced plugin".
 
@@ -182,6 +182,6 @@ The `.claude` roots for agents, skills, rules files and hooks are read only whil
 
 ## Where to go next
 
-- **[Project context, rules and memory](/docs/project-context-and-memory)** — the files igni reads before it answers, and how they merge with these settings.
-- **[Permissions and safety](/docs/permissions-and-safety)** — the modes that decide what the agent may do, and where they are set.
-- **[Your first session](/docs/your-first-session)** — where each of these files first appears.
+- **[Project context, rules and memory](/docs/core/project-context-and-memory)** — the files igni reads before it answers, and how they merge with these settings.
+- **[Permissions and safety](/docs/core/permissions-and-safety)** — the modes that decide what the agent may do, and where they are set.
+- **[Your first session](/docs/app/your-first-session)** — where each of these files first appears.

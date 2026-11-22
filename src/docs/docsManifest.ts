@@ -1,57 +1,28 @@
 /**
- * The documentation index.
+ * The documentation index — per package.
  *
- * Rebuilt from source. Every article was written by reading the code
- * — never the previous documentation, which had drifted — and then
- * checked by a second pass that opened each cited file and ruled on
- * every factual claim. 953 claims were checked; 20 were wrong and
- * were corrected, and 1 could not be proved and was cut.
+ * Every article was written by reading the code (never the previous,
+ * drifted documentation) and checked by a second pass that opened each
+ * cited file and ruled on every factual claim.
  *
- * Four articles were added afterwards — the glossary, the
- * troubleshooting index, the first-session walkthrough and the
- * changelog — and the whole set was then checked against the source
- * again. That pass found 15 further errors across seven articles and
- * every one was corrected: the sign-in timeout, the provider list, a
- * fifth team mode that does not exist, the `igni` command's old name,
- * the `ignite-ember` alias before 1.0.4, the Homebrew formula's
- * command, the SDK tag, the desktop app's cache directory, and the
- * audit trail's rule.
+ * Phase 1 of the docs-versioning plan splits what used to be one mixed
+ * index — a single set of articles at one version that blended every
+ * product — into a documentation set per package. The packages are
+ * `core`, `app`, `server` (the portal is documented inside it), `fleet`,
+ * `artifacts` and `codeindex`; the generated SDK docs keep their own
+ * `sdk/<package>` section (see `sdkManifest.ts`). `/docs` is a product
+ * grid, each package has its own index and left-nav, and the combined
+ * changelog is split into one changelog per package.
  *
- * A third pass put an adversarial reader on each of the four new
- * articles on its own, with the source it names and no other brief.
- * Fourteen errors came back and every one was corrected: the image
- * tags the release workflow actually pushes, the SDK packages'
- * release-note headings, a package that is not on PyPI yet described
- * as published, the Anthropic and Gemini SDKs being dependencies
- * rather than extras, an exit code of 1 that always comes with a
- * message, `--verbose` printing nothing in the terminal, the group
- * pack arriving only on a browser sign-in, the built-in skills being
- * written whatever the group ships, and the first run's file list.
+ * Version history and the version selector are Phase 2; here each package
+ * shows its single current version (the Phase 0 numbers). Rebuilding an
+ * article means adding its markdown under `content/` and one entry below,
+ * with its `package`.
  *
- * A fourth pass audited the glossary against the source, term by
- * term. Six errors came back and every one was corrected: a skill is
- * not only shipped and a command is not only yours, a hook's answers
- * are `allow`/`deny`/`ask`/`defer` and `Allow`/`Reject`/`Modify`
- * belong to the extension SDK, the word "pool" is alive in 0.7.0's
- * own code, "model profile" is a **VM profile** or nothing, `models:`
- * in the server's backends file holds model ids, and the Factory is
- * a name a licence carries.
- *
- * These describe the release after **1.0.3** — igni-core 1.0.4 and igni
- * server 0.7.0. 1.0.3 is what is on PyPI today and predates the rename,
- * so it reads `~/.ember`; the install guide says so in a note rather than
- * waiting for the release, and "Changes and upgrades" has the whole
- * version story.
- *
- * Revised on 2026-10-30 against the code: IDE plugins dropped,
- * CodeIndex and Artifacts moved into extensions, the licence, the
- * offline bundle and the fair model queue added, and seven articles
- * written for what had none — installing, CodeIndex, Fleet, building
- * extensions, licensing, offline updates, and models and the Factory.
- *
- * The renderer, the table-of-contents extraction, search and the
- * category index are untouched and still tested. Rebuilding an article
- * means adding its markdown under `content/` and one entry below.
+ * `scripts/generate-sitemap.mjs` and `scripts/site-routes.mjs` read this
+ * file as text (plain node cannot import a module that does `?raw`
+ * imports), so keep `PACKAGES`, `DOCS` and `RETIRED_DOC_SLUGS` as plain
+ * literals with `slug:` and `package:` on their own.
  */
 
 import projectContextAndMemoryRaw from './content/PROJECT_CONTEXT_AND_MEMORY.md?raw'
@@ -77,14 +48,46 @@ import buildingExtensionsRaw from './content/BUILDING_EXTENSIONS.md?raw'
 import sdksRaw from './content/SDKS.md?raw'
 import yourFirstSessionRaw from './content/FIRST_SESSION.md?raw'
 import glossaryRaw from './content/GLOSSARY.md?raw'
-import changesAndUpgradesRaw from './content/CHANGES_AND_UPGRADES.md?raw'
 import troubleshootingRaw from './content/TROUBLESHOOTING.md?raw'
+import coreChangelogRaw from './content/CORE_CHANGELOG.md?raw'
+import appChangelogRaw from './content/APP_CHANGELOG.md?raw'
+import serverChangelogRaw from './content/SERVER_CHANGELOG.md?raw'
+
+/** The stable URL slug of a documentation package. */
+export type DocPackageSlug =
+  | 'core'
+  | 'app'
+  | 'server'
+  | 'fleet'
+  | 'artifacts'
+  | 'codeindex'
+
+export interface DocPackage {
+  slug: DocPackageSlug
+  /** The product's name, as the registry/repository knows it. */
+  name: string
+  /** The card and landing title. */
+  title: string
+  /** One line for the product grid and the package landing. */
+  tagline: string
+  /** The current version, shown as a label. Undefined for a parked module. */
+  version?: string
+  /** The label text when there is no version to show (a parked module). */
+  versionLabel?: string
+  /**
+   * A single-page package: its one article is its landing, rendered at
+   * `/docs/<slug>` (not `/docs/<slug>/<article>`). Fleet and the two
+   * parked modules are these.
+   */
+  single?: boolean
+}
 
 export interface DocArticle {
   slug: string
   title: string
   description: string
   category: DocCategory
+  package: DocPackageSlug
   content: string
 }
 
@@ -95,12 +98,10 @@ export type DocCategory =
   | 'modules'
   | 'extending'
   | 'operations'
+  | 'release-notes'
 
-/** The order the index lists categories in, and the order the
- *  prev/next buttons walk. Operations leads because the two
- *  journeys people arrive with — "how do I deploy this" and "how
- *  do I get my team onto it" — are both operations, and both used
- *  to start nine articles down the page. */
+/** The order categories are listed in within a package, and the order the
+ *  prev/next buttons walk its articles. */
 export const CATEGORY_ORDER: DocCategory[] = [
   'getting-started',
   'operations',
@@ -108,6 +109,7 @@ export const CATEGORY_ORDER: DocCategory[] = [
   'features',
   'modules',
   'extending',
+  'release-notes',
 ]
 
 export const CATEGORY_META: Record<DocCategory, { label: string; description: string }> = {
@@ -124,8 +126,8 @@ export const CATEGORY_META: Record<DocCategory, { label: string; description: st
     description: 'What it can do',
   },
   modules: {
-    label: 'Paid modules',
-    description: 'CodeIndex, Artifacts, Fleet and the Factory',
+    label: 'Overview',
+    description: 'What this module is',
   },
   extending: {
     label: 'Extending igni',
@@ -135,14 +137,75 @@ export const CATEGORY_META: Record<DocCategory, { label: string; description: st
     label: 'Operations',
     description: 'Configuring, securing and running it',
   },
+  'release-notes': {
+    label: 'Release notes',
+    description: 'What changed, and what to change when you upgrade',
+  },
 }
 
+/**
+ * The documentation packages, in the order the `/docs` product grid lists
+ * them. igni is not "four things": it is these six documented packages,
+ * plus the SDK packages under `sdk/`.
+ */
+export const PACKAGES: DocPackage[] = [
+  {
+    slug: 'core',
+    name: 'igni-core',
+    title: 'igni core',
+    tagline:
+      'The engine, the igni CLI and the agent: configuration, project context, permissions, agents, tools, hooks, models, and extending igni.',
+    version: '1.0.5',
+  },
+  {
+    slug: 'app',
+    name: 'igni app',
+    title: 'igni app',
+    tagline: 'The desktop app and the web client: installing igni and your first session.',
+    version: '1.0.5',
+  },
+  {
+    slug: 'server',
+    name: 'igni server',
+    title: 'igni server',
+    tagline:
+      'Self-hosting the API, portal and migrations: configuration, inference and cloud providers, administration, offline updates and licensing.',
+    version: '0.8.0',
+  },
+  {
+    slug: 'fleet',
+    name: 'Fleet',
+    title: 'Fleet',
+    tagline: 'A cloud agent in an isolated microVM for every person and app, on your own servers.',
+    version: '0.1.2',
+    single: true,
+  },
+  {
+    slug: 'artifacts',
+    name: 'Artifacts',
+    title: 'Artifacts',
+    tagline: 'Shared documents the agent writes, with versions, comments and lineage.',
+    versionLabel: 'Paid module',
+    single: true,
+  },
+  {
+    slug: 'codeindex',
+    name: 'CodeIndex',
+    title: 'CodeIndex',
+    tagline: 'A queryable graph of your code for the agent to search and review.',
+    versionLabel: 'Paid module',
+    single: true,
+  },
+]
+
 export const DOCS: DocArticle[] = [
+  // ── igni app ──────────────────────────────────────────────────────
   {
     slug: 'installing-igni',
     title: "Installing igni: the desktop app and the CLI",
     description: "Installing the desktop app and the CLI, signing in to your server, and installing on a machine with no internet access.",
     category: 'getting-started',
+    package: 'app',
     content: installingIgniRaw,
   },
   {
@@ -150,83 +213,32 @@ export const DOCS: DocArticle[] = [
     title: "Your first session",
     description: "One run, from an empty terminal to a finished task: installing it, signing in, saying what it may do, and where to go next.",
     category: 'getting-started',
+    package: 'app',
     content: yourFirstSessionRaw,
   },
+  {
+    slug: 'changelog',
+    title: "igni app: changes and upgrades",
+    description: "The desktop app and web client's releases, and what changes when you cross a version boundary.",
+    category: 'release-notes',
+    package: 'app',
+    content: appChangelogRaw,
+  },
+  // ── igni core ─────────────────────────────────────────────────────
   {
     slug: 'models-and-the-factory',
     title: "Models and the Factory",
     description: "igni's own models, serving them and their LoRA adapters on your GPUs, how a model is chosen, and what the Factory is.",
-    category: 'getting-started',
+    category: 'core-concepts',
+    package: 'core',
     content: modelsAndTheFactoryRaw,
-  },
-  {
-    slug: 'self-hosting-the-server',
-    title: "Self-hosting the igni server",
-    description: "Deploying the API, portal and migrations with Helm or Docker Compose, and knowing when the thing is actually up.",
-    category: 'operations',
-    content: selfHostingTheServerRaw,
-  },
-  {
-    slug: 'server-configuration',
-    title: "Server configuration reference",
-    description: "Every setting an operator sets, what it does, and which ones are safe to leave empty.",
-    category: 'operations',
-    content: serverConfigurationRaw,
-  },
-  {
-    slug: 'inference-backends',
-    title: "Connecting your GPUs: inference backends",
-    description: "How the server routes chat over the inference nodes you own, and how capacity is shared between them.",
-    category: 'operations',
-    content: inferenceBackendsRaw,
-  },
-  {
-    slug: 'administering-your-organisation',
-    title: "Administering your organisation in the portal",
-    description: "Admitting developers, publishing where your server is so they never type a URL, shipping them a standard set of agents and skills, and taking access away again.",
-    category: 'operations',
-    content: administeringYourOrganisationRaw,
-  },
-  {
-    slug: 'running-the-documents-service',
-    title: "Running the documents service",
-    description: "The optional deployment behind shared documents: what it needs, how it pairs with the server, and what is not yet packaged.",
-    category: 'operations',
-    content: runningTheDocumentsServiceRaw,
-  },
-  {
-    slug: 'licensing-and-evaluations',
-    title: "Licensing and evaluations",
-    description: "The offline, signed licence file the paid modules check, where it goes, and what happens when a licence or an evaluation runs out.",
-    category: 'operations',
-    content: licensingAndEvaluationsRaw,
-  },
-  {
-    slug: 'offline-updates',
-    title: "Offline updates: the signed release bundle",
-    description: "Carrying a release into a network with no route out, verifying it, and importing it into your own registry with igni-import.",
-    category: 'operations',
-    content: offlineUpdatesRaw,
-  },
-  {
-    slug: 'changes-and-upgrades',
-    title: "Changes and upgrades",
-    description: "The four products and their versions, what changed at each of the recent boundaries, and what you have to change when you cross one.",
-    category: 'operations',
-    content: changesAndUpgradesRaw,
-  },
-  {
-    slug: 'troubleshooting',
-    title: "Troubleshooting",
-    description: "The errors igni actually prints, what each one means, and what to do about it.",
-    category: 'operations',
-    content: troubleshootingRaw,
   },
   {
     slug: 'configuration-and-precedence',
     title: "Configuration: files, precedence and where igni loads things from",
     description: "The settings files igni reads, the order they win in, and the same tiering applied to agents, skills, commands and plugins.",
     category: 'core-concepts',
+    package: 'core',
     content: configurationAndPrecedenceRaw,
   },
   {
@@ -234,13 +246,15 @@ export const DOCS: DocArticle[] = [
     title: "Glossary",
     description: "Every term igni uses, and what it means here. Where a word means more than one thing, the entry says which sense is meant.",
     category: 'core-concepts',
+    package: 'core',
     content: glossaryRaw,
   },
   {
     slug: 'project-context-and-memory',
     title: "Project context, rules and memory",
-    description: "The files igni reads before it answers \u2014 igni.md, rules directories, personal overrides \u2014 and what it remembers between sessions.",
+    description: "The files igni reads before it answers — igni.md, rules directories, personal overrides — and what it remembers between sessions.",
     category: 'core-concepts',
+    package: 'core',
     content: projectContextAndMemoryRaw,
   },
   {
@@ -248,6 +262,7 @@ export const DOCS: DocArticle[] = [
     title: "Permissions and safety",
     description: "The five permission modes, the categories they act on, the CLI flags that set them, and the safety rules that sit underneath.",
     category: 'core-concepts',
+    package: 'core',
     content: permissionsAndSafetyRaw,
   },
   {
@@ -255,13 +270,15 @@ export const DOCS: DocArticle[] = [
     title: "Agents and orchestration",
     description: "The main agent, the specialists that ship with igni, how to write your own, and how work gets handed to a team.",
     category: 'core-concepts',
+    package: 'core',
     content: agentsAndOrchestrationRaw,
   },
   {
     slug: 'slash-commands-and-skills',
     title: "Slash commands, skills and output styles",
-    description: "Everything you can type after a slash \u2014 the built-ins, the markdown commands you write yourself, and the skills that package a procedure.",
+    description: "Everything you can type after a slash — the built-ins, the markdown commands you write yourself, and the skills that package a procedure.",
     category: 'features',
+    package: 'core',
     content: slashCommandsAndSkillsRaw,
   },
   {
@@ -269,35 +286,24 @@ export const DOCS: DocArticle[] = [
     title: "Tools, MCP servers and language servers",
     description: "The eight built-in tools, why there is no Read or Grep, how to add your own, and how to attach MCP servers.",
     category: 'features',
+    package: 'core',
     content: toolsMcpAndLanguageServersRaw,
   },
   {
     slug: 'hooks-workflows-and-scheduled-tasks',
     title: "Hooks, workflows and scheduled tasks",
-    description: "Running your own code when igni does something \u2014 event hooks, scripted workflows and tasks that run later.",
+    description: "Running your own code when igni does something — event hooks, scripted workflows and tasks that run later.",
     category: 'features',
+    package: 'core',
     content: hooksWorkflowsAndScheduledTasksRaw,
   },
   {
-    slug: 'artifacts',
-    title: "Artifacts: shared documents and lineage",
-    description: "Artifacts are the documents the agent writes. Publishing one to a link your colleagues can open, versioning a set together, and tracking what each was built on.",
-    category: 'modules',
-    content: artifactsRaw,
-  },
-  {
-    slug: 'codeindex',
-    title: "CodeIndex: a queryable graph of your code",
-    description: "What CodeIndex builds from your repositories, the index on each developer's machine, what the agent gets from it, and deploying the service.",
-    category: 'modules',
-    content: codeindexRaw,
-  },
-  {
-    slug: 'fleet',
-    title: "Fleet: an agent in a microVM for every person and app",
-    description: "The gateway, node agent and Firecracker microVMs behind Fleet, what a host needs, how it ties into igni server, and what is not finished.",
-    category: 'modules',
-    content: fleetRaw,
+    slug: 'building-extensions',
+    title: "Building extensions",
+    description: "The manifest, approval and distribution, the host API, the SDKs, and the two ways a service reaches a person's agent.",
+    category: 'extending',
+    package: 'core',
+    content: buildingExtensionsRaw,
   },
   {
     slug: 'sdks',
@@ -305,16 +311,183 @@ export const DOCS: DocArticle[] = [
     description:
       "Building on igni from your own code: the OpenAI-compatible model API, igni-client, igni-service and igni-extension, the TypeScript page packages, and the CLI — with install, authentication and worked examples.",
     category: 'extending',
+    package: 'core',
     content: sdksRaw,
   },
   {
-    slug: 'building-extensions',
-    title: "Building extensions",
-    description: "The manifest, approval and distribution, the host API, the SDKs, and the two ways a service reaches a person's agent.",
-    category: 'extending',
-    content: buildingExtensionsRaw,
+    slug: 'troubleshooting',
+    title: "Troubleshooting",
+    description: "The errors igni actually prints, what each one means, and what to do about it.",
+    category: 'operations',
+    package: 'core',
+    content: troubleshootingRaw,
+  },
+  {
+    slug: 'changelog',
+    title: "igni-core: changes and upgrades",
+    description: "The backend, the igni command and the decisions service: the package rename, where igni keeps things, and the current release.",
+    category: 'release-notes',
+    package: 'core',
+    content: coreChangelogRaw,
+  },
+  // ── igni server ───────────────────────────────────────────────────
+  {
+    slug: 'self-hosting-the-server',
+    title: "Self-hosting the igni server",
+    description: "Deploying the API, portal and migrations with Helm or Docker Compose, and knowing when the thing is actually up.",
+    category: 'operations',
+    package: 'server',
+    content: selfHostingTheServerRaw,
+  },
+  {
+    slug: 'server-configuration',
+    title: "Server configuration reference",
+    description: "Every setting an operator sets, what it does, and which ones are safe to leave empty.",
+    category: 'operations',
+    package: 'server',
+    content: serverConfigurationRaw,
+  },
+  {
+    slug: 'inference-backends',
+    title: "Connecting your GPUs: inference backends",
+    description: "How the server routes chat over the inference nodes and cloud providers you own, and how capacity is shared between them.",
+    category: 'operations',
+    package: 'server',
+    content: inferenceBackendsRaw,
+  },
+  {
+    slug: 'administering-your-organisation',
+    title: "Administering your organisation in the portal",
+    description: "Admitting developers, publishing where your server is so they never type a URL, shipping them a standard set of agents and skills, and taking access away again.",
+    category: 'operations',
+    package: 'server',
+    content: administeringYourOrganisationRaw,
+  },
+  {
+    slug: 'running-the-documents-service',
+    title: "Running the documents service",
+    description: "The optional deployment behind shared documents: what it needs, how it pairs with the server, and what is not yet packaged.",
+    category: 'operations',
+    package: 'server',
+    content: runningTheDocumentsServiceRaw,
+  },
+  {
+    slug: 'offline-updates',
+    title: "Offline updates: the signed release bundle",
+    description: "Carrying a release into a network with no route out, verifying it, and importing it into your own registry with igni-import.",
+    category: 'operations',
+    package: 'server',
+    content: offlineUpdatesRaw,
+  },
+  {
+    slug: 'licensing-and-evaluations',
+    title: "Licensing and evaluations",
+    description: "The offline, signed licence file the paid modules check, where it goes, and what happens when a licence or an evaluation runs out.",
+    category: 'operations',
+    package: 'server',
+    content: licensingAndEvaluationsRaw,
+  },
+  {
+    slug: 'changelog',
+    title: "igni server: changes and upgrades",
+    description: "The API, portal and migrations: the pools removal, the offline bundle's new shape, and the 0.7.1 and 0.8.0 releases.",
+    category: 'release-notes',
+    package: 'server',
+    content: serverChangelogRaw,
+  },
+  // ── Fleet (single page) ───────────────────────────────────────────
+  {
+    slug: 'fleet',
+    title: "Fleet: an agent in a microVM for every person and app",
+    description: "The gateway, node agent and Firecracker microVMs behind Fleet, what a host needs, how it ties into igni server, and what is not finished.",
+    category: 'modules',
+    package: 'fleet',
+    content: fleetRaw,
+  },
+  // ── Artifacts (single page) ───────────────────────────────────────
+  {
+    slug: 'artifacts',
+    title: "Artifacts: shared documents and lineage",
+    description: "Artifacts are the documents the agent writes. Publishing one to a link your colleagues can open, versioning a set together, and tracking what each was built on.",
+    category: 'modules',
+    package: 'artifacts',
+    content: artifactsRaw,
+  },
+  // ── CodeIndex (single page) ───────────────────────────────────────
+  {
+    slug: 'codeindex',
+    title: "CodeIndex: a queryable graph of your code",
+    description: "What CodeIndex builds from your repositories, the index on each developer's machine, what the agent gets from it, and deploying the service.",
+    category: 'modules',
+    package: 'codeindex',
+    content: codeindexRaw,
   },
 ]
+
+/**
+ * Legacy single-segment `/docs/<slug>` URLs retired by the per-package
+ * split that are not simply a moved article (moved articles' redirects are
+ * derived from `DOCS`). Kept a plain literal so the sitemap/site-routes
+ * scripts can read it as text.
+ */
+export const RETIRED_DOC_SLUGS: Record<string, string> = {
+  'changes-and-upgrades': '/docs/core/changelog',
+}
+
+export function docPackage(slug: string | undefined): DocPackage | undefined {
+  return PACKAGES.find((p) => p.slug === slug)
+}
+
+/** A package's articles, in category order then manifest order. */
+export function articlesOf(pkg: string | undefined): DocArticle[] {
+  return DOCS.map((d, i) => ({ d, i }))
+    .filter((x) => x.d.package === pkg)
+    .sort((a, b) => {
+      const c = CATEGORY_ORDER.indexOf(a.d.category) - CATEGORY_ORDER.indexOf(b.d.category)
+      return c !== 0 ? c : a.i - b.i
+    })
+    .map((x) => x.d)
+}
+
+/** The one article of a single-page package, if that is what `pkg` is. */
+export function overviewArticle(pkg: string | undefined): DocArticle | undefined {
+  return docPackage(pkg)?.single ? DOCS.find((d) => d.package === pkg) : undefined
+}
+
+export function findArticle(pkg: string | undefined, slug: string | undefined): DocArticle | undefined {
+  return DOCS.find((d) => d.package === pkg && d.slug === slug)
+}
+
+/** The site path of an article. A single-page package's article is its
+ *  landing (`/docs/<pkg>`); every other article is `/docs/<pkg>/<slug>`. */
+export function docHref(a: DocArticle): string {
+  return docPackage(a.package)?.single ? `/docs/${a.package}` : `/docs/${a.package}/${a.slug}`
+}
+
+export function packageHref(pkg: DocPackage): string {
+  return `/docs/${pkg.slug}`
+}
+
+/** The version label a package shows: its version, or its parked-module text. */
+export function packageVersionLabel(pkg: DocPackage): string {
+  return pkg.version ? `v${pkg.version}` : (pkg.versionLabel ?? '')
+}
+
+/**
+ * Every legacy `/docs/<slug>` URL and where it now resolves. Moved
+ * articles (those in multi-page packages) redirect to their new path;
+ * the single-page packages keep their original `/docs/<slug>` URL and so
+ * need no redirect; `RETIRED_DOC_SLUGS` adds the rest.
+ */
+export const LEGACY_REDIRECTS: Record<string, string> = {
+  ...Object.fromEntries(
+    DOCS.filter((d) => !docPackage(d.package)?.single && d.category !== 'release-notes').map((d) => [
+      d.slug,
+      `/docs/${d.package}/${d.slug}`,
+    ]),
+  ),
+  ...RETIRED_DOC_SLUGS,
+}
 
 export function headingId(text: string): string {
   return text
