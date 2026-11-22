@@ -1,6 +1,6 @@
 igni reaches a developer in two forms: the **desktop app**, which is how a person uses it, and the **CLI**, for scripts and CI. Both run the same agent on the developer's own machine and talk to your igni server for sign-in and models. This page covers installing each, signing in, and installing on a machine with no internet access. There are no IDE plugins; the desktop app and the CLI are the clients.
 
-> **Note:** This documentation describes **1.0.4**, which is not published yet. Today PyPI serves `ignite-ember` **1.0.3** — the pre-split monolith, whose module is `ember_code` and which keeps its files in `~/.ember`. The package `igni-core` is not on PyPI, so `pip install igni-core` does not work yet, and `pip install ignite-ember` gives you 1.0.3. The next release keeps its files in `~/.igni` and moves an existing `~/.ember` there on first start. [Changes and upgrades](/docs/changes-and-upgrades) has the whole version story.
+> **Note:** This documentation describes **1.0.5**, the current release. It is on PyPI as `igni-core`, so `pip install igni-core` gives you 1.0.5. The `ignite-ember` name on PyPI is still the pre-split monolith — **1.0.3**, whose module is `ember_code` and which keeps its files in `~/.ember` — so `pip install ignite-ember` still gives you 1.0.3 until the alias package ships. `igni-core` keeps its files in `~/.igni` and moves an existing `~/.ember` there on first start. [Changes and upgrades](/docs/changes-and-upgrades) has the whole version story.
 
 ## The desktop app
 
@@ -46,7 +46,7 @@ Set these in `~/.igni/config.yaml`, in the managed-settings file, or in a group'
 pip install igni-core
 ```
 
-The package is **`igni-core`** — the name igni's backend and CLI were renamed to when the monolith was split. From 1.0.4 the old name keeps working through an alias package that carries metadata and nothing else and depends on `igni-core` at the same version, so `pip install ignite-ember` resolves to the same thing. Until 1.0.4 is published, `pip install ignite-ember` gives you 1.0.3, the pre-split monolith. Either way it needs **Python 3.12** exactly. It installs the command `igni`, and `ignite-ember` as an alias.
+The package is **`igni-core`** — the name igni's backend and CLI were renamed to when the monolith was split — and it is on PyPI now, so install it directly. The `ignite-ember` name is meant to become an alias package that carries metadata and nothing else and depends on `igni-core` at the same version; until that alias ships, `pip install ignite-ember` still gives you 1.0.3, the pre-split monolith, so prefer `pip install igni-core`. It needs **Python 3.12** exactly. `igni-core` installs the command `igni`, and `ignite-ember` as an alias of it.
 
 There is also a Homebrew formula:
 
@@ -54,7 +54,7 @@ There is also a Homebrew formula:
 brew install ignite-ember/tap/ignite-ember
 ```
 
-It installs the published 1.0.3, and it puts the `ignite-ember` command on your `PATH` — not `igni`.
+It installs the published `ignite-ember` — the pre-split monolith, **1.0.3** — and it puts the `ignite-ember` command on your `PATH`, not `igni`. For the current backend, use `pip install igni-core` instead.
 
 Optional extras:
 

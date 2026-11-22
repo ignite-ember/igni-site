@@ -2,7 +2,7 @@ igni has a free base and paid modules. The base — igni server, the portal, the
 
 ## One file, checked offline
 
-A licence is a small JSON file signed by Ignite Ember with Ed25519. The public key is built into each release. Nothing contacts Ignite Ember: there is no activation, no call home and no online check, so an air-gapped deployment works exactly like any other.
+A licence is a small JSON file signed by Ignite Ember with Ed25519. The release public key (`ie-2026`) is built into each release — igni server, the paid modules and the Fleet gateway — and every licence is verified against it offline. A separate test key exists for development only, trusted just when a component runs with its development setting (`APP_ENV=dev`, or `[licence] trust_test_key = true` on the Fleet gateway). Nothing contacts Ignite Ember: there is no activation, no call home and no online check, so an air-gapped deployment works exactly like any other.
 
 **Each paid module checks the licence itself.** It reads the file, verifies the signature with the key built into it, and decides what it may do. igni server reads the same file only to show it on the portal, to install an uploaded one, and to write a daily audit event. A module never asks igni server whether it is licensed.
 
@@ -74,7 +74,7 @@ Set `licence.existingSecret: igni-licence` in igni's chart. The chart mounts it 
 
 **Docker Compose.** Put the file in one directory, `IGNI_LICENCE_DIR` (default `./licence`). `containers/docker-compose.prod.yml` mounts it into the API; mount it into each module at the same path.
 
-**Through the API.** A super admin can upload a file with `PUT /v1/portal/licence`, the file's JSON as the body. igni server verifies it first. A file it would not accept is refused with `422` and the reason. Where the path is a mounted Secret, the answer is `409` (`licence_path_read_only`); update the Secret instead.
+**In the portal, or through the API.** A super admin can install a licence from the portal at *Deployment → Licence* (added in igni server 0.7.0), which calls `PUT /v1/portal/licence`; a program can send the file's JSON to that endpoint directly. igni server verifies it first. A file it would not accept is refused with `422` and the reason. Where the path is a mounted Secret, the answer is `409` (`licence_path_read_only`); update the Secret instead.
 
 **Renewing is replacing the file.** Each component looks at it again at most once a minute and re-verifies it when it has changed. Nothing restarts.
 
@@ -138,9 +138,7 @@ The `users` number is never a hard limit. A module over its band keeps working, 
 
 ## Known limits
 
-- **No release key is built in yet.** Until Ignite Ember publishes its release key, no deployment outside development accepts a licence, and every paid module stays off. A test key exists for development only, and is trusted only when a module runs with its development setting (`APP_ENV=dev`, or `[licence] trust_test_key = true` on the Fleet gateway).
-- **There is no portal screen for uploading a licence yet.** Use the Secret, the mounted directory, or `PUT /v1/portal/licence`.
-- **The clock is yours.** Setting the system clock back delays a lapse. Nothing records the latest time seen.
+- **The system clock is trusted offline.** A component that checks the licence file on its own — a module, the Fleet gateway — reads the local clock, so setting it back can delay a lapse there. **igni server 0.8.0** closes this for the server: it keeps a tamper-evident central licence clock, so a lapse cannot be delayed by moving the machine's clock back.
 - **The desktop app and CLI do not show the `igni-licence` header yet.** The portal banner does.
 - **A Fleet node's own timed wakes are not refused in read-only yet.** See [Fleet](/docs/fleet).
 

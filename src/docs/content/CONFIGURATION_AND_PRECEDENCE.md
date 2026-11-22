@@ -7,11 +7,12 @@ There are two config directories and they hold different things:
 - `~/.igni` — this machine's state and credentials (`credentials.json`, `ember.db`, the group-policy cache), plus your personal settings.
 - `<project>/.igni` — the project's own configuration and the files a team would share.
 
-> **Version note.** These pages describe the release after 1.0.3.
-> 1.0.3, the version published today, predates the rename and reads
-> `~/.ember` only — a config file at `~/.igni/config.yaml` is ignored
-> by it. If you are on 1.0.3, either upgrade or keep your settings in
-> `~/.ember/config.yaml` until you do.
+> **Version note.** These pages describe 1.0.5, the current release
+> (on PyPI as `igni-core`). The pre-split `ignite-ember` 1.0.3 — still
+> what PyPI's `ignite-ember` name serves — predates the rename and reads
+> `~/.ember` only, so a config file at `~/.igni/config.yaml` is ignored
+> by it. If you are on 1.0.3, either upgrade to `igni-core` or keep your
+> settings in `~/.ember/config.yaml` until you do.
 
 Both have a legacy spelling, `.ember`, from before the product settled on its name. `home_config_dir()` and `project_config_dir()` return the `.igni` path, fall back to `.ember` when only that one exists on disk, and prefer `.igni` when both do. A separate one-shot migration renames `.ember` to `.igni`; it refuses when the destination already exists, never merges two directories, and never follows a symlink.
 

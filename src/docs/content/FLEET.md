@@ -1,6 +1,12 @@
 **Fleet** gives each person and each app in your organisation its own igni agent, in its own microVM, on your servers. An idle VM is paused and then suspended to disk, and woken when something needs it: a person connecting, a command, an event from a service, or a task the agent scheduled. It is a paid module. This page covers what it is made of, what it needs, how it ties into igni server, and what is not finished.
 
-> **Note:** Fleet's gateway and node agent are built, but there are no deployment manifests for them yet, and the desktop app and CLI do not connect to Fleet. Read the last section before planning a rollout.
+> **Note:** Fleet is at **0.1.2** and versions on its own cadence, in the `ignite-ember/igni__cloudvm` repository. Its gateway and node agent are built, but there are no deployment manifests for them yet, and the desktop app and CLI do not connect to Fleet. Read the last section before planning a rollout.
+
+The Fleet image is published to GitHub Container Registry at `ghcr.io/ignite-ember/igni-fleet:0.1.2`, and it is **public** — anyone can pull it without a registry login (running it still needs a licence):
+
+```bash
+docker pull ghcr.io/ignite-ember/igni-fleet:0.1.2
+```
 
 ## What runs where
 
@@ -139,7 +145,7 @@ The raw results, and earlier measurements with a smaller test guest and on bare 
 - **A former member's export holds only their database rows**, not the files on their VM's volume.
 - **Discarding and erasing have been tested against simulated nodes**, not yet on a real Fleet host.
 - **Building the guest kernel and image fetches packages** from the internet, so it is not yet an offline build.
-- **No release key** is built in yet, so Fleet starts no VM outside development until one is. See [Licensing and evaluations](/docs/licensing-and-evaluations).
+- **A valid licence is required outside development.** Ignite Ember's Ed25519 release key (`ie-2026`) is built into the Fleet gateway, which verifies the licence against it offline; without a valid licence Fleet starts no VM except in development (`[licence] trust_test_key = true`). See [Licensing and evaluations](/docs/licensing-and-evaluations).
 
 ## Where to go next
 

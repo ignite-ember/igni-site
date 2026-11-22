@@ -465,17 +465,17 @@ connect()
 
 ## The CLI: igni-core / igni
 
-The CLI is the same agent as the desktop app, for scripts and CI. It is the package `igni-core` (command `igni`), and needs Python 3.12. It was published as `ignite-ember` before the split, and from 1.0.4 that name installs it too: the `ignite-ember` package carries nothing of its own and depends on `igni-core` at the same version, so `pip install ignite-ember` gives you the same CLI. The command `ignite-ember` is kept as an alias of `igni`.
+The CLI is the same agent as the desktop app, for scripts and CI. It is the package `igni-core` (command `igni`), on PyPI now, and needs Python 3.12. It was published as `ignite-ember` before the split; that name is meant to become an alias that re-exports `igni-core`, but the alias is not published yet, so `pip install ignite-ember` still gives you the 1.0.3 monolith — install `igni-core` directly. The command `ignite-ember` is kept as an alias of `igni`.
 
 ```bash
-pip install igni-core               # or: pip install ignite-ember (the alias package)
+pip install igni-core               # the current backend and CLI
 igni -m "explain src/auth.py"       # one message, then exit
 git diff | igni -p                  # stdin in, answer out
 igni -c -m "and the tests?"         # continue the last session
 igni --model platform-review-lora -m "review this branch"
 ```
 
-The Homebrew formula `ignite-ember/tap/ignite-ember` installs the published 1.0.3, and it puts the `ignite-ember` command on your `PATH` — not `igni`.
+The Homebrew formula `ignite-ember/tap/ignite-ember` installs the published `ignite-ember` (the pre-split monolith, 1.0.3) and puts the `ignite-ember` command on your `PATH` — not `igni`; use `pip install igni-core` for the current backend.
 
 It reads its server from `~/.igni/config.yaml` (`api_url:`) and its token from `~/.igni/credentials.json`. Flags set the permission mode (`--read-only`, `--accept-edits`, `--auto-approve`, `--strict`), turn off web tools (`--no-web`), or add directories (`--add-dir`). Four subcommands exist: `igni ext` for extensions, `igni login` to sign in, `igni migrate` for igni's own database, and `igni trust` to record whether a folder may run its own code. There is no interactive terminal chat. Headless sign-in is `igni login`: it runs the same flow as the app's sign-in page and prints the address to open, for a machine with no browser of its own, and `igni login --token-stdin` keeps an access token read from stdin, once igni server has accepted it — the path for a script or a CI job. The token is never an argument, so it does not land in the shell's history or in the process list. See [Installing igni](/docs/installing-igni) for the full flag list.
 
