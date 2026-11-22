@@ -3,25 +3,35 @@
  *
  *     node scripts/sync-docs.mjs sdk              # copy the SDK docs from an
  *     node scripts/sync-docs.mjs sdk --check      #   igni-sdk checkout (or --check)
+ *     node scripts/sync-docs.mjs server           # copy the server docs from an
+ *     node scripts/sync-docs.mjs server --check   #   igni-server checkout (or --check)
  *     node scripts/sync-docs.mjs <pkg> snapshot <version>
  *                                                 # freeze a new version folder
  *
  * Phase 2 of the docs-versioning plan generalised `sync-sdk-docs.mjs` into
  * this. There are two kinds of documentation package:
  *
- *  - **The SDK** (`sdk`) is generated in igni-sdk (`make sdk-docs`, into
- *    `docs/site/`) and copied here into `src/docs/sdk/`, the way igni-core's
- *    published contracts are copied in. That generator does not version its
- *    output — it emits the current release — so the copy stays flat under
- *    `src/docs/sdk/` and carries the per-package version in its `index.json`.
- *    `src/test/sdkDocsSync.test.ts` runs the `--check` when a checkout is there.
+ *  - **Generated-next-to-code** (`sdk`, `server`) is generated in the package's
+ *    own repository and copied here. The SDK (`sdk`) is generated in igni-sdk
+ *    (`make sdk-docs`, into `docs/site/`) and copied into `src/docs/sdk/`, the
+ *    way igni-core's published contracts are copied in; its generator emits the
+ *    current release flat and carries the per-package version in its
+ *    `index.json`. The server (`server`) is generated in igni-server
+ *    (`make docs-site`, into `docs/site/server/<version>/`) and copied into
+ *    `src/docs/content/server/<version>/` — the same hand-written layout the
+ *    site already renders, so nothing downstream changes; its generator stamps
+ *    the current release into its own version folder, which lands here as that
+ *    release's frozen snapshot. Only the version folders the checkout emits are
+ *    touched; past snapshots are left alone. `src/test/sdkDocsSync.test.ts` and
+ *    `src/test/serverDocsSync.test.ts` run the `--check` when a checkout is there.
  *
- *  - **The hand-written packages** (core, app, server, fleet, …) are authored
- *    in this repository under `src/docs/content/<package>/<version>/`. A
- *    release freezes a new snapshot: `snapshot <version>` copies the current
- *    latest folder to a new version folder (which is then edited for the new
- *    release and never touched again). Until the docs move next to their code
- *    (Phase 3), this is the release-time stamping step. See `src/docs/README.md`.
+ *  - **The hand-written packages** (core, app, fleet, …) are authored in this
+ *    repository under `src/docs/content/<package>/<version>/`. A release freezes
+ *    a new snapshot: `snapshot <version>` copies the current latest folder to a
+ *    new version folder (which is then edited for the new release and never
+ *    touched again). Phase 3 moved `server` out of this group and next to its
+ *    code (the pilot); core, app and fleet stay here for now. See
+ *    `src/docs/README.md`.
  */
 
 import {
@@ -105,9 +115,86 @@ function syncSdk(argv) {
   return check && (changed.length || removed.length) ? 1 : 0
 }
 
-// ── The hand-written packages: freeze a version snapshot ──────────────
+// ── The server: copy generated snapshots from an igni-server checkout ──
 
 const CONTENT = join(ROOT, 'src/docs/content')
+
+/** The igni-server checkout: `IGNI_SERVER_DIR`, else `../igni-server` beside this repository. */
+export function serverDir() {
+  return resolve(ROOT, process.env.IGNI_SERVER_DIR || '../igni-server')
+}
+
+/** The generated server docs in that checkout: one folder per version. */
+export function serverSourceDir(dir = serverDir()) {
+  return join(dir, 'docs/site/server')
+}
+
+/** The version folders igni-server generates, from its `docs/site/server/`. */
+export function serverVersions(source = serverSourceDir()) {
+  if (!existsSync(source)) return []
+  return readdirSync(source, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name)
+    .sort()
+}
+
+/**
+ * What differs for one generated version: files to add or change, and copies
+ * igni-server no longer generates for THAT version. Only the versions the
+ * checkout emits are compared; frozen past snapshots under
+ * `src/docs/content/server/` are never touched.
+ */
+export function serverDiff(version, source = serverSourceDir()) {
+  const from = join(source, version)
+  const to = join(CONTENT, 'server', version)
+  const wanted = files(from)
+  const have = new Set(files(to))
+  const changed = wanted.filter(
+    (f) => !have.has(f) || readFileSync(join(from, f), 'utf8') !== readFileSync(join(to, f), 'utf8'),
+  )
+  const removed = [...have].filter((f) => !wanted.includes(f))
+  return { changed, removed }
+}
+
+function syncServer(argv) {
+  if (argv[0] === 'snapshot') {
+    console.error(
+      'server docs are generated next to the code now (Phase 3): run `make docs-site` in igni-server, then `node scripts/sync-docs.mjs server` here — do not snapshot by hand',
+    )
+    return 2
+  }
+  const source = serverSourceDir()
+  const versions = serverVersions(source)
+  if (versions.length === 0) {
+    console.error(
+      `no generated server docs at ${source} (set IGNI_SERVER_DIR to an igni-server checkout; run make docs-site there)`,
+    )
+    return 2
+  }
+  const check = argv.includes('--check')
+  let changes = 0
+  for (const version of versions) {
+    const { changed, removed } = serverDiff(version, source)
+    const from = join(source, version)
+    const to = join(CONTENT, 'server', version)
+    if (!check) {
+      for (const f of changed) {
+        mkdirSync(dirname(join(to, f)), { recursive: true })
+        writeFileSync(join(to, f), readFileSync(join(from, f), 'utf8'))
+      }
+      for (const f of removed) rmSync(join(to, f))
+    }
+    for (const f of changed) console.log(`${check ? 'stale' : 'copied'}: src/docs/content/server/${version}/${f}`)
+    for (const f of removed) console.log(`${check ? 'left over' : 'removed'}: src/docs/content/server/${version}/${f}`)
+    changes += changed.length + removed.length
+  }
+  if (!check && changes) {
+    console.log("if this added a version, prepend it to server's `versions` in src/docs/docsManifest.ts, then run `npm run sitemap`")
+  }
+  return check && changes ? 1 : 0
+}
+
+// ── The hand-written packages: freeze a version snapshot ──────────────
 
 /** The versions of a hand-written package, newest-first, from its content
  *  folders — the folder names, sorted the way directory listing gives them
@@ -155,6 +242,7 @@ export function main(argv = process.argv.slice(2)) {
     return 2
   }
   if (pkg === 'sdk') return syncSdk(rest)
+  if (pkg === 'server') return syncServer(rest)
   if (rest[0] === 'snapshot') {
     const version = rest[1]
     if (!version) {
