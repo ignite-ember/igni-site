@@ -22,10 +22,17 @@ per-version; how a package's content gets here is one of three ways:
 content/<package>/<version>/<slug>.md
 ```
 
-e.g. `content/server/0.8.0/self-hosting-the-server.md`. Each `<version>`
-folder is a **frozen snapshot**: once a release is cut, that folder is never
-edited again. `PACKAGES[i].versions` in `docsManifest.ts` lists a package's
-released versions, newest first; `versions[0]` is "latest".
+e.g. `content/server/0.8/self-hosting-the-server.md`. Each `<version>`
+folder is a snapshot; `PACKAGES[i].versions` in `docsManifest.ts` lists a
+package's released versions, newest first, and `versions[0]` is "latest".
+
+How `<version>` is granulated is the package's own choice. The hand-written
+packages snapshot **per patch** (an immutable folder per release, never edited
+again). The server snapshots **per minor series** (`0.8`, not `0.8.0`): a patch
+release re-generates the same `0.8` folder with the current content — the
+series is the stable address, and the prose inside names the exact release
+(e.g. 0.8.1). The folder name is whatever the package's generator stamps; this
+repository only copies it.
 
 ## URLs
 
@@ -84,29 +91,26 @@ When, say, igni core 1.1.0 ships:
 The server docs are **not** snapshotted by hand — there is no `snapshot` step for
 them, and `sync-docs.mjs server snapshot …` refuses. The source lives in
 igni-server under `docs/site-src/`, and a release stamps its own version folder.
-When igni server 0.9.0 ships:
+The server snapshots **per minor series**: the generator stamps the app
+version's `major.minor` (so 0.8.0 and 0.8.1 both land in `docs/site/server/0.8/`).
 
-1. **In igni-server:** bump the version (`app/config.py` / `pyproject.toml`, the
-   one number `test_one_version_number.py` keeps), edit the articles under
-   `docs/site-src/`, and run `make docs-site`. That writes
-   `docs/site/server/0.9.0/` and the test keeps it current.
+**A patch release (e.g. 0.8.0 → 0.8.1).** In igni-server, bump the version and
+edit the articles under `docs/site-src/`, then `make docs-site` — it rewrites the
+**same** `docs/site/server/0.8/` folder. Here, with an igni-server checkout beside
+this repository (or at `IGNI_SERVER_DIR`), run `node scripts/sync-docs.mjs server`:
+it copies the updated content into `content/server/0.8/` in place. The `versions`
+list is unchanged (`['0.8']`), so there is nothing to touch in `docsManifest.ts`
+and no new sitemap or bucket-object entries — the address stayed the same.
 
-2. **Here**, with an igni-server checkout beside this repository (or at
-   `IGNI_SERVER_DIR`):
+**A new minor (e.g. 0.9.0).** Same first two steps, but `make docs-site` writes a
+new `docs/site/server/0.9/` folder; the sync lands it as `content/server/0.9/`
+(the old `0.8/` folder stays as the previous series). Then:
 
-   ```
-   node scripts/sync-docs.mjs server    # copies docs/site/server/0.9.0/ →
-                                         #   content/server/0.9.0/
-   ```
+1. **Prepend the version** in `docsManifest.ts`: `versions: ['0.9', '0.8']`, and
+   add any new article's title/description/category to `DOCS`.
 
-   It only touches the version folders igni-server emits; the old `0.8.0/`
-   folder stays frozen.
-
-3. **Prepend the version** in `docsManifest.ts`: `versions: ['0.9.0', '0.8.0']`,
-   and add any new article's title/description/category to `DOCS`.
-
-4–5. Regenerate the sitemap and bucket objects and run the checks, exactly as
-above.
+2. **Regenerate the sitemap and bucket objects** and run the checks, exactly as
+   for a hand-written package above.
 
 The SDK docs work the same way: `node scripts/sync-docs.mjs sdk` copies
 igni-sdk's generated output, which carries its own per-package version in

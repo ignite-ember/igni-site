@@ -24,7 +24,7 @@ function LegacyDocRedirect({ to }: { to: string }) {
 
 /**
  * `/docs/<package>/<seg>` is ambiguous: `<seg>` is a version (so this is
- * a package landing pinned to it, e.g. `/docs/server/0.8.0`) or an
+ * a package landing pinned to it, e.g. `/docs/server/0.8`) or an
  * article slug at the latest version (e.g. `/docs/server/inference-
  * backends`). The manifest's version list decides which, so the two
  * two-segment forms can share one route.
@@ -94,7 +94,7 @@ export default function App() {
             {/* Per-package, per-version docs (Phase 2). `/docs/<package>`
             is the newest version; `/docs/<package>/<version>` and
             `/docs/<package>/latest` pin the landing; the three-segment
-            forms pin an article. `<version>` carries a dot (0.8.0), which
+            forms pin an article. `<version>` carries a dot (0.8), which
             React Router matches in a single segment. `DocSecondSegment`
             tells a version from an article slug. */}
             <Route path="docs/:package" element={<DocPackagePage />} />
