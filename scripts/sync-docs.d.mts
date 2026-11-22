@@ -11,5 +11,12 @@ export declare function serverDiff(
   version: string,
   source?: string,
 ): { changed: string[]; removed: string[] }
+export declare function fleetDir(): string
+export declare function fleetSourceDir(dir?: string): string
+export declare function fleetVersions(source?: string): string[]
+export declare function fleetDiff(
+  version: string,
+  source?: string,
+): { changed: string[]; removed: string[] }
 export declare function snapshot(pkg: string, to: string, from?: string): number
 export declare function main(argv?: string[]): number

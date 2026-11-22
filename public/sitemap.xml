@@ -186,6 +186,46 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
+    <loc>https://igni.sh/docs/fleet/overview</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/fleet/how-vms-sleep-and-wake</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/fleet/gateway-reference</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/fleet/node-agent-reference</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/fleet/guest-protocol-reference</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/fleet/configuration</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/fleet/deployment</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://igni.sh/docs/fleet/operations</loc>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
     <loc>https://igni.sh/docs/sdk</loc>
     <priority>0.9</priority>
     <changefreq>monthly</changefreq>

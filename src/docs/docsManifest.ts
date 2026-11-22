@@ -77,8 +77,8 @@ export interface DocPackage {
   versionLabel?: string
   /**
    * A single-page package: its one article is its landing, rendered at
-   * `/docs/<slug>` (not `/docs/<slug>/<article>`). Fleet and the two
-   * parked modules are these.
+   * `/docs/<slug>` (not `/docs/<slug>/<article>`). The two parked modules
+   * (Artifacts, CodeIndex) are these.
    */
   single?: boolean
 }
@@ -186,7 +186,6 @@ export const PACKAGES: DocPackage[] = [
     title: 'Fleet',
     tagline: 'A cloud agent in an isolated microVM for every person and app, on your own servers.',
     versions: ['0.1.2'],
-    single: true,
   },
   {
     slug: 'artifacts',
@@ -427,14 +426,72 @@ export const DOCS: DocArticle[] = [
     package: 'server',
     content: latestContent('server', 'changelog'),
   },
-  // ── Fleet (single page) ───────────────────────────────────────────
+  // ── Fleet ─────────────────────────────────────────────────────────
+  // Generated next to the code in igni__cloudvm (docs/site-src/, Phase 3);
+  // copied in by `node scripts/sync-docs.mjs fleet`. See src/docs/README.md.
   {
-    slug: 'fleet',
+    slug: 'overview',
     title: "Fleet: an agent in a microVM for every person and app",
-    description: "The gateway, node agent and Firecracker microVMs behind Fleet, what a host needs, how it ties into igni server, and what is not finished.",
-    category: 'modules',
+    description: "What Fleet is, what it ships as, and the three binaries behind it — the gateway, the node agent and the guest agent — and where each runs.",
+    category: 'getting-started',
     package: 'fleet',
-    content: latestContent('fleet', 'fleet'),
+    content: latestContent('fleet', 'overview'),
+  },
+  {
+    slug: 'how-vms-sleep-and-wake',
+    title: "How a VM sleeps and wakes",
+    description: "Paused, suspended, restored and offloaded: how an idle VM is put away and brought back, and how its memory grows and shrinks.",
+    category: 'core-concepts',
+    package: 'fleet',
+    content: latestContent('fleet', 'how-vms-sleep-and-wake'),
+  },
+  {
+    slug: 'gateway-reference',
+    title: "Gateway reference",
+    description: "The only thing clients connect to: authentication, the PostgreSQL state model, waking and routing, the producer feed, the HTTP API, metrics and egress.",
+    category: 'core-concepts',
+    package: 'fleet',
+    content: latestContent('fleet', 'gateway-reference'),
+  },
+  {
+    slug: 'node-agent-reference',
+    title: "Node agent reference",
+    description: "One service per KVM host that runs the microVMs: the ensure-running lifecycle, VM isolation and egress, the HTTP API, and its configuration.",
+    category: 'core-concepts',
+    package: 'fleet',
+    content: latestContent('fleet', 'node-agent-reference'),
+  },
+  {
+    slug: 'guest-protocol-reference',
+    title: "Guest agent protocol (vsock)",
+    description: "The vsock contract between the node agent and the guest agent inside every VM: what the image must provide, the frames, and every operation.",
+    category: 'core-concepts',
+    package: 'fleet',
+    content: latestContent('fleet', 'guest-protocol-reference'),
+  },
+  {
+    slug: 'configuration',
+    title: "What a host needs, and configuring the binaries",
+    description: "The KVM host requirements, and the one TOML file each binary reads — what the gateway and the node agent need at least.",
+    category: 'operations',
+    package: 'fleet',
+    content: latestContent('fleet', 'configuration'),
+  },
+  {
+    slug: 'deployment',
+    title: "Deploying the gateway and the node agent",
+    description: "The gateway's Helm chart and Compose file, the image you build yourself, and the node agent's systemd unit on a KVM host.",
+    category: 'operations',
+    package: 'fleet',
+    content: latestContent('fleet', 'deployment'),
+  },
+  {
+    slug: 'operations',
+    title: "Running Fleet: the portal, erasure, licensing and limits",
+    description: "Managing Fleet from igni's portal, discarding and erasing VMs, what a lapsed licence refuses, measured wake times, and what is not finished.",
+    category: 'operations',
+    package: 'fleet',
+    content: latestContent('fleet', 'operations'),
   },
   // ── Artifacts (single page) ───────────────────────────────────────
   {

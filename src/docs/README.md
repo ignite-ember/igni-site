@@ -4,15 +4,20 @@ This directory holds the site's documentation. It is all per-package and
 per-version; how a package's content gets here is one of three ways:
 
 - **Hand-written docs** (`content/`, indexed by `docsManifest.ts`) — the
-  packages `core`, `app`, `fleet`, `artifacts`, `codeindex`. Authored here and
-  frozen per release with `snapshot` (below).
+  packages `core`, `app`, `artifacts`, `codeindex`. Authored here and frozen per
+  release with `snapshot` (below).
 - **Generated-next-to-code docs** — authored in the package's own repository and
   copied in with `scripts/sync-docs.mjs`, so a release produces its own snapshot
   with no hand-typed version folder:
   - **`server`** (`content/server/`, still indexed by `docsManifest.ts`) is
     generated in igni-server (`make docs-site`) and copied in; it lands in the
     same hand-written layout the site renders, so nothing downstream changed.
-    This is the Phase 3 pilot — `server` left the hand-written group above.
+    This was the Phase 3 pilot — `server` left the hand-written group above.
+  - **`fleet`** (`content/fleet/`, still indexed by `docsManifest.ts`) is
+    generated in igni__cloudvm (`python3 tools/site_docs.py`; its default branch
+    is `master`) and copied in the same way — the second package to move next to
+    its code. Fleet versions on its own cadence, so its generator stamps the
+    whole version (`0.1.2`), not a minor series.
   - **The SDK** (`sdk/`, indexed by `sdkManifest.ts`) is generated in igni-sdk
     and copied in; versioned per package by its `index.json`.
 
@@ -57,7 +62,7 @@ link to an old version serves `index.html` rather than 404ing.
 
 ## Adding a version at release time
 
-### A hand-written package (core, app, fleet, …)
+### A hand-written package (core, app, …)
 
 When, say, igni core 1.1.0 ships:
 
@@ -86,7 +91,7 @@ When, say, igni core 1.1.0 ships:
 5. `npm test` and `npm run build` check everything is wired (the sitemap
    matches, every URL has an object, every link resolves).
 
-### A generated-next-to-code package (server)
+### A generated-next-to-code package (server, fleet)
 
 The server docs are **not** snapshotted by hand — there is no `snapshot` step for
 them, and `sync-docs.mjs server snapshot …` refuses. The source lives in
@@ -112,11 +117,21 @@ new `docs/site/server/0.9/` folder; the sync lands it as `content/server/0.9/`
 2. **Regenerate the sitemap and bucket objects** and run the checks, exactly as
    for a hand-written package above.
 
+**Fleet** works the same way, from igni__cloudvm (default branch `master`): bump
+`[workspace.package] version` in `Cargo.toml`, edit the articles under
+`docs/site-src/`, run `python3 tools/site_docs.py`, then here, with an
+igni__cloudvm checkout beside this repository (or at `IGNI_CLOUDVM_DIR`), run
+`node scripts/sync-docs.mjs fleet`. Fleet versions on its own cadence, so its
+generator stamps the **whole version** (`0.1.2`) rather than a minor series: a
+new release writes a new `docs/site/fleet/<version>/` folder and the sync lands
+it as `content/fleet/<version>/`, so a new version is prepended to fleet's
+`versions` and the sitemap regenerated, exactly as for a new minor above.
+
 The SDK docs work the same way: `node scripts/sync-docs.mjs sdk` copies
 igni-sdk's generated output, which carries its own per-package version in
 `sdk/index.json`.
 
-Core, app and fleet remain hand-written for now; Phase 3 moves one package at a
-time, and `server` is the pilot. When another moves next to its code, its
-release step becomes the generated flow above and everything downstream is
-unchanged.
+Core and app remain hand-written for now; Phase 3 moves one package at a time —
+`server` was the pilot and `fleet` followed. When another moves next to its
+code, its release step becomes the generated flow above and everything
+downstream is unchanged.
