@@ -5,32 +5,37 @@
  *     node scripts/sync-docs.mjs sdk --check      #   igni-sdk checkout (or --check)
  *     node scripts/sync-docs.mjs server           # copy the server docs from an
  *     node scripts/sync-docs.mjs server --check   #   igni-server checkout (or --check)
+ *     node scripts/sync-docs.mjs fleet            # copy the Fleet docs from an
+ *     node scripts/sync-docs.mjs fleet --check    #   igni__cloudvm checkout (or --check)
  *     node scripts/sync-docs.mjs <pkg> snapshot <version>
  *                                                 # freeze a new version folder
  *
  * Phase 2 of the docs-versioning plan generalised `sync-sdk-docs.mjs` into
  * this. There are two kinds of documentation package:
  *
- *  - **Generated-next-to-code** (`sdk`, `server`) is generated in the package's
- *    own repository and copied here. The SDK (`sdk`) is generated in igni-sdk
- *    (`make sdk-docs`, into `docs/site/`) and copied into `src/docs/sdk/`, the
- *    way igni-core's published contracts are copied in; its generator emits the
- *    current release flat and carries the per-package version in its
+ *  - **Generated-next-to-code** (`sdk`, `server`, `fleet`) is generated in the
+ *    package's own repository and copied here. The SDK (`sdk`) is generated in
+ *    igni-sdk (`make sdk-docs`, into `docs/site/`) and copied into `src/docs/sdk/`,
+ *    the way igni-core's published contracts are copied in; its generator emits
+ *    the current release flat and carries the per-package version in its
  *    `index.json`. The server (`server`) is generated in igni-server
  *    (`make docs-site`, into `docs/site/server/<version>/`) and copied into
- *    `src/docs/content/server/<version>/` — the same hand-written layout the
- *    site already renders, so nothing downstream changes; its generator stamps
- *    the current release into its own version folder, which lands here as that
- *    release's frozen snapshot. Only the version folders the checkout emits are
- *    touched; past snapshots are left alone. `src/test/sdkDocsSync.test.ts` and
- *    `src/test/serverDocsSync.test.ts` run the `--check` when a checkout is there.
+ *    `src/docs/content/server/<version>/`; Fleet (`fleet`) is generated the same
+ *    way in igni__cloudvm (`python3 tools/site_docs.py`, into
+ *    `docs/site/fleet/<version>/`) and copied into `src/docs/content/fleet/<version>/`
+ *    — the same hand-written layout the site already renders, so nothing
+ *    downstream changes; each generator stamps the current release into its own
+ *    version folder, which lands here as that release's frozen snapshot. Only the
+ *    version folders the checkout emits are touched; past snapshots are left
+ *    alone. `src/test/sdkDocsSync.test.ts`, `src/test/serverDocsSync.test.ts` and
+ *    `src/test/fleetDocsSync.test.ts` run the `--check` when a checkout is there.
  *
- *  - **The hand-written packages** (core, app, fleet, …) are authored in this
+ *  - **The hand-written packages** (core, app, …) are authored in this
  *    repository under `src/docs/content/<package>/<version>/`. A release freezes
  *    a new snapshot: `snapshot <version>` copies the current latest folder to a
  *    new version folder (which is then edited for the new release and never
  *    touched again). Phase 3 moved `server` out of this group and next to its
- *    code (the pilot); core, app and fleet stay here for now. See
+ *    code (the pilot), then `fleet` followed; core and app stay here for now. See
  *    `src/docs/README.md`.
  */
 
@@ -194,6 +199,84 @@ function syncServer(argv) {
   return check && changes ? 1 : 0
 }
 
+// ── Fleet: copy generated snapshots from an igni__cloudvm checkout ─────
+
+/** The igni__cloudvm checkout: `IGNI_CLOUDVM_DIR`, else `../igni__cloudvm`
+ *  beside this repository. Its default branch is `master`. */
+export function fleetDir() {
+  return resolve(ROOT, process.env.IGNI_CLOUDVM_DIR || '../igni__cloudvm')
+}
+
+/** The generated Fleet docs in that checkout: one folder per version. */
+export function fleetSourceDir(dir = fleetDir()) {
+  return join(dir, 'docs/site/fleet')
+}
+
+/** The version folders igni__cloudvm generates, from its `docs/site/fleet/`. */
+export function fleetVersions(source = fleetSourceDir()) {
+  if (!existsSync(source)) return []
+  return readdirSync(source, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name)
+    .sort()
+}
+
+/**
+ * What differs for one generated version: files to add or change, and copies
+ * igni__cloudvm no longer generates for THAT version. Only the versions the
+ * checkout emits are compared; frozen past snapshots under
+ * `src/docs/content/fleet/` are never touched.
+ */
+export function fleetDiff(version, source = fleetSourceDir()) {
+  const from = join(source, version)
+  const to = join(CONTENT, 'fleet', version)
+  const wanted = files(from)
+  const have = new Set(files(to))
+  const changed = wanted.filter(
+    (f) => !have.has(f) || readFileSync(join(from, f), 'utf8') !== readFileSync(join(to, f), 'utf8'),
+  )
+  const removed = [...have].filter((f) => !wanted.includes(f))
+  return { changed, removed }
+}
+
+function syncFleet(argv) {
+  if (argv[0] === 'snapshot') {
+    console.error(
+      'fleet docs are generated next to the code now (Phase 3): run `python3 tools/site_docs.py` in igni__cloudvm, then `node scripts/sync-docs.mjs fleet` here — do not snapshot by hand',
+    )
+    return 2
+  }
+  const source = fleetSourceDir()
+  const versions = fleetVersions(source)
+  if (versions.length === 0) {
+    console.error(
+      `no generated fleet docs at ${source} (set IGNI_CLOUDVM_DIR to an igni__cloudvm checkout; run python3 tools/site_docs.py there)`,
+    )
+    return 2
+  }
+  const check = argv.includes('--check')
+  let changes = 0
+  for (const version of versions) {
+    const { changed, removed } = fleetDiff(version, source)
+    const from = join(source, version)
+    const to = join(CONTENT, 'fleet', version)
+    if (!check) {
+      for (const f of changed) {
+        mkdirSync(dirname(join(to, f)), { recursive: true })
+        writeFileSync(join(to, f), readFileSync(join(from, f), 'utf8'))
+      }
+      for (const f of removed) rmSync(join(to, f))
+    }
+    for (const f of changed) console.log(`${check ? 'stale' : 'copied'}: src/docs/content/fleet/${version}/${f}`)
+    for (const f of removed) console.log(`${check ? 'left over' : 'removed'}: src/docs/content/fleet/${version}/${f}`)
+    changes += changed.length + removed.length
+  }
+  if (!check && changes) {
+    console.log("if this added or removed an article, update fleet's entries in src/docs/docsManifest.ts, then run `npm run sitemap`")
+  }
+  return check && changes ? 1 : 0
+}
+
 // ── The hand-written packages: freeze a version snapshot ──────────────
 
 /** The versions of a hand-written package, newest-first, from its content
@@ -243,6 +326,7 @@ export function main(argv = process.argv.slice(2)) {
   }
   if (pkg === 'sdk') return syncSdk(rest)
   if (pkg === 'server') return syncServer(rest)
+  if (pkg === 'fleet') return syncFleet(rest)
   if (rest[0] === 'snapshot') {
     const version = rest[1]
     if (!version) {

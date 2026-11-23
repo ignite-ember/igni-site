@@ -1,8 +1,8 @@
 /**
  * DocPackagePage — a product's own documentation at `/docs/<package>`.
  *
- * A multi-page package (core, app, server) shows its articles as cards,
- * grouped by category. A single-page package (Fleet, Artifacts, CodeIndex)
+ * A multi-page package (core, app, server, fleet) shows its articles as
+ * cards, grouped by category. A single-page package (Artifacts, CodeIndex)
  * renders its one article inline here, so its original `/docs/<slug>` URL
  * keeps showing the content rather than a one-card index.
  *
@@ -80,18 +80,28 @@ describe('a multi-page package', () => {
 
     expect(await screen.findByTestId('arrived')).toHaveTextContent(`article:core/${first.slug}`)
   })
+
+  test('fleet now lists its articles as cards (it left the single-page group)', () => {
+    renderPackage('fleet')
+    const expected = articlesOf('fleet').map((a) => a.title)
+    const titles = cardTitles()
+    const missing = expected.filter((t) => !titles.includes(t))
+    expect(missing, 'fleet articles with no card').toEqual([])
+    expect(expected.length).toBeGreaterThan(3)
+  })
 })
 
 describe('a single-page package', () => {
   test('renders its one article inline, with the version', async () => {
-    renderPackage('fleet')
-    const article = overviewArticle('fleet')!
+    renderPackage('codeindex')
+    const article = overviewArticle('codeindex')!
 
     // The article's own H1 is shown (the inline render), not a card grid.
     expect(await screen.findByRole('heading', { name: article.title, level: 1 })).toBeInTheDocument()
     expect(cardTitles()).toEqual([])
+    // The body may also say the module label, so assert at least one match.
     await waitFor(() =>
-      expect(screen.getByText(packageVersionLabel(docPackage('fleet')!))).toBeInTheDocument(),
+      expect(screen.getAllByText(packageVersionLabel(docPackage('codeindex')!)).length).toBeGreaterThan(0),
     )
   })
 
