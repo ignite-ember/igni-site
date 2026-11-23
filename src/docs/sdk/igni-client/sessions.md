@@ -98,6 +98,15 @@ async with igni.sessions.attach(session_id="0b7c…", project_dir="/work/api") a
     print(bound.session_id, bound.project_dir)
 ```
 
+```typescript
+const attached = igni.sessions.attach("/work/api", "0b7c…");
+for await (const event of attached) {
+  console.log(event.type);  // the approvals the session is still waiting on
+}
+const bound = await attached.result();
+console.log(bound.session_id, bound.project_dir);
+```
+
 ## session.status()
 
 Read this session's status: model, account, context size and permission mode.
@@ -131,6 +140,11 @@ status = await session.status()
 print(status.cloud_connected, status.cloud_email)
 ```
 
+```typescript
+const status = await session.status();
+console.log(status.cloud_connected, status.cloud_email);
+```
+
 ## session.current_id()
 
 Read the id of the session this request reached.
@@ -160,6 +174,10 @@ The client waits up to 10 seconds.
 
 ```python
 print(await session.current_id())
+```
+
+```typescript
+console.log(await session.current_id());
 ```
 
 ## session.get_project_dir()
@@ -192,6 +210,10 @@ The client waits up to 10 seconds.
 print(await session.get_project_dir())
 ```
 
+```typescript
+console.log(await session.get_project_dir());
+```
+
 ## session.is_processing()
 
 Say whether this session is running a turn right now.
@@ -222,6 +244,10 @@ The client waits up to 10 seconds.
 print(await session.is_processing())
 ```
 
+```typescript
+console.log(await session.is_processing());
+```
+
 ## session.run_timeout()
 
 Read how long, in seconds, a client should wait for one run.
@@ -250,6 +276,10 @@ The client waits up to 10 seconds.
 
 ```python
 print(await session.run_timeout())
+```
+
+```typescript
+console.log(await session.run_timeout());
 ```
 
 ## session.list_sessions()
@@ -283,6 +313,11 @@ The client waits up to 30 seconds.
 ```python
 list_sessions = await session.list_sessions()
 print(list_sessions.sessions)
+```
+
+```typescript
+const list_sessions = await session.list_sessions();
+console.log(list_sessions.sessions);
 ```
 
 ## session.switch()
@@ -321,6 +356,11 @@ info = await session.switch("0b7c…")
 print(info.text)
 ```
 
+```typescript
+const info = await session.switch("0b7c…");
+console.log(info.text);
+```
+
 ## session.cancel()
 
 Stop the turn this session is running.
@@ -330,10 +370,17 @@ def cancel(self) -> Call[CancelRunResult, CancelRunEvent]
 ```
 
 Returns `cancelled`: whether a turn was
-running. Its stream then ends with an `info` saying it was
-cancelled and its `stream_end`, and the run is recorded as
-interrupted; a foreground shell command the turn started is killed.
-With no turn running nothing happens and nothing is streamed.
+running or paused on an approval. Either way the session then
+streams an `info` saying it was cancelled and a `stream_end`,
+after the answer; the run is recorded as interrupted, and a
+foreground shell command the turn started is killed. A turn paused
+on an approval has its waiting approvals dropped: answering one
+afterwards runs nothing, and a window that attaches is not offered
+it. Ending a paused turn
+refuses its approval, so it takes what answering takes: from a
+program without an approver token it is refused, `forbidden`,
+and nothing is dropped. With no turn running or paused nothing
+happens and nothing is streamed.
 
 Takes no arguments.
 
@@ -341,16 +388,16 @@ Takes no arguments.
 
 **Events** `CancelRunEvent` is any of [`InfoMessage`](/docs/sdk/igni-client/events-reference#infomessage), [`StreamEnd`](/docs/sdk/igni-client/events-reference#streamend) (igni streams `info`, `stream_end`).
 
-**How they are told apart** `async with` the call to follow it: it yields the `info` and `stream_end` of the turn it stops, and ends with the `stream_end`. With no turn running nothing is streamed, and the answer says so.
+**How they are told apart** `async with` the call to follow it: it yields the `info` and `stream_end` of the turn it stops, running or paused on an approval, and ends with the `stream_end` of that `info`'s stream — not one of another stream of the session, such as the `stream_end` an attach ends the approvals it shows again with, which can come after `sessions.open()` returned. With no turn running or paused nothing is streamed, and the answer says so.
 
 **Told apart by** the session the message is for is the session the call was for — igni's contract says so.
 
 **How long** `instant` — Answered from what igni holds in memory, at once.
 The client waits up to 10 seconds.
 
-**Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted.
+**Access** [`client`](/docs/sdk/igni-client/access) — any connection igni admitted. While the session waits on an approval, only igni's window or an approver ends its run: ending it refuses the approval. A program without an approver token gets `AccessRefused`, and nothing is dropped. A run that is working any connection may stop.
 
-**Raises** [`InvalidArguments`](/docs/sdk/igni-client/errors-reference#invalidarguments) · [`MethodFailed`](/docs/sdk/igni-client/errors-reference#methodfailed) · [`UnknownMethod`](/docs/sdk/igni-client/errors-reference#unknownmethod) · [`UnexpectedAnswer`](/docs/sdk/igni-client/errors-reference#unexpectedanswer) · [`Unavailable`](/docs/sdk/igni-client/errors-reference#unavailable) · [`RunInterrupted`](/docs/sdk/igni-client/errors-reference#runinterrupted) when the connection moves or drops while the call is followed ([when each is raised](/docs/sdk/igni-client/errors-reference))
+**Raises** [`InvalidArguments`](/docs/sdk/igni-client/errors-reference#invalidarguments) · [`AccessRefused`](/docs/sdk/igni-client/errors-reference#accessrefused) when the session waits on an approval and this connection is not an approver · [`MethodFailed`](/docs/sdk/igni-client/errors-reference#methodfailed) · [`UnknownMethod`](/docs/sdk/igni-client/errors-reference#unknownmethod) · [`UnexpectedAnswer`](/docs/sdk/igni-client/errors-reference#unexpectedanswer) · [`Unavailable`](/docs/sdk/igni-client/errors-reference#unavailable) · [`RunInterrupted`](/docs/sdk/igni-client/errors-reference#runinterrupted) when the connection moves or drops while the call is followed ([when each is raised](/docs/sdk/igni-client/errors-reference))
 
 **On the wire** RPC method `cancel_run`, scope `session`, area `session`; igni answers with `rpc_response`.
 
@@ -361,6 +408,14 @@ async with session.cancel() as stopping:
     async for event in stopping:
         print(event.type)  # the info and the stream_end of the turn
     print((await stopping.result()).cancelled)
+```
+
+```typescript
+const stopping = session.cancel();
+for await (const event of stopping) {
+  console.log(event.type);  // the info and the stream_end of the turn
+}
+console.log((await stopping.result()).cancelled);
 ```
 
 ## session.shutdown()
@@ -398,6 +453,10 @@ The client waits up to 30 seconds.
 await session.shutdown()
 ```
 
+```typescript
+await session.shutdown();
+```
+
 ## session.typing()
 
 Show what this client is typing to every other client of this session.
@@ -425,6 +484,11 @@ async def typing(self, text: str = '') -> None
 ```python
 await session.typing("Draft: rename the")
 await session.typing("")  # clears it
+```
+
+```typescript
+await session.typing("Draft: rename the");
+await session.typing("");  // clears it
 ```
 
 ## session.upload_attachment()
@@ -474,6 +538,15 @@ uploaded = await session.upload_attachment(filename="report.pdf", content_base64
 reply = await session.ask(f"Summarise the report at {uploaded.path}")
 ```
 
+```typescript
+import { readFile } from "node:fs/promises";
+
+const data = (await readFile("report.pdf")).toString("base64");
+const uploaded = await session.upload_attachment(data, "report.pdf");
+const reply = await session.ask(`Summarise the report at ${uploaded.path}`);
+console.log(reply.text);
+```
+
 ## session.todos()
 
 Read the agent's to-do list in this session.
@@ -505,6 +578,12 @@ The client waits up to 10 seconds.
 ```python
 for todo_item in await session.todos():
     print(todo_item.status, todo_item.active_form)
+```
+
+```typescript
+for (const todo_item of await session.todos()) {
+  console.log(todo_item.status, todo_item.activeForm);
+}
 ```
 
 ## session.display_config()
@@ -539,6 +618,11 @@ display_config = await session.display_config()
 print(display_config.color_theme, display_config.markdown)
 ```
 
+```typescript
+const display_config = await session.display_config();
+console.log(display_config.color_theme, display_config.markdown);
+```
+
 ## session.toggle_verbose()
 
 Turn showing the agent's routing decisions on or off for this session.
@@ -568,6 +652,11 @@ The client waits up to 10 seconds.
 ```python
 verbose = await session.toggle_verbose()
 print("verbose" if verbose else "quiet")
+```
+
+```typescript
+const verbose = await session.toggle_verbose();
+console.log(verbose ? "verbose" : "quiet");
 ```
 
 ## session.extract_learnings()
@@ -605,6 +694,13 @@ await session.extract_learnings(
     user_msg="Use pnpm, never npm, in this repository.",
     assistant_msg="Understood: pnpm from now on.",
 )
+```
+
+```typescript
+await session.extract_learnings(
+  "Understood: pnpm from now on.",
+  "Use pnpm, never npm, in this repository.",
+);
 ```
 
 ## session.visualization_action()
@@ -656,6 +752,13 @@ The client waits up to 10 seconds.
 async with session.visualization_action(action="select", params={"row": 3}) as dispatched:
     async for event in dispatched:
         print(event.payload.action, event.payload.params)
+```
+
+```typescript
+const dispatched = session.visualization_action("select", { row: 3 });
+for await (const event of dispatched) {
+  console.log(event.payload.action, event.payload.params);
+}
 ```
 
 ## session.visualization_verdict()
@@ -715,4 +818,15 @@ verdict = await session.visualization_verdict(
     issues=["the axis has no label"],
 )
 print(verdict.drawn, "of", verdict.total, "elements drawn")
+```
+
+```typescript
+const verdict = await session.visualization_verdict(
+  "chart_42",
+  [{ type: "BarGraph", message: "the data had no rows" }],
+  ["the axis has no label"],
+  1,
+  3,
+);
+console.log(verdict.drawn, "of", verdict.total, "elements drawn");
 ```

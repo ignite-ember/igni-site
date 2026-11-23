@@ -20,6 +20,7 @@ import { type Components } from 'react-markdown'
 import { Link } from 'react-router-dom'
 
 import { Callout } from './Callout'
+import { CodeGroup } from './CodeLanguage'
 import { headingId } from './docsManifest'
 import { DocDiagram } from './DocDiagram'
 
@@ -56,6 +57,17 @@ export const markdownComponents: Components = {
   },
   blockquote({ children }) {
     return <Callout>{children}</Callout>
+  },
+  /**
+   * `rehypeCodeGroups` wraps a pair of adjacent code blocks in a
+   * `div.code-group`; that becomes the Python | TypeScript toggle. Any
+   * other `div` (none, as the pipeline strips raw HTML) renders plainly.
+   */
+  div({ node, className, children }) {
+    if (typeof className === 'string' && className.split(' ').includes('code-group')) {
+      return <CodeGroup node={node}>{children}</CodeGroup>
+    }
+    return <div className={className}>{children}</div>
   },
   /**
    * In-site links route client-side; `#heading` links stay on the page.

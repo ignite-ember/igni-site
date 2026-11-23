@@ -348,3 +348,18 @@
 .sdk-card-title {
   font-size: var(--text-body-size-medium) !important;
 }
+
+/*
+ * The Python | TypeScript switcher's toggle, over a paired code example.
+ * Its buttons are a tap target on a phone, so each is at least the 40px
+ * minimum the mobile-layout test enforces — written as a size token, not
+ * a literal, so the primitives budget stays at zero.
+ */
+.code-group {
+  margin-block: var(--base-size-16) 0;
+}
+
+.code-group-toggle button {
+  min-block-size: var(--base-size-40);
+  min-inline-size: var(--base-size-40);
+}

@@ -10,6 +10,8 @@ import { Blankslate } from '@primer/react/experimental'
 
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { markdownComponents } from '../docs/markdownComponents'
+import { CodeLanguageProvider } from '../docs/CodeLanguage'
+import { rehypeCodeGroups } from '../docs/rehypeCodeGroups'
 import { rehypeSdkLayout } from '../docs/rehypeSdkLayout'
 import { MobileTableOfContents, TableOfContents } from '../docs/DocToc'
 import { useActiveSectionId } from '../docs/useActiveSectionId'
@@ -124,13 +126,15 @@ export function SdkArticlePage() {
             {toc.length > 2 && <MobileTableOfContents sections={toc} />}
 
             <div className="doc-article-body sdk-article-body">
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                rehypePlugins={[rehypeHighlight, rehypeSdkLayout]}
-                components={markdownComponents}
-              >
-                {body}
-              </ReactMarkdown>
+              <CodeLanguageProvider>
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeHighlight, rehypeSdkLayout, rehypeCodeGroups]}
+                  components={markdownComponents}
+                >
+                  {body}
+                </ReactMarkdown>
+              </CodeLanguageProvider>
             </div>
 
             <nav className="doc-prev-next" aria-label="Previous and next page">

@@ -33,6 +33,7 @@ A **target** says where the igni is and how to reach it.
 from igni_client import Fleet, Local, Person
 
 fleet = Fleet("https://gw.acme.internal", auth=Person.from_cli())
+found = await Fleet.from_server("https://igni.acme.internal", auth=Person.from_cli())  # igni server names the gateway
 here = Local(project_dir="~/code/payments")          # the desktop app's igni for that project
 by_hand = Local(url="ws://127.0.0.1:8765", token="<the printed token>")  # `python -m igni_core.backend --ws-port 8765`
 ```
@@ -143,6 +144,13 @@ igni decides what a connection may do by the token it attached with — its
   decides nothing for the person. Given an **approver token**, it also
   answers approvals — each time once: no saved rule, no change of
   permission mode.
+- **While a session waits on the person**, ending its run refuses the
+  approval, so only a connection that may answer it may end it: igni's
+  window or an approver. A new prompt ends it too. From a program without
+  an approver token, `session.cancel()` raises `AccessRefused` and a
+  prompt is refused, and the approval stays as it was. A run that is
+  working any connection may stop, and a session that waits on nobody
+  any connection may write to.
 
 A program's limits are what keeps the agent, which can read the lockfile
 too, from approving its own tool calls. To let a program approve, the
