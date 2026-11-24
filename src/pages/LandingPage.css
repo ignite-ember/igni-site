@@ -13,9 +13,9 @@
 
 .lp {
   --lp-radius: 14px;
-  --lp-orange: #F97316;
-  --lp-orange-soft: color-mix(in srgb, #F97316 12%, transparent);
-  --lp-orange-line: color-mix(in srgb, #F97316 45%, transparent);
+  --lp-orange: #F26A1B;
+  --lp-orange-soft: color-mix(in srgb, #F26A1B 12%, transparent);
+  --lp-orange-line: color-mix(in srgb, #F26A1B 45%, transparent);
   --lp-free: var(--fgColor-success, #1a7f37);
   --lp-free-soft: var(--bgColor-success-muted, rgb(46 160 67 / 0.12));
   --lp-build: var(--fgColor-attention, #9a6700);
@@ -680,7 +680,7 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #F97316, #DC2626);
+  background: linear-gradient(135deg, #F26A1B, #C2410C);
   color: #fff;
   font-size: 12px;
   font-weight: 800;
@@ -802,7 +802,7 @@
 }
 
 .lp-mock-eval-row--ours .lp-mock-eval-bar span {
-  background: linear-gradient(90deg, #8250df, #F97316);
+  background: linear-gradient(90deg, #8250df, #F26A1B);
   opacity: 1;
 }
 
@@ -1108,7 +1108,7 @@
 }
 
 .lp-eval-bar--ours > span {
-  background: linear-gradient(90deg, #F97316, #DC2626);
+  background: linear-gradient(90deg, #F26A1B, #C2410C);
 }
 
 .lp-eval-line {
@@ -1202,7 +1202,7 @@
   gap: 6px;
   padding: 7px 10px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #F97316, #DC2626);
+  background: linear-gradient(135deg, #F26A1B, #C2410C);
   color: #fff;
   font-weight: 600;
 }
@@ -1813,7 +1813,7 @@
   font-size: clamp(30px, 4vw, 40px);
   font-weight: 800;
   line-height: 1;
-  background: linear-gradient(135deg, #F97316, #DC2626);
+  background: linear-gradient(135deg, #F26A1B, #C2410C);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
