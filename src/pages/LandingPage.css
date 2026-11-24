@@ -680,8 +680,8 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #F26A1B, #C2410C);
-  color: #fff;
+  background: var(--lp-orange);
+  color: #191817;
   font-size: 12px;
   font-weight: 800;
 }
@@ -1202,8 +1202,8 @@
   gap: 6px;
   padding: 7px 10px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #F26A1B, #C2410C);
-  color: #fff;
+  background: var(--lp-orange);
+  color: #191817;
   font-weight: 600;
 }
 
@@ -2818,7 +2818,7 @@
   height: var(--base-size-20);
   border-radius: var(--borderRadius-full);
   background-color: var(--lp-orange);
-  color: var(--fgColor-onEmphasis);
+  color: #191817;
   font-weight: var(--base-text-weight-semibold);
 }
 
@@ -3259,7 +3259,7 @@
   height: 22px;
   border-radius: 50%;
   background-color: var(--lp-orange);
-  color: #fff;
+  color: #191817;
   font-size: 12px;
   font-weight: 700;
 }
@@ -3660,6 +3660,8 @@ p.lp-zones-unseen {
 
 .lp-prod--orange .lp-step-n {
   background-color: var(--lp-orange);
+  /* White on the icon's orange is 3.06:1; this is 5.79:1. F137. */
+  color: #191817;
 }
 
 .lp-prod-steps h4 {

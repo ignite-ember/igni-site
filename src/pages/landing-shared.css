@@ -188,14 +188,12 @@
   padding: 14px 32px;
   border: none;
   border-radius: var(--borderRadius-medium, 6px);
-  /* Darkened for the white label on top. axe could not measure these
-        * — it reports "background gradient" as incomplete rather than as a
-        * failure — so the ratio was computed by hand: white on #F26A1B is
-        * 3.06:1 and AA wants 4.5:1 for a label this size. #CC4A0E is 4.61
-        * and #B03A09 is 6.08, so the gradient passes at both ends and stays
-        * the icon's hue. F137. */
-  background: linear-gradient(135deg, #CC4A0E, #B03A09);
-  color: #fff;
+  /* The icon's own orange, with a dark label: white on #F26A1B is only
+        * 3.06:1 and AA wants 4.5:1 for a label this size, while #191817 on
+        * it is 5.79:1 — so the button is the icon's colour and still reads.
+        * F137. */
+  background: var(--igni-orange);
+  color: #191817;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
