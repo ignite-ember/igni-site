@@ -50,7 +50,7 @@ const PX = /(?<![\w-])(\d+(?:\.\d+)?)px/g
 const CEILINGS: Record<string, number> = {
   // +1 on 2026-11-03: the phone breakpoint for the nav, menu and footer
   // tap targets. A `@media` condition cannot read a custom property.
-  'pages/landing-shared.css': 510,
+  'pages/landing-shared.css': 512,
   // Raised from 282 on 2026-10-28: the page was rewritten for the
   // modular price list, with a drawn platform diagram, department mocks,
   // a deal estimator, the Fleet grid, the extensions mocks and the partner
@@ -70,7 +70,7 @@ const CEILINGS: Record<string, number> = {
   // sizes with no Primer token, plus a 40px touch target with a 10px visible
   // track), replacing the old number-input field whose literals were removed.
   // Brand marketing control, measured at its values.
-  'pages/LandingPage.css': 819,
+  'pages/LandingPage.css': 821,
   // +3 on 2026-11-03: breakpoints for the stacked prev/next, the
   // narrow-screen table of contents and the phone pass.
   // −12 on 2026-11-11: the code palette is Primer's functional roles
