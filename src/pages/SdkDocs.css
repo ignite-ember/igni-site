@@ -351,15 +351,34 @@
 
 /*
  * The Python | TypeScript switcher's toggle, over a paired code example.
- * Its buttons are a tap target on a phone, so each is at least the 40px
- * minimum the mobile-layout test enforces — written as a size token, not
- * a literal, so the primitives budget stays at zero.
+ * Primer draws it as a list, so the article's list indent and spacing are
+ * taken back off it. On a phone its buttons are a tap target, each at least
+ * the 40px minimum the mobile-layout test enforces, and the control grows
+ * with them rather than letting the selected one spill out — written as
+ * size tokens, not literals, so the primitives budget stays at zero.
  */
 .code-group {
   margin-block: var(--base-size-16) 0;
 }
 
-.code-group-toggle button {
-  min-block-size: var(--base-size-40);
-  min-inline-size: var(--base-size-40);
+.code-group-toggle ul {
+  padding-inline-start: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.code-group-toggle li,
+.code-group-toggle li + li {
+  margin-block: 0;
+}
+
+@media (max-width: 48rem) {
+  .code-group-toggle ul {
+    block-size: auto;
+  }
+
+  .code-group-toggle button {
+    min-block-size: var(--base-size-40);
+    min-inline-size: var(--base-size-40);
+  }
 }
