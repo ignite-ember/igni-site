@@ -1,7 +1,7 @@
 /*
  * The brand orange, twice.
  *
- * F137. `#F97316` reads at 2.4–2.8:1 against every light background on
+ * F137. `#F26A1B` reads at 2.9–3.1:1 against every light background on
  * this page, and WCAG AA wants 4.5:1 for body text and 3:1 for large
  * text — so 39 of the page's 54 contrast failures were this one colour
  * used as small text. `#B03A09` is the same hue at 5.27:1 against the
@@ -12,7 +12,7 @@
  * mock, which sits on a dark background and passes as it is.
  */
 :root {
-  --igni-orange: #F97316;
+  --igni-orange: #F26A1B;
   --igni-orange-text: #B03A09;
 }
 
@@ -115,19 +115,19 @@
 }
 
 .landing-hero-badge-accent {
-  border-color: #F97316;
+  border-color: #F26A1B;
   color: var(--igni-orange-text);
 }
 
 .landing-hero-badge-accent .landing-hero-badge-dot {
-  background: #F97316;
+  background: #F26A1B;
 }
 
 .landing-hero-badge-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #F97316;
+  background: #F26A1B;
   animation: pulse-dot 2s ease-in-out infinite;
 }
 
@@ -149,10 +149,10 @@
 
 .landing-hero-gradient {
   /* Gradient *text*, so the contrast is against the page behind it.
-        * As large text it needs 3:1 and #F97316 gives 2.80 — computed, not
-        * measured, because axe cannot read text whose fill is transparent.
-        * #EA580C is 3.56 and #DC4A02 is 4.18. F137. */
-  background: linear-gradient(135deg, #EA580C, #DC2626, #EA580C);
+        * As large text it needs 3:1 and #F26A1B gives 2.88 on the muted
+        * background — computed, not measured, because axe cannot read text
+        * whose fill is transparent. #EA580C is 3.56 and #C2410C is 5.18. F137. */
+  background: linear-gradient(135deg, #EA580C, #C2410C, #EA580C);
   background-size: 200% 200%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -188,12 +188,11 @@
   padding: 14px 32px;
   border: none;
   border-radius: var(--borderRadius-medium, 6px);
-  /* Darkened for the white label on top. axe could not measure these
-        * — it reports "background gradient" as incomplete rather than as a
-        * failure — so the ratio was computed by hand: white on #F97316 is
-        * 2.80:1 and AA wants 4.5:1 for a label this size. #C2410C is 5.18
-        * and #DC2626 is 4.83, so the gradient passes at both ends and stays
-        * the same two hues. F137. */
+  /* Orange to red under a white label. axe could not measure these —
+        * it reports "background gradient" as incomplete rather than as a
+        * failure — so the ratio was computed by hand: white on #C2410C is
+        * 5.18:1 and on #DC2626 4.83:1, so it passes AA's 4.5:1 at both
+        * ends. F137. */
   background: linear-gradient(135deg, #C2410C, #DC2626);
   color: #fff;
   font-size: 16px;
@@ -205,7 +204,7 @@
 
 .landing-btn-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(249, 115, 22, 0.3);
+  box-shadow: 0 8px 24px rgba(242, 106, 27, 0.3);
   text-decoration: none;
 }
 
@@ -371,11 +370,11 @@
 /* Default-guess row: subtle accent dot on the left, no explicit
       * selection state (any variant is one click away either way). */
 .landing-install-menu-item--default {
-  background-color: color-mix(in srgb, #F97316 8%, transparent);
+  background-color: color-mix(in srgb, #F26A1B 8%, transparent);
 }
 
 .landing-install-menu-item--default:hover {
-  background-color: color-mix(in srgb, #F97316 14%, transparent);
+  background-color: color-mix(in srgb, #F26A1B 14%, transparent);
 }
 
 .landing-install-menu-label {
@@ -488,7 +487,7 @@
 }
 
 .landing-terminal-body .t-orange {
-  color: #F97316;
+  color: #F26A1B;
 }
 
 .landing-terminal-body .t-green {
@@ -600,7 +599,7 @@
   border-radius: 12px;
   margin-bottom: 20px;
   font-size: 24px;
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.12), rgba(220, 38, 38, 0.08));
+  background: linear-gradient(135deg, rgba(242, 106, 27, 0.12), rgba(194, 65, 12, 0.08));
   color: var(--igni-orange-text);
 }
 
@@ -643,7 +642,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #F97316, #DC2626);
+  background: linear-gradient(135deg, #F26A1B, #C2410C);
   color: #fff;
   font-size: 16px;
   font-weight: 700;
@@ -693,7 +692,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #F97316, #DC2626);
+  background: linear-gradient(135deg, #F26A1B, #C2410C);
   color: #fff;
   font-size: 14px;
   font-weight: 700;
@@ -717,12 +716,12 @@
   color: var(--igni-orange-text);
   text-decoration: none;
   font-weight: 500;
-  border-bottom: 1px solid rgba(249, 115, 22, 0.4);
+  border-bottom: 1px solid rgba(242, 106, 27, 0.4);
   transition: border-color 0.15s ease;
 }
 
 .landing-codeindex-step-link:hover {
-  border-bottom-color: #F97316;
+  border-bottom-color: #F26A1B;
 }
 
 .landing-codeindex-levels {
@@ -792,7 +791,7 @@
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.12), rgba(220, 38, 38, 0.08));
+  background: linear-gradient(135deg, rgba(242, 106, 27, 0.12), rgba(194, 65, 12, 0.08));
   color: var(--igni-orange-text);
   margin-bottom: 12px;
 }
@@ -866,12 +865,12 @@
 }
 
 .landing-codeindex-compare-good {
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.05), rgba(220, 38, 38, 0.04));
-  border-color: rgba(249, 115, 22, 0.35);
+  background: linear-gradient(135deg, rgba(242, 106, 27, 0.05), rgba(194, 65, 12, 0.04));
+  border-color: rgba(242, 106, 27, 0.35);
 }
 
 .landing-codeindex-compare-good h4 {
-  background: linear-gradient(135deg, #F97316, #DC2626);
+  background: linear-gradient(135deg, #F26A1B, #C2410C);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -906,7 +905,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #F97316, #DC2626);
+  background: linear-gradient(135deg, #F26A1B, #C2410C);
   color: #fff;
   font-size: 14px;
   font-weight: 700;
@@ -992,7 +991,7 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #F97316;
+  background: #F26A1B;
 }
 
 .landing-getstarted-list strong {
@@ -1001,7 +1000,7 @@
 }
 
 .landing-getstarted-list a {
-  color: var(--fgColor-accent, #F97316);
+  color: var(--fgColor-accent, #F26A1B);
   text-decoration: none;
 }
 
@@ -1069,7 +1068,7 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.1;
-  background: linear-gradient(90deg, #F97316, #DC2626, #FBBF24, #F97316);
+  background: linear-gradient(90deg, #F26A1B, #C2410C, #FBBF24, #F26A1B);
   background-size: 300% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1115,8 +1114,8 @@
 }
 
 .landing-pricing-featured {
-  border-color: #F97316;
-  box-shadow: 0 0 0 1px #F97316;
+  border-color: #F26A1B;
+  box-shadow: 0 0 0 1px #F26A1B;
   position: relative;
 }
 
@@ -1126,7 +1125,7 @@
   left: 50%;
   transform: translateX(-50%);
   padding: 4px 16px;
-  background: linear-gradient(135deg, #F97316, #DC2626);
+  background: linear-gradient(135deg, #F26A1B, #C2410C);
   color: #fff;
   font-size: 12px;
   font-weight: 600;
@@ -1524,7 +1523,7 @@ th.landing-compare-igni {
 }
 
 .landing-nav-signin-btn:hover {
-  color: #DC2626;
+  color: #C2410C;
 }
 
 .landing-nav-join-btn {
@@ -1535,7 +1534,7 @@ th.landing-compare-igni {
 }
 
 .landing-nav-join-btn:hover {
-  color: #DC2626;
+  color: #C2410C;
 }
 
 .landing-footer-join-btn {
@@ -1820,7 +1819,7 @@ th.landing-compare-igni {
 }
 
 .landing-bench-th-ours .landing-bench-th-system {
-  background: linear-gradient(90deg, #F97316, #DC2626, #FBBF24, #F97316);
+  background: linear-gradient(90deg, #F26A1B, #C2410C, #FBBF24, #F26A1B);
   background-size: 300% 100%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -1847,12 +1846,12 @@ th.landing-compare-igni {
 }
 
 .landing-bench-cell-ours {
-  background: linear-gradient(180deg, rgba(249, 115, 22, 0.04), rgba(249, 115, 22, 0.0));
+  background: linear-gradient(180deg, rgba(242, 106, 27, 0.04), rgba(242, 106, 27, 0.0));
 }
 
 .landing-bench-table thead .landing-bench-th-ours {
   background:
-    linear-gradient(180deg, rgba(249, 115, 22, 0.10), rgba(249, 115, 22, 0.04)),
+    linear-gradient(180deg, rgba(242, 106, 27, 0.10), rgba(242, 106, 27, 0.04)),
     var(--bgColor-muted);
 }
 
@@ -1862,7 +1861,7 @@ th.landing-compare-igni {
 
 .landing-bench-cell-ours.landing-bench-winner {
   background:
-    linear-gradient(180deg, rgba(249, 115, 22, 0.04), rgba(249, 115, 22, 0.0)),
+    linear-gradient(180deg, rgba(242, 106, 27, 0.04), rgba(242, 106, 27, 0.0)),
     rgba(34, 197, 94, 0.10);
 }
 
