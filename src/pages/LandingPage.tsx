@@ -28,7 +28,7 @@ import {
   ShieldLockIcon,
   WorkflowIcon,
 } from '@primer/octicons-react'
-import { IgniLogo } from '../components/IgniLogo'
+import { IgniLogo, IgniLogoImage } from '../components/IgniLogo'
 import { CALENDLY_URL, CONTACT_EMAIL, mailto, CODEINDEX_PRICES, ARTIFACTS_PRICES, FLEET_PRICES, FACTORY_PER_YEAR, AUTOPILOT_PRICES, MODULE_FROM_PER_SEAT, SEAT_MINIMUM, SEAT_CEILINGS, graduatedPrice, marginalRates, UNLIMITED, eur, eurK, eurSeat, seatRange } from './site/siteData'
 
 /**
@@ -953,13 +953,13 @@ function WireMap({ onPick }: { onPick: (lane: WireLane) => void }) {
           <polyline points="688,446 772,446 772,214 902,214" className="lp-map-link lp-map-link--dotted" {...arrow} />
 
           {tile('page', 100, 112, <BrowserIcon size={24} />, 'Extension’s page', 'its screen, optional')}
-          {tile('app', 310, 112, <IgniLogo size={24} />, 'igni app', 'front end: the window')}
+          {tile('app', 310, 112, <IgniLogoImage size={24} />, 'igni app', 'front end: the window')}
           {tile('process', 100, 330, <TerminalIcon size={24} />, 'Extension’s process', 'its code')}
-          {tile('backend', 310, 330, <IgniLogo size={24} />, 'igni backend', 'the agent', { igni: true })}
+          {tile('backend', 310, 330, <IgniLogoImage size={24} />, 'igni backend', 'the agent', { igni: true })}
 
           {tile('server', 590, 112, <ServerIcon size={24} />, 'igni server', 'sign-in, approvals, mail')}
           {tile('gateway', 590, 300, <ZapIcon size={24} />, 'Fleet gateway', 'has the VM woken', { left: true })}
-          {tile('vmBackend', 540, 446, <IgniLogo size={24} />, 'igni backend', 'the agent', { igni: true })}
+          {tile('vmBackend', 540, 446, <IgniLogoImage size={24} />, 'igni backend', 'the agent', { igni: true })}
           {tile('vmProcess', 660, 446, <TerminalIcon size={24} />, 'Extension’s process', '')}
 
           {tile('service', 930, 200, <StackIcon size={24} />, 'Extension’s backend service', 'SDK: igni-service')}
