@@ -42,7 +42,6 @@ import {
 } from '@primer/octicons-react'
 
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
-import { IgniLogo } from '../components/IgniLogo'
 import {
   classifyAssets,
   detectPlatform,
@@ -189,7 +188,6 @@ export function DownloadPage() {
       <nav className="landing-nav">
         <div className="landing-nav-inner">
           <a href="/" className="landing-nav-brand">
-            <IgniLogo size={32} />
             <h1>igni</h1>
           </a>
           <ul className="landing-nav-links">
