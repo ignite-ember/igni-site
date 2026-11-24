@@ -188,13 +188,12 @@
   padding: 14px 32px;
   border: none;
   border-radius: var(--borderRadius-medium, 6px);
-  /* Darkened for the white label on top. axe could not measure these
-        * — it reports "background gradient" as incomplete rather than as a
-        * failure — so the ratio was computed by hand: white on #F26A1B is
-        * 3.06:1 and AA wants 4.5:1 for a label this size. #CC4A0E is 4.61
-        * and #B03A09 is 6.08, so the gradient passes at both ends and stays
-        * the icon's hue. F137. */
-  background: linear-gradient(135deg, #CC4A0E, #B03A09);
+  /* The icon's own gradient, orange to red, under a white label. axe
+        * could not measure these — it reports "background gradient" as
+        * incomplete rather than as a failure — so the ratio was computed by
+        * hand: white on #C2410C is 5.18:1 and on #DC2626 4.83:1, so it passes
+        * AA's 4.5:1 at both ends. F137. */
+  background: linear-gradient(135deg, #C2410C, #DC2626);
   color: #fff;
   font-size: 16px;
   font-weight: 600;
