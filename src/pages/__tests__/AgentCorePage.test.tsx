@@ -159,7 +159,11 @@ describe('it stays honest', () => {
 
   test('no AWS logo or mark: the only images are igni’s own screenshots', () => {
     renderPage()
-    const imgs = Array.from(document.querySelectorAll('img'))
+    // igni's own logo aside: it is the brand mark, not an AWS one.
+    const all = Array.from(document.querySelectorAll('img'))
+    const logos = all.filter((img) => img.getAttribute('alt') === 'igni')
+    for (const logo of logos) expect(logo.getAttribute('src')).toMatch(/igni-icon/)
+    const imgs = all.filter((img) => !logos.includes(img))
     expect(imgs).toHaveLength(3)
     for (const img of imgs) {
       expect(img.getAttribute('src')).toMatch(/igni-claims-/)
