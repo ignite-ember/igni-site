@@ -188,11 +188,11 @@
   padding: 14px 32px;
   border: none;
   border-radius: var(--borderRadius-medium, 6px);
-  /* The icon's own gradient, orange to red, under a white label. axe
-        * could not measure these — it reports "background gradient" as
-        * incomplete rather than as a failure — so the ratio was computed by
-        * hand: white on #C2410C is 5.18:1 and on #DC2626 4.83:1, so it passes
-        * AA's 4.5:1 at both ends. F137. */
+  /* Orange to red under a white label. axe could not measure these —
+        * it reports "background gradient" as incomplete rather than as a
+        * failure — so the ratio was computed by hand: white on #C2410C is
+        * 5.18:1 and on #DC2626 4.83:1, so it passes AA's 4.5:1 at both
+        * ends. F137. */
   background: linear-gradient(135deg, #C2410C, #DC2626);
   color: #fff;
   font-size: 16px;
