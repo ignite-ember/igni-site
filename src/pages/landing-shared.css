@@ -59,6 +59,11 @@
   color: var(--fgColor-default);
 }
 
+.landing-nav-cat {
+  display: block;
+  flex: none;
+}
+
 .landing-nav-brand h1 {
   font-size: 20px;
   font-weight: 700;
