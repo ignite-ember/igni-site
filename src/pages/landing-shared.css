@@ -53,8 +53,8 @@
   align-items: center;
   gap: 10px;
   /* The wordmark alone is narrower than a finger: keep the link a full tap target. */
-  min-width: 44px;
-  min-height: 44px;
+  min-width: var(--base-size-44);
+  min-height: var(--base-size-44);
   text-decoration: none;
   color: var(--fgColor-default);
 }
