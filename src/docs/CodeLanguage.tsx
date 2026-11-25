@@ -83,13 +83,15 @@ export function CodeGroup({ node, children }: { node?: unknown; children: ReactN
   return (
     <div className="code-group">
       <div className="code-group-toggle" style={{ marginBottom: 'var(--base-size-8)' }}>
-        <SegmentedControl aria-label="Code language" size="small">
+        {/* `onChange` makes the control controlled: without it Primer keeps
+            its own selection, and only the toggle clicked would move. */}
+        <SegmentedControl
+          aria-label="Code language"
+          size="small"
+          onChange={(index) => setLanguage(languages[index])}
+        >
           {languages.map((lang) => (
-            <SegmentedControl.Button
-              key={lang}
-              selected={lang === activeLanguage}
-              onClick={() => setLanguage(lang)}
-            >
+            <SegmentedControl.Button key={lang} selected={lang === activeLanguage}>
               {LANGUAGE_LABEL[lang] ?? lang}
             </SegmentedControl.Button>
           ))}
