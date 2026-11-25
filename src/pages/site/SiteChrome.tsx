@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ChevronDownIcon, MarkGithubIcon } from '@primer/octicons-react'
-import { IgniLogo } from '../../components/IgniLogo'
 import { CALENDLY_URL, COMPARE_AGENTCORE, CONTACT_EMAIL, GITHUB_REPO, PRODUCT_GROUPS, PRODUCTS, mailto } from './siteData'
 
 function productsIn(slugs: string[]) {
@@ -41,7 +40,6 @@ export function SiteNav({ home = false }: { home?: boolean }) {
       <nav className="landing-nav">
         <div className="landing-nav-inner">
           <a href="/" className="landing-nav-brand">
-            <IgniLogo size={32} />
             <h1>igni</h1>
           </a>
           <ul className="landing-nav-links lp-nav-center">
