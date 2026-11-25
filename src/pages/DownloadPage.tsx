@@ -54,6 +54,7 @@ import {
   type ReleaseAsset,
 } from './downloadAssets'
 import './DownloadPage.css'
+import { HeaderCat } from '../components/HeaderCat'
 
 const CACHE_KEY = 'igni_latest_release'
 
@@ -188,6 +189,7 @@ export function DownloadPage() {
       <nav className="landing-nav">
         <div className="landing-nav-inner">
           <a href="/" className="landing-nav-brand">
+            <HeaderCat />
             <h1>igni</h1>
           </a>
           <ul className="landing-nav-links">

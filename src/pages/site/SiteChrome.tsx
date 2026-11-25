@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ChevronDownIcon, MarkGithubIcon } from '@primer/octicons-react'
 import { CALENDLY_URL, COMPARE_AGENTCORE, CONTACT_EMAIL, GITHUB_REPO, PRODUCT_GROUPS, PRODUCTS, mailto } from './siteData'
+import { HeaderCat } from '../../components/HeaderCat'
 
 function productsIn(slugs: string[]) {
   return slugs.map((slug) => PRODUCTS.find((p) => p.slug === slug)!).filter(Boolean)
@@ -40,6 +41,7 @@ export function SiteNav({ home = false }: { home?: boolean }) {
       <nav className="landing-nav">
         <div className="landing-nav-inner">
           <a href="/" className="landing-nav-brand">
+            <HeaderCat />
             <h1>igni</h1>
           </a>
           <ul className="landing-nav-links lp-nav-center">
