@@ -9,6 +9,7 @@ import { DocArticlePage } from "./pages/DocArticlePage";
 import { AgentCorePage } from "./pages/AgentCorePage";
 import { SdkLandingPage } from "./pages/SdkLandingPage";
 import { SdkArticlePage } from "./pages/SdkArticlePage";
+import { SdkFirstSegment, SdkSecondSegment } from "./pages/SdkRoutes";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { LEGACY_REDIRECTS, docPackage, isKnownVersion } from "./docs/docsManifest";
 
@@ -73,13 +74,18 @@ export default function App() {
             package's own index and its articles. */}
             <Route path="docs" element={<DocsPage />} />
             {/* The SDKs' documentation, generated in igni-sdk and
-            copied into src/docs/sdk/ (scripts/sync-docs.mjs sdk).
-            Declared before the generic docs/:package routes; React
-            Router ranks the static `sdk` segment above the parameter
-            either way. */}
+            copied into src/docs/sdk/<version>/ (scripts/sync-docs.mjs
+            sdk). `/docs/sdk[/<package>[/<page>]]` is the latest release
+            (canonical); `/docs/sdk/<version>[/<package>[/<page>]]` pins one,
+            `latest` as `<version>` follows the newest. The one- and
+            two-segment forms are ambiguous and the SDK's version list
+            decides (SdkFirstSegment, SdkSecondSegment). Declared before the
+            generic docs/:package routes; React Router ranks the static
+            `sdk` segment above the parameter either way. */}
             <Route path="docs/sdk" element={<SdkLandingPage />} />
-            <Route path="docs/sdk/:pkg" element={<SdkArticlePage />} />
-            <Route path="docs/sdk/:pkg/:page" element={<SdkArticlePage />} />
+            <Route path="docs/sdk/:seg" element={<SdkFirstSegment />} />
+            <Route path="docs/sdk/:seg/:page" element={<SdkSecondSegment />} />
+            <Route path="docs/sdk/:version/:pkg/:page" element={<SdkArticlePage />} />
             {/* Retired single-segment /docs/<slug> URLs redirect to their
             new per-package path, so every old link keeps resolving. The
             single-page packages (fleet, artifacts, codeindex) keep their

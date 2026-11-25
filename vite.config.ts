@@ -1,8 +1,19 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
+import { join } from 'node:path'
+
+import { latestSdkDir } from './scripts/sync-docs.mjs'
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: [
+      // The newest SDK snapshot's index, bundled so `/docs/sdk/...` renders
+      // at once; past releases' indexes load on demand (src/docs/sdkManifest.ts).
+      // Read when the server starts: restart `npm run dev` after a sync adds a version.
+      { find: /^sdk-latest-index$/, replacement: join(latestSdkDir(), 'index.json') },
+    ],
+  },
   test: {
     environment: 'jsdom',
     globals: true,

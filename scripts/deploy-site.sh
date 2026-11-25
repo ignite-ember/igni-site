@@ -57,10 +57,18 @@ done
 echo "== 3. index.html at every route"
 routes=$(node "$HERE/site-routes.mjs")
 [ -n "$routes" ] || { echo "site-routes.mjs listed nothing" >&2; exit 1; }
-for r in $routes; do
-  run gcloud storage cp "$DIST/index.html" "gs://$BUCKET/$r" \
+# Eight at a time: every pinned docs version (each SDK release alone is
+# ~120 pages) is a route, and one copy after another took minutes. A failed
+# copy fails the deploy (xargs exits non-zero).
+echo "$(printf '%s\n' $routes | wc -l | tr -d ' ') routes"
+if [ -n "${DRY_RUN:-}" ]; then
+  for r in $routes; do
+    printf '+ %s\n' "gcloud storage cp $DIST/index.html gs://$BUCKET/$r --content-type='text/html; charset=utf-8' --cache-control='no-cache'"
+  done
+else
+  printf '%s\n' $routes | xargs -P 8 -I{} gcloud storage cp "$DIST/index.html" "gs://$BUCKET/{}" \
     --content-type='text/html; charset=utf-8' --cache-control='no-cache'
-done
+fi
 
 echo "== 4. index.html"
 run gcloud storage cp "$DIST/index.html" "gs://$BUCKET/index.html" \

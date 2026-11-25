@@ -6,7 +6,8 @@
  * `package × article`: a landing for each package (`/docs/<package>`) and
  * a page for each article a multi-page package carries
  * (`/docs/<package>/<slug>`). Single-page packages (fleet, artifacts,
- * codeindex) have only their landing. The SDK paths are unchanged.
+ * codeindex) have only their landing. The SDK paths are the latest
+ * snapshot's, version-less; a pinned SDK version is not listed.
  *
  * The retired single-segment `/docs/<slug>` URLs are deliberately NOT in
  * the sitemap: they redirect, and a sitemap entry is an instruction to a
@@ -26,6 +27,8 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+
+import { TARGET as SDK_DIR, latestSdkDir, sdkVersions } from './sync-docs.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(HERE, '..')
@@ -144,19 +147,44 @@ export function docVersionedPaths() {
   return [...new Set(out)]
 }
 
+/** The pages of one SDK snapshot's index, as `[package, slug]`. */
+function sdkPagesIn(dir) {
+  return JSON.parse(readFileSync(join(dir, 'index.json'), 'utf8')).pages.map((p) => [p.package, p.slug])
+}
+
 /**
- * The SDK documentation's paths, from the index igni-sdk generates
- * (copied into `src/docs/sdk/` by `scripts/sync-docs.mjs sdk`): the
- * landing page, each package (its overview) and each other page.
+ * The SDK documentation's canonical paths, from the index of the latest
+ * snapshot igni-sdk generated (copied into `src/docs/sdk/<version>/` by
+ * `scripts/sync-docs.mjs sdk`): the landing page, each package (its
+ * overview) and each other page. Version-less, so they follow the newest
+ * release; only these are in the sitemap.
  */
 export function sdkPaths() {
-  const index = JSON.parse(readFileSync(join(ROOT, 'src/docs/sdk/index.json'), 'utf8'))
   return [
     'docs/sdk',
-    ...index.pages.map((p) =>
-      p.slug === 'overview' ? `docs/sdk/${p.package}` : `docs/sdk/${p.package}/${p.slug}`,
+    ...sdkPagesIn(latestSdkDir()).map(([pkg, slug]) =>
+      slug === 'overview' ? `docs/sdk/${pkg}` : `docs/sdk/${pkg}/${slug}`,
     ),
   ]
+}
+
+/**
+ * The pinned SDK paths, `docs/sdk/<version>[/<package>[/<page>]]`, for every
+ * snapshot and the `latest` alias — each version with the pages it has. Not
+ * in the sitemap; each gets a bucket object so an old version's deep link
+ * serves index.html.
+ */
+export function sdkVersionedPaths() {
+  const versions = sdkVersions()
+  const out = []
+  for (const v of ['latest', ...versions]) {
+    const dir = join(SDK_DIR, v === 'latest' ? versions[0] : v)
+    out.push(`docs/sdk/${v}`)
+    for (const [pkg, slug] of sdkPagesIn(dir)) {
+      out.push(slug === 'overview' ? `docs/sdk/${v}/${pkg}` : `docs/sdk/${v}/${pkg}/${slug}`)
+    }
+  }
+  return [...new Set(out)]
 }
 
 export function buildSitemap() {

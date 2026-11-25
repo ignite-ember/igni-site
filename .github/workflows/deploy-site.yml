@@ -42,10 +42,11 @@ jobs:
             scripts
             src/App.tsx
             src/docs/docsManifest.ts
-            # The SDK pages' index, which scripts/site-routes.mjs reads to
-            # know every /docs/sdk route the site answers. Without it the
-            # deploy cannot list the routes and the job fails.
-            src/docs/sdk/index.json
+            # The SDK snapshots, one folder per release: scripts/site-routes.mjs
+            # reads every src/docs/sdk/<version>/index.json to know each
+            # /docs/sdk route the site answers, pinned ones included. Without
+            # them the deploy cannot list the routes and the job fails.
+            src/docs/sdk
 
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:

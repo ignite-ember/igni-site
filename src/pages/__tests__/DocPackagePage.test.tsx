@@ -119,3 +119,16 @@ describe('an unknown package', () => {
     expect(screen.getByRole('link', { name: /Back to docs/i })).toBeInTheDocument()
   })
 })
+
+describe('the version selector', () => {
+  test('a versioned package offers Latest and each release, on Latest', () => {
+    renderPackage('server')
+    const select = screen.getByRole('combobox', { name: 'Documentation version' }) as HTMLSelectElement
+    expect(select.value).toBe('latest')
+    const versions = docPackage('server')!.versions
+    expect(Array.from(select.options).map((o) => o.textContent)).toEqual([
+      `Latest (v${versions[0]})`,
+      ...versions.map((v) => `v${v}`),
+    ])
+  })
+})

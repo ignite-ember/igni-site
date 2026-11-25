@@ -15,10 +15,12 @@
  *
  *  - **Generated-next-to-code** (`sdk`, `server`, `fleet`) is generated in the
  *    package's own repository and copied here. The SDK (`sdk`) is generated in
- *    igni-sdk (`make sdk-docs`, into `docs/site/`) and copied into `src/docs/sdk/`,
- *    the way igni-core's published contracts are copied in; its generator emits
- *    the current release flat and carries the per-package version in its
- *    `index.json`. The server (`server`) is generated in igni-server
+ *    igni-sdk (`make sdk-docs`, into `docs/site/`) and copied into
+ *    `src/docs/sdk/<version>/`, the way igni-core's published contracts are
+ *    copied in; its generator emits the current release flat and carries the
+ *    version in its `index.json` (one for all six packages, released together),
+ *    which names the folder. `--check` compares the checkout with the latest
+ *    snapshot; a past release's folder is never written again. The server (`server`) is generated in igni-server
  *    (`make docs-site`, into `docs/site/server/<version>/`) and copied into
  *    `src/docs/content/server/<version>/`; Fleet (`fleet`) is generated the same
  *    way in igni__cloudvm (`python3 tools/site_docs.py`, into
@@ -55,7 +57,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 
 // ── The SDK: copy from an igni-sdk checkout ───────────────────────────
 
-/** Where the SDK copies live. */
+/** Where the SDK snapshots live: one folder per release, `src/docs/sdk/<version>/`. */
 export const TARGET = join(ROOT, 'src/docs/sdk')
 
 /** The igni-sdk checkout: `IGNI_SDK_DIR`, else `../igni-sdk` beside this repository. */
@@ -66,6 +68,53 @@ export function sdkDir() {
 /** The generated pages in that checkout. */
 export function sourceDir(dir = sdkDir()) {
   return join(dir, 'docs/site')
+}
+
+/** Order two `x.y.z` versions newest first; a pre-release sorts below its release. */
+export function compareVersionsDesc(a, b) {
+  const parse = (v) => {
+    const [core, pre = ''] = v.split('-', 2)
+    return { nums: core.split('.').map((n) => Number.parseInt(n, 10) || 0), pre }
+  }
+  const x = parse(a)
+  const y = parse(b)
+  for (let i = 0; i < Math.max(x.nums.length, y.nums.length); i++) {
+    const d = (y.nums[i] ?? 0) - (x.nums[i] ?? 0)
+    if (d) return d
+  }
+  if (x.pre === y.pre) return 0
+  if (!x.pre) return -1
+  if (!y.pre) return 1
+  return y.pre < x.pre ? -1 : 1
+}
+
+/** The SDK snapshots here, newest first: every `src/docs/sdk/<version>/` with an `index.json`. */
+export function sdkVersions(target = TARGET) {
+  if (!existsSync(target)) return []
+  return readdirSync(target, { withFileTypes: true })
+    .filter((e) => e.isDirectory() && existsSync(join(target, e.name, 'index.json')))
+    .map((e) => e.name)
+    .sort(compareVersionsDesc)
+}
+
+/** The folder of the newest SDK snapshot, the one `/docs/sdk/...` shows. */
+export function latestSdkDir(target = TARGET) {
+  const [latest] = sdkVersions(target)
+  if (!latest) throw new Error(`no SDK snapshot under ${target}`)
+  return join(target, latest)
+}
+
+/**
+ * The release a generated tree is: the version its `index.json` gives every
+ * package. The six are released together, so they must agree.
+ */
+export function generatedVersion(dir) {
+  const index = JSON.parse(readFileSync(join(dir, 'index.json'), 'utf8'))
+  const versions = [...new Set(index.packages.map((p) => p.version))]
+  if (versions.length !== 1) {
+    throw new Error(`the SDK packages in ${dir}/index.json disagree on their version: ${versions.join(', ')}`)
+  }
+  return versions[0]
 }
 
 /** Every file under `dir`, as paths relative to it, sorted. */
@@ -84,14 +133,15 @@ function files(dir) {
 }
 
 /**
- * What differs between the checkout and the copies: files to add or
- * change, and copies igni-sdk no longer generates.
+ * What differs between the checkout and a snapshot folder (by default the
+ * latest): files to add or change, and copies igni-sdk no longer generates.
  */
-export function diff(source = sourceDir()) {
+export function diff(source = sourceDir(), version = sdkVersions()[0]) {
+  const to = join(TARGET, version ?? '')
   const wanted = files(source)
-  const have = new Set(files(TARGET))
+  const have = new Set(version ? files(to) : [])
   const changed = wanted.filter(
-    (f) => !have.has(f) || readFileSync(join(source, f), 'utf8') !== readFileSync(join(TARGET, f), 'utf8'),
+    (f) => !have.has(f) || readFileSync(join(source, f), 'utf8') !== readFileSync(join(to, f), 'utf8'),
   )
   const removed = [...have].filter((f) => !wanted.includes(f))
   return { changed, removed }
@@ -103,21 +153,38 @@ function syncSdk(argv) {
     console.error(`no generated SDK docs at ${source} (set IGNI_SDK_DIR to an igni-sdk checkout; run make sdk-docs there)`)
     return 2
   }
+  const version = generatedVersion(source)
+  const versions = sdkVersions()
+  const latest = versions[0]
   const check = argv.includes('--check')
-  const { changed, removed } = diff(source)
-  if (!check) {
-    for (const f of changed) {
-      mkdirSync(dirname(join(TARGET, f)), { recursive: true })
-      writeFileSync(join(TARGET, f), readFileSync(join(source, f), 'utf8'))
+  if (check) {
+    // The check is against the latest snapshot: a checkout that generates a
+    // newer release is a sync not yet run, an older one is the wrong checkout.
+    const { changed, removed } = diff(source, latest)
+    if (version !== latest) {
+      console.log(`the checkout generates SDK ${version}; the site's latest snapshot is ${latest ?? 'missing'}`)
     }
-    for (const f of removed) rmSync(join(TARGET, f))
+    for (const f of changed) console.log(`stale: src/docs/sdk/${latest}/${f}`)
+    for (const f of removed) console.log(`left over: src/docs/sdk/${latest}/${f}`)
+    return version !== latest || changed.length || removed.length ? 1 : 0
   }
-  for (const f of changed) console.log(`${check ? 'stale' : 'copied'}: src/docs/sdk/${f}`)
-  for (const f of removed) console.log(`${check ? 'left over' : 'removed'}: src/docs/sdk/${f}`)
-  if (!check && (changed.length || removed.length)) {
-    console.log('now run `npm run sitemap`: the sitemap lists every SDK page')
+  if (versions.includes(version) && version !== latest) {
+    console.error(`src/docs/sdk/${version} is a past release's snapshot; snapshots are immutable`)
+    return 1
   }
-  return check && (changed.length || removed.length) ? 1 : 0
+  const { changed, removed } = diff(source, version)
+  const to = join(TARGET, version)
+  for (const f of changed) {
+    mkdirSync(dirname(join(to, f)), { recursive: true })
+    writeFileSync(join(to, f), readFileSync(join(source, f), 'utf8'))
+  }
+  for (const f of removed) rmSync(join(to, f))
+  for (const f of changed) console.log(`copied: src/docs/sdk/${version}/${f}`)
+  for (const f of removed) console.log(`removed: src/docs/sdk/${version}/${f}`)
+  if (changed.length || removed.length) {
+    console.log('now run `npm run sitemap`: the sitemap lists every page of the latest SDK snapshot')
+  }
+  return 0
 }
 
 // ── The server: copy generated snapshots from an igni-server checkout ──

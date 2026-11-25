@@ -18,8 +18,10 @@ per-version; how a package's content gets here is one of three ways:
     is `master`) and copied in the same way — the second package to move next to
     its code. Fleet versions on its own cadence, so its generator stamps the
     whole version (`0.1.2`), not a minor series.
-  - **The SDK** (`sdk/`, indexed by `sdkManifest.ts`) is generated in igni-sdk
-    and copied in; versioned per package by its `index.json`.
+  - **The SDK** (`sdk/<version>/`, indexed by `sdkManifest.ts`) is generated in
+    igni-sdk and copied in, one snapshot per release. The six packages are
+    released together, so the whole SDK has one version axis: the version every
+    package carries in the snapshot's `index.json` names its folder.
 
 ## Layout
 
@@ -49,6 +51,25 @@ repository only copies it.
 | `/docs/<package>/<slug>` | an article at **latest** (canonical) |
 | `/docs/<package>/<version>/<slug>` | an article pinned to that version |
 | `/docs/<package>/latest/<slug>` | the alias form |
+
+The SDK has one version for all six packages, so its version segment comes
+right after `sdk`, before the package:
+
+| URL | Resolves to |
+|---|---|
+| `/docs/sdk` | the SDK landing at **latest** (canonical) |
+| `/docs/sdk/<package>[/<page>]` | a package's overview / a page at **latest** (canonical) |
+| `/docs/sdk/<version>` | the SDK landing pinned to that release, e.g. `/docs/sdk/0.2.1` |
+| `/docs/sdk/<version>/<package>[/<page>]` | an overview / a page pinned to that release |
+| `/docs/sdk/latest[/<package>[/<page>]]` | the alias form |
+
+`/docs/sdk/<seg>` and `/docs/sdk/<seg>/<page>` are told apart by the SDK's
+version list (`src/pages/SdkRoutes.tsx`): a package name never looks like a
+version. On a pinned past release the sidebar, prev/next, search and the
+pages' own `/docs/sdk/...` links stay in that release, and a page the release
+did not have is "Page not found", as an article missing from an older version
+of a documentation package is. Both use the same selector and banner
+(`VersionSelector.tsx`).
 
 The version-less (canonical) form is what the nav, the in-article links and
 the sitemap use, so a bookmark keeps working across releases. The retired
@@ -127,9 +148,34 @@ new release writes a new `docs/site/fleet/<version>/` folder and the sync lands
 it as `content/fleet/<version>/`, so a new version is prepended to fleet's
 `versions` and the sitemap regenerated, exactly as for a new minor above.
 
-The SDK docs work the same way: `node scripts/sync-docs.mjs sdk` copies
-igni-sdk's generated output, which carries its own per-package version in
-`sdk/index.json`.
+### The SDK
+
+The SDK docs are generated next to the code too, one immutable snapshot per
+release under `src/docs/sdk/<version>/` (the whole generated tree, `index.json`
+included). When igni-sdk releases, say, 0.2.4:
+
+1. In igni-sdk at the release tag (`sdk-v0.2.4`), `make sdk-docs` has written
+   `docs/site/` (it is committed there).
+2. Here, with that checkout beside this repository (or at `IGNI_SDK_DIR`), run
+   `node scripts/sync-docs.mjs sdk`. It reads the version from the checkout's
+   `docs/site/index.json` (all six packages must agree) and copies the tree into
+   `src/docs/sdk/0.2.4/`. It refuses to write into a past release's folder;
+   re-running it for the latest release updates that folder in place.
+3. There is no version list to edit: the folders are the list (newest first by
+   version number), so `0.2.4` becomes latest. Restart `npm run dev` if it is
+   running — vite.config.ts picks the latest folder when it starts.
+4. `npm run sitemap` (the canonical SDK paths now come from 0.2.4) and the
+   checks, as above; `site-routes.mjs` adds the pinned `docs/sdk/0.2.4/...`
+   objects by itself.
+
+`node scripts/sync-docs.mjs sdk --check` (and `src/test/sdkDocsSync.test.ts`,
+when a checkout is there) compares the checkout with the **latest** snapshot
+and fails when it is another release or differs. The latest release's index is
+bundled; a past release's index and pages are fetched when it is opened, so the
+bundle does not grow with each release.
+
+The 0.2.0–0.2.3 snapshots were backfilled from igni-sdk's tags `sdk-v0.2.0` …
+`sdk-v0.2.3`, each `docs/site/` as committed at that tag.
 
 Core and app remain hand-written for now; Phase 3 moves one package at a time —
 `server` was the pilot and `fleet` followed. When another moves next to its

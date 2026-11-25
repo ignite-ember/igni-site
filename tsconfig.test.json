@@ -27,5 +27,5 @@
   /* Reset: `extends` would otherwise inherit the app project's
      exclude, which names exactly these files and cancels the include. */
   "exclude": [],
-  "include": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/test/**/*"]
+  "include": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/test/**/*", "src/**/*.d.ts"]
 }

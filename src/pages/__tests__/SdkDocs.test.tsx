@@ -1,6 +1,7 @@
 /**
  * The SDK documentation: `/docs/sdk`, `/docs/sdk/<package>` and
- * `/docs/sdk/<package>/<page>`.
+ * `/docs/sdk/<package>/<page>` at the latest release, and the same pinned
+ * to a release at `/docs/sdk/<version>/...` (or `latest`).
  *
  * Asserted over the real pages igni-sdk generated (`src/docs/sdk/`), as
  * the article tests are over the real manifest: a fixture would agree
@@ -9,11 +10,25 @@
 import { afterEach, beforeAll, describe, expect, test } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import { cleanup, screen, waitFor, within } from '@testing-library/react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import { renderWithProviders } from '../../test/render'
-import { SDK_PACKAGES, SDK_PAGES, loadSdkContent, sdkLabel, sdkPagesOf, sdkPath, sdkToc, searchSdk } from '../../docs/sdkManifest'
+import {
+  SDK_LATEST,
+  SDK_PACKAGES,
+  SDK_PAGES,
+  SDK_VERSIONS,
+  loadSdkContent,
+  loadSdkDocs,
+  sdkLabel,
+  sdkLinkAt,
+  sdkPagesOf,
+  sdkPath,
+  sdkToc,
+  searchSdk,
+} from '../../docs/sdkManifest'
 import { SdkArticlePage } from '../SdkArticlePage'
 import { SdkLandingPage } from '../SdkLandingPage'
+import { SdkFirstSegment, SdkSecondSegment } from '../SdkRoutes'
 
 beforeAll(() => {
   // jsdom has no IntersectionObserver; the table of contents makes one.
@@ -31,17 +46,32 @@ beforeAll(() => {
 
 afterEach(cleanup)
 
+/** Where the router is, so a test can see where the selector went. */
+function Where() {
+  const { pathname } = useLocation()
+  return <div data-testid="where">{pathname}</div>
+}
+
+/** The SDK routes exactly as App.tsx declares them. */
 function renderAt(route: string) {
   return renderWithProviders(
-    <Routes>
-      <Route path="/docs" element={<div>docs index stub</div>} />
-      <Route path="/docs/sdk" element={<SdkLandingPage />} />
-      <Route path="/docs/sdk/:pkg" element={<SdkArticlePage />} />
-      <Route path="/docs/sdk/:pkg/:page" element={<SdkArticlePage />} />
-    </Routes>,
+    <>
+      <Routes>
+        <Route path="/docs" element={<div>docs index stub</div>} />
+        <Route path="/docs/sdk" element={<SdkLandingPage />} />
+        <Route path="/docs/sdk/:seg" element={<SdkFirstSegment />} />
+        <Route path="/docs/sdk/:seg/:page" element={<SdkSecondSegment />} />
+        <Route path="/docs/sdk/:version/:pkg/:page" element={<SdkArticlePage />} />
+      </Routes>
+      <Where />
+    </>,
     { route },
   )
 }
+
+/** A past release, frozen: its snapshot never changes. */
+const OLD = '0.2.0'
+const LATEST = SDK_VERSIONS[0]
 
 describe('the pages igni-sdk generated', () => {
   test('there are six packages, each with an overview, a guide and a reference', () => {
@@ -228,5 +258,163 @@ describe('the version shown', () => {
     expect(meta.version).toMatch(/^\d+\.\d+\.\d+/)
     renderAt('/docs/sdk/igni-service')
     expect(await screen.findByText(`igni-service ${meta.version}`)).toBeInTheDocument()
+  })
+})
+
+describe('the versions', () => {
+  test('are every snapshot, newest first, and the latest is the bundled index', () => {
+    expect(SDK_VERSIONS).toEqual(expect.arrayContaining(['0.2.0', '0.2.1', '0.2.2', '0.2.3']))
+    expect([...SDK_VERSIONS].sort((a, b) => b.localeCompare(a, undefined, { numeric: true }))).toEqual(SDK_VERSIONS)
+    expect(SDK_LATEST.version).toBe(LATEST)
+    for (const pkg of SDK_PACKAGES) expect(pkg.version, pkg.name).toBe(LATEST)
+  })
+
+  test.each(SDK_VERSIONS.map((v) => [v] as const))('every page of %s loads, as that release', async (version) => {
+    const docs = (await loadSdkDocs(version))!
+    expect(docs.version).toBe(version)
+    for (const pkg of docs.packages) expect(pkg.version, pkg.name).toBe(version)
+    for (const page of docs.pages) {
+      expect((await loadSdkContent(page, version)).startsWith(`# ${page.title}`), page.file).toBe(true)
+    }
+  })
+
+  test('an SDK link moves into a pinned release, and only then', () => {
+    const link = '/docs/sdk/igni-client/models-reference#scheduledtask'
+    expect(sdkLinkAt(link, LATEST)).toBe(link)
+    expect(sdkLinkAt(link, OLD)).toBe(`/docs/sdk/${OLD}/igni-client/models-reference#scheduledtask`)
+    expect(sdkLinkAt('/docs/sdk', OLD)).toBe(`/docs/sdk/${OLD}`)
+    expect(sdkLinkAt(`/docs/sdk/0.2.1/igni-client`, OLD)).toBe('/docs/sdk/0.2.1/igni-client')
+    expect(sdkLinkAt('/docs/core/install', OLD)).toBe('/docs/core/install')
+    expect(sdkLinkAt('#here', OLD)).toBe('#here')
+  })
+
+  test('a path at the latest is the canonical one; at a past release it is pinned', () => {
+    expect(sdkPath('igni-client', 'scheduler', '', LATEST)).toBe('/docs/sdk/igni-client/scheduler')
+    expect(sdkPath('igni-client', 'scheduler', '', OLD)).toBe(`/docs/sdk/${OLD}/igni-client/scheduler`)
+    expect(sdkPath('igni-client', 'overview', '', OLD)).toBe(`/docs/sdk/${OLD}/igni-client`)
+  })
+})
+
+describe('the version selector', () => {
+  const select = () => screen.getByRole('combobox', { name: 'Documentation version' }) as HTMLSelectElement
+
+  test('is on the SDK landing, on Latest, offering every release', async () => {
+    renderAt('/docs/sdk')
+    await screen.findByRole('heading', { name: sdkLabel(SDK_PACKAGES[0]) })
+    expect(select().value).toBe('latest')
+    expect(Array.from(select().options).map((o) => o.textContent)).toEqual([
+      `Latest (v${LATEST})`,
+      ...SDK_VERSIONS.map((v) => `v${v}`),
+    ])
+    expect(screen.queryByRole('status')).toBeNull()
+  })
+
+  test('is on a page, and choosing a release keeps the page', async () => {
+    const user = userEvent.setup()
+    renderAt('/docs/sdk/igni-client/scheduler')
+    await screen.findByRole('heading', { level: 1, name: 'Scheduled tasks' })
+    expect(select().value).toBe('latest')
+    await user.selectOptions(select(), OLD)
+    expect(await screen.findByText(`igni-client ${OLD}`)).toBeInTheDocument()
+    expect(screen.getByTestId('where')).toHaveTextContent(`/docs/sdk/${OLD}/igni-client/scheduler`)
+    expect(select().value).toBe(OLD)
+    await user.selectOptions(select(), 'latest')
+    expect(await screen.findByText(`igni-client ${LATEST}`)).toBeInTheDocument()
+    expect(screen.getByTestId('where')).toHaveTextContent(/^\/docs\/sdk\/igni-client\/scheduler$/)
+  })
+
+  test('on the landing, choosing a release pins the landing', async () => {
+    const user = userEvent.setup()
+    renderAt('/docs/sdk')
+    await screen.findByRole('heading', { name: sdkLabel(SDK_PACKAGES[0]) })
+    await user.selectOptions(select(), OLD)
+    expect(await screen.findByRole('status')).toHaveTextContent(`You’re reading v${OLD}`)
+    expect(screen.getByTestId('where')).toHaveTextContent(`/docs/sdk/${OLD}`)
+  })
+})
+
+describe('a pinned release', () => {
+  test('a page renders that release’s snapshot, with a banner back to the latest', async () => {
+    renderAt(`/docs/sdk/${OLD}/igni-client/scheduler`)
+    expect(await screen.findByText(`igni-client ${OLD}`)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { level: 1, name: 'Scheduled tasks' })).toBeInTheDocument()
+    const banner = screen.getByRole('status')
+    expect(banner).toHaveTextContent(`You’re reading v${OLD}; the latest is v${LATEST}.`)
+    expect(within(banner).getByRole('link', { name: 'Go to the latest docs' })).toHaveAttribute(
+      'href',
+      '/docs/sdk/igni-client/scheduler',
+    )
+  })
+
+  test('its sidebar, breadcrumbs and the page’s own links stay in the release', async () => {
+    renderAt(`/docs/sdk/${OLD}/igni-client/scheduler`)
+    const nav = await screen.findByRole('navigation', { name: 'igni-client documentation' })
+    expect(within(nav).getByRole('link', { name: 'Scheduled tasks' })).toHaveAttribute(
+      'href',
+      `/docs/sdk/${OLD}/igni-client/scheduler`,
+    )
+    expect(within(nav).getByRole('link', { name: /igni-service/ })).toHaveAttribute('href', `/docs/sdk/${OLD}/igni-service`)
+    const crumbs = document.querySelector('.doc-breadcrumbs') as HTMLElement
+    expect(within(crumbs).getByRole('link', { name: 'SDK' })).toHaveAttribute('href', `/docs/sdk/${OLD}`)
+    const body = document.querySelector('.sdk-article-body') as HTMLElement
+    const model = (await within(body).findAllByRole('link', { name: 'ScheduledTask' }))[0]
+    expect(model).toHaveAttribute('href', `/docs/sdk/${OLD}/igni-client/models-reference#scheduledtask`)
+  })
+
+  test('a package overview is `/docs/sdk/<version>/<package>`', async () => {
+    renderAt(`/docs/sdk/${OLD}/igni-service`)
+    expect(await screen.findByRole('heading', { level: 1, name: 'igni-service' })).toBeInTheDocument()
+    expect(screen.getByText(`igni-service ${OLD}`)).toBeInTheDocument()
+  })
+
+  test('the landing lists the release’s packages, linked inside it', async () => {
+    renderAt(`/docs/sdk/${OLD}`)
+    const card = (await screen.findByRole('heading', { name: 'igni-client' })).closest('section')!
+    expect(within(card).getByText(OLD)).toBeInTheDocument()
+    expect(within(card).getByRole('link', { name: /Overview/ })).toHaveAttribute('href', `/docs/sdk/${OLD}/igni-client`)
+    expect(screen.getByRole('status')).toHaveTextContent(`You’re reading v${OLD}`)
+  })
+
+  test('search finds pages of that release, linked inside it', async () => {
+    const user = userEvent.setup()
+    renderAt(`/docs/sdk/${OLD}`)
+    await screen.findByRole('heading', { name: 'igni-client' })
+    await user.type(screen.getByLabelText(/Search the SDK documentation/i), 'scheduler.list')
+    const results = screen.getByRole('list', { name: /Search results/i })
+    expect(within(results).getByRole('link', { name: /session\.scheduler\.list\(\)/ })).toHaveAttribute(
+      'href',
+      `/docs/sdk/${OLD}/igni-client/scheduler#session-scheduler-list`,
+    )
+  })
+
+  test('a page the release does not have is not found, with the way back to that release', async () => {
+    // igni-client's Fleet discovery page arrived in 0.2.2.
+    renderAt('/docs/sdk/0.2.1/igni-client/fleet-discovery-and-signing-in')
+    expect(await screen.findByText(/Page not found/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /SDK documentation/i })).toHaveAttribute('href', '/docs/sdk/0.2.1')
+  })
+
+  test('pinned to the latest release, it shows that version selected and no banner', async () => {
+    renderAt(`/docs/sdk/${LATEST}/igni-client/scheduler`)
+    await screen.findByText(`igni-client ${LATEST}`)
+    expect((screen.getByRole('combobox', { name: 'Documentation version' }) as HTMLSelectElement).value).toBe(LATEST)
+    expect(screen.queryByRole('status')).toBeNull()
+  })
+})
+
+describe('the latest alias', () => {
+  test('`/docs/sdk/latest/<package>/<page>` is the newest release, on Latest', async () => {
+    renderAt('/docs/sdk/latest/igni-client/scheduler')
+    expect(await screen.findByText(`igni-client ${LATEST}`)).toBeInTheDocument()
+    expect((screen.getByRole('combobox', { name: 'Documentation version' }) as HTMLSelectElement).value).toBe('latest')
+    expect(screen.queryByRole('status')).toBeNull()
+  })
+
+  test('`/docs/sdk/latest` is the landing and `/docs/sdk/latest/<package>` an overview', async () => {
+    renderAt('/docs/sdk/latest')
+    expect(await screen.findByRole('heading', { level: 1, name: 'SDK documentation' })).toBeInTheDocument()
+    cleanup()
+    renderAt('/docs/sdk/latest/igni-service')
+    expect(await screen.findByRole('heading', { level: 1, name: 'igni-service' })).toBeInTheDocument()
   })
 })
