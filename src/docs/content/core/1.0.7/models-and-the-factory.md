@@ -54,7 +54,7 @@ Two kinds of model run outside the nodes you serve, and both run without a netwo
 |---|---|---|
 | `sentence-transformers/all-MiniLM-L6-v2` (384 dimensions) | CodeIndex | On each developer's machine, with ONNX Runtime, shipped in the CodeIndex extension |
 | `sentence-transformers/all-MiniLM-L6-v2` and the reranker `cross-encoder/ms-marco-MiniLM-L-6-v2` | Artifacts | In the documents service's embedder image, baked in at build time |
-| Laya (`convaiinnovations/laya`) | Bypass mode's last check, and `host.decide` for extensions | On each developer's machine, installed with `igni-core[decisions]` |
+| Laya (`convaiinnovations/laya`) | Bypass mode's last check, `host.decide` for extensions, and reading how a person's message feels about igni (the `user_sentiment` push) | On each developer's machine, installed with `igni-core[decisions]` |
 
 Both CodeIndex and Artifacts keep their vectors in **Neo4j**: CodeIndex in a local database per project and commit, Artifacts in a database per organisation. See [CodeIndex](/docs/codeindex) and [Running the documents service](/docs/server/running-the-documents-service).
 

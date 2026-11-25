@@ -200,6 +200,14 @@ workspace_trust:
 
 A trusted folder still cannot loosen what your organisation set: a permission in managed settings or group policy is final, so a managed `shell_execute: ask` beats a project's `allow: [Bash]`.
 
+## A run waiting on an approval
+
+When a call is asked about, the run pauses until the person answers. While it waits:
+
+- **Cancelling the run ends it.** Its pending approvals are dropped, so answering one later runs nothing, and the stream ends the way a cancelled running turn does.
+- **A new message drops the approvals of the paused run**, live and after a backend restart. Answering a stale approval no longer runs the abandoned run's command.
+- **Only someone who may answer the approval may end the run.** A program without an approver token cannot cancel it or write into its session, and an extension needs the `chat.approvals` grant to do either.
+
 ## Changing mode mid-session
 
 `/plan`, `/accept` and `/bypass` flip the live evaluator without rebuilding the agent. Each takes `on`/`enable`/`start`, `off`/`disable`/`exit`/`stop`, `status`/`show`, or nothing (toggle). `off` returns to the mode the session started in — or to `default` if it started in the mode you are leaving. Approving a plan also returns to the starting mode (`default` if the session started in plan mode). Reads and writes of the mode are serialised behind a lock so a flip cannot land after an in-flight tool check already read the old value.

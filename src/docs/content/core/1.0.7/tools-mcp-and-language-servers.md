@@ -91,7 +91,9 @@ Three things to expect on first run:
 - **Admin policy wins first.** `managed-settings.json` can set `mcp.required` / `allowed` / `denied`; `denied` takes glob patterns and is checked before your approval.
 - **Zero tools is a failure.** A server that connects but advertises no tools is closed and reported as such, rather than sitting there looking connected.
 
-Connection happens once per session, on the first message, from configuration only — there is no auto-detection. The agent pool and main team are rebuilt afterwards so the new tools become visible. Individual tools can be switched off; the disabled set persists in `<project>/.igni/mcp-tool-state.json`, and re-enabling restores from a connect-time snapshot without a reconnect.
+Connection happens on the first message, from configuration only — there is no auto-detection. The agent pool and main team are rebuilt afterwards so the new tools become visible.
+
+**A changed `.mcp.json` takes effect without a restart.** Every connect (the `ensure_mcp` RPC) re-reads the `.mcp.json` files first, the first connect included, so a server added or edited after the session was built starts with its new command. A later call reconnects only the servers whose config changed, drops the removed ones, and does nothing when nothing changed. The desktop app's MCPs page has a reload button that does this. If a file cannot be read, the backend keeps the config it last read. Individual tools can be switched off; the disabled set persists in `<project>/.igni/mcp-tool-state.json`, and re-enabling restores from a connect-time snapshot without a reconnect.
 
 Plugin-bundled servers register as `<plugin>:<server>`, first-wins on collision.
 
@@ -117,7 +119,7 @@ Only `command` is required. `languages` is informational — it shows up in disc
 
 Each entry is a command igni starts, so a project's `.lsp.json` is read only once you trust the folder; the same holds for its `.monitors.json` and its plugins. `~/.igni/lsp.json` and plugin servers you installed yourself are unaffected.
 
-The toolkit is two functions and no more: `lsp_list_servers()`, and `lsp_query(server, method, params)` — a raw JSON-RPC passthrough that hands back the response's `result` field. The model supplies the LSP method name and a JSON-encoded params string verbatim (`textDocument/definition`, `workspace/symbol`, …). Convenience wrappers like `lsp_definition` are intentionally absent. Servers launch lazily on the first query, and the toolkit is attached only when at least one is configured — no config file, no LSP tools in the manifest.
+The toolkit is two functions and no more: `lsp_list_servers()`, and `lsp_query(server, method, params)` — a raw JSON-RPC passthrough that hands back the response's `result` field. The model supplies the LSP method name and a JSON-encoded params string verbatim (`textDocument/definition`, `workspace/symbol`, …). Convenience wrappers like `lsp_definition` are intentionally absent. Servers launch lazily on the first query, and the toolkit is attached only when at least one is configured — no config file, no LSP tools in the manifest. A method the spec defines as a notification, such as `textDocument/didOpen`, is sent as one (with no id), so the document is opened and diagnostics come back.
 
 ## Permissions, briefly
 

@@ -161,13 +161,15 @@ The host API is the igni app as an object model: `ext.host` in Python, `bridge.h
 |---|---|---|
 | `host.app` | Display, version, connection; `open_external(url)` | `app`; `links` to open a link |
 | `host.ui` | Route, panels, toasts, dialogs; `navigate`, `toast`, `show_dialog` | `ui` |
-| `host.sessions` | `list`, `current`, `open`, `create`, `chat(id)` | `sessions` |
-| `host.chat` | The chat on screen: messages, status; signals such as `message_added`, `run_started`, `run_completed` | `chat.read` |
+| `host.sessions` | `list`, `current`, `open`, `create`, `chat(id)`; `states` and `mark_seen(id)`, with the `states_changed` signal | `sessions` |
+| `host.chat` | The chat on screen: messages, status; `search_all(query)` across every chat of the project; signals such as `message_added`, `run_started`, `run_completed` and `sentiment` | `chat.read` |
 | | `post(text, attachments)`, `queue(text)` | `chat.post` |
 | | `append(view, title)`, `replace(...)` — show a card | `chat.append` |
 | | `cancel`, `compact` and other run control | `chat.control` |
-| `host.workspace` | The person's project | `permissions.workspace` |
+| `host.workspace` | The person's project; `read_bytes(path)` for an image or a PDF | `permissions.workspace` |
 | `host.notifications` | Its own notifications; everyone's with `notifications` | — |
+
+**While a run waits on the person's approval, only someone who may answer it may end it.** `cancel` on that run, or a `post` into the chat on screen while it waits, ends the run and so refuses the approval: both also need `chat.approvals`.
 
 Others — `commands`, `agents`, `workflows`, `scheduler`, `processes`, `models`, `mcp`, `plugins`, `extensions`, `hooks`, `permissions`, `policy`, `account` — each need the grant of the same name. A grant may end in `*`, such as `chat.*`.
 
@@ -176,6 +178,38 @@ Three parts matter for a service-driven extension:
 - **`host.sessions.create(project_dir=None, title=None, focus=None)`** makes a new chat and returns it (`created.session_id`). It moves no window unless you pass `focus=True`, and the title shows at once. Always pass `title=` by name; the first positional argument is the project directory.
 - **`host.sessions.chat(id)`** is a handle on any chat, not only the one on screen. Reading needs `chat.read`. Posting or appending to a chat that is **not on screen** also needs **`sessions.post`**, which `chat.*` does not include. A post there starts a run, or is queued for the run going. It never answers an approval.
 - **`chat.message_added`** carries `from_extension` and `from_service`. `from_service` is the client id of the service that sent the message, and `None` for the extension's own posts and the person's.
+
+## What every chat is doing
+
+`host.sessions.states` lists the chats that are running, waiting on the person, or have a finished run the person has not seen; a chat not listed is idle and read. Each entry (`SessionState`) has `session_id`, `state` (`idle`, `waiting` or `running`), `waiting_approvals`, `unread` and `last_message_at` (Unix milliseconds, `0` when none was recorded). The `host.sessions.states_changed` signal carries the whole list each time a chat starts or finishes a run, begins or stops waiting, or is seen, with a `cause` of `activity` or `seen`. `host.sessions.mark_seen(session_id)` marks a chat seen for the person, in every window.
+
+Read state is the person's, kept in the global database, so it is the same across windows, devices and VMs. A client that is not an extension gets the same thing from the `list_session_states` and `mark_session_seen` RPCs and the `session_states_changed` push.
+
+## How a message feels about igni
+
+When a person sends a chat message, igni asks the local Laya decisions model how the message feels about igni, beside the run and without holding it up. A positive or negative reading that Laya is at least 60% sure of is sent to every window as the `user_sentiment` push, and to extensions as the **`host.chat.sentiment`** signal (grant `chat.read`). A neutral message sends nothing, and so does a message that is empty or longer than 1,200 characters, a backend without the `decisions` extra, or an answer that takes longer than a minute.
+
+```python
+@ext.on(ext.host.chat.sentiment)
+async def heard(reading):
+    if reading.sentiment == "negative" and reading.aspects.redo_requested.answer == "yes":
+        ...                                  # a reaction; igni never waits on it
+```
+
+The payload (`Sentiment`) has:
+
+| Field | What it is |
+|---|---|
+| `session_id` | The chat the message was sent in |
+| `sentiment` | `positive` or `negative` |
+| `confidence` | How sure Laya is, from 0 to 1 |
+| `message_run_id` | The run the message started, or `null` |
+| `reply_run_id` | The run of igni's last reply before the message, or `null` at the start of a session |
+| `aspects` | Every question Laya answered about the message (`SentimentAspects`) |
+
+`aspects` holds one `SentimentAspect` per question: `feeling` (`positive`, `negative` or `neutral`), `gesture` (`gratitude`, `compliment`, `insult` or `neither`), `negative_reason`, `positive_reason`, `repeat`, `redo_requested`, `task_done` and `intensity`. Each has the chosen `answer` and `probabilities`, a list of `LabelProbability` (`label`, `probability`) in the question's order, so a listener can apply its own thresholds. `repeat`, `intensity`, and the two reasons on messages not in English, are weaker signals than the verdict itself.
+
+The SDKs type the push and the signal from igni-sdk **0.2.3** (`igni-client`'s `user_sentiment`, `igni-extension`'s and `@ignite-ember/extension-bridge`'s `chat.sentiment`). The reading is a signal for an integrator, and the desktop app's cat reacts to it. Nothing about it reaches the model igni chats with.
 
 ## How a service reaches a person's agent
 

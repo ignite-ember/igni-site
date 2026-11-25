@@ -3,14 +3,14 @@ This page walks through one session, from an empty terminal to a finished task, 
 ## Install it
 
 ```bash
-pip install 'igni-core[decisions]==1.0.5'
+pip install 'igni-core[decisions]==1.0.7'
 ```
 
-Python 3.12 exactly. The command it installs is `igni`. That works today: `igni-core` is on PyPI at **1.0.5**.
+Python 3.12 exactly. The command it installs is `igni`. `igni-core` is on PyPI at **1.0.7**.
 
-**Use `igni-core`, not `ignite-ember`.** The `ignite-ember` name on PyPI is still **1.0.3**, the pre-split monolith — so `pip install ignite-ember` gives you that older release, not the new backend, until the alias package ships. `igni-core` puts both `igni` and `ignite-ember` on your `PATH`, so `igni --version` works straight away. [Changes and upgrades](/docs/core/changelog) has the version story.
+**Use `igni-core`, not `ignite-ember`.** The `ignite-ember` name on PyPI is an alias of `igni-core`, but it is published only at **1.0.4** — so `pip install ignite-ember` gives you that older release, not the current one. `igni-core` puts `igni` on your `PATH`, so `igni --version` works straight away. [Changes and upgrades](/docs/core/changelog) has the version story.
 
-There is also a Homebrew formula, `brew install ignite-ember/tap/ignite-ember`. It installs the published `ignite-ember` (the pre-split monolith, 1.0.3) and puts the `ignite-ember` command on your `PATH` — not `igni`; use `pip install igni-core` for the current backend.
+There is also a Homebrew formula, `brew install ignite-ember/tap/igni-core`. It puts `igni` on your `PATH`, but the formula is still at 1.0.4; use `pip install igni-core` for the current backend.
 
 Check it:
 

@@ -7,9 +7,9 @@ There are two config directories and they hold different things:
 - `~/.igni` — this machine's state and credentials (`credentials.json`, `ember.db`, the group-policy cache), plus your personal settings.
 - `<project>/.igni` — the project's own configuration and the files a team would share.
 
-> **Version note.** These pages describe 1.0.5, the current release
-> (on PyPI as `igni-core`). The pre-split `ignite-ember` 1.0.3 — still
-> what PyPI's `ignite-ember` name serves — predates the rename and reads
+> **Version note.** These pages describe 1.0.7, the current release
+> (on PyPI as `igni-core`). The pre-split `ignite-ember` 1.0.3
+> predates the rename and reads
 > `~/.ember` only, so a config file at `~/.igni/config.yaml` is ignored
 > by it. If you are on 1.0.3, either upgrade to `igni-core` or keep your
 > settings in `~/.ember/config.yaml` until you do.
@@ -115,6 +115,18 @@ group_policy:
   trusted_keys: ["<thumbprint of each key in /.well-known/jwks.json>"]
   required: true
 ```
+
+## Where igni runs: the group's mode
+
+A verified pack carries a top-level **`mode`**, set by the group's admin on igni server. It says where igni runs for the group's people:
+
+| `mode` | What it means |
+|---|---|
+| `local` | On their own computers only. |
+| `local_and_cloud` | Either, as each person switches in the desktop app. A pack with no `mode`, or one igni does not know, means this: it is how every group worked before there was a choice. |
+| `cloud` | In the cloud only. igni on the person's own computer starts no agent run and says *"Your organisation runs igni for you in the cloud."*; the igni in their cloud VM reads the same pack and runs as usual. |
+
+In `cloud` mode, `igni -m` and `igni -p` stop with that message, and the desktop app runs the backend with **`--account-only`**: it serves sign-in, the account calls the app forwards and the group's policy sync, and starts no agent, tools, MCP servers, extensions, scheduler or event pull. A `cloud` group needs igni app 1.0.6 or later; an older desktop ignores `mode` and keeps running igni locally.
 
 ## A worked example
 

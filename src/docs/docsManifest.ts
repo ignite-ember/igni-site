@@ -163,14 +163,14 @@ export const PACKAGES: DocPackage[] = [
     title: 'igni core',
     tagline:
       'The engine, the igni CLI and the agent: configuration, project context, permissions, agents, tools, hooks, models, and extending igni.',
-    versions: ['1.0.5'],
+    versions: ['1.0.7', '1.0.5'],
   },
   {
     slug: 'app',
     name: 'igni app',
     title: 'igni app',
     tagline: 'The desktop app and the web client: installing igni and your first session.',
-    versions: ['1.0.5'],
+    versions: ['1.0.7', '1.0.5'],
   },
   {
     slug: 'server',

@@ -4,9 +4,9 @@ Every term igni uses, and what it means here. Where a word means more than one t
 
 **igni** — the product: an agent that works on your code, with a desktop app, a web client and a CLI in front of it.
 
-**igni-core** — the Python package that holds the backend, the `igni` command and the decisions service. It is the package's canonical name. The monolith it came from was distributed as `ignite-ember` and imported as `ember_code`; the split renamed the distribution to `igni-core` and the module to `igni_core`, so every import says `igni_core` now. The rename landed in 1.0.4, the first post-split release; the current release is 1.0.5, on PyPI as `igni-core`.
+**igni-core** — the Python package that holds the backend, the `igni` command and the decisions service. It is the package's canonical name. The monolith it came from was distributed as `ignite-ember` and imported as `ember_code`; the split renamed the distribution to `igni-core` and the module to `igni_core`, so every import says `igni_core` now. The rename landed in 1.0.4, the first post-split release; the current release is 1.0.7, on PyPI as `igni-core`.
 
-**ignite-ember** — the package's former name, and the name it still has on PyPI, where it today serves 1.0.3, the pre-split monolith whose module is `ember_code`. It is meant to become an alias package — metadata only, depending on `igni-core` at the same version, so that `pip install ignite-ember` would give you the same thing — but that alias is not published yet, so for now `ignite-ember` on PyPI is still the old monolith and `igni-core` is the package to install. `ignite-ember` is also the name of a command that is an alias of `igni` — the 1.0.3 wheel already shipped both — and the name of the Homebrew formula.
+**ignite-ember** — the package's former name. Up to 1.0.3 it was the monolith whose module is `ember_code`. On PyPI it is now an alias package — metadata only, depending on `igni-core` at the same version — but it is published only at 1.0.4, so `pip install ignite-ember` gives you igni-core 1.0.4 and `igni-core` is the package to install for the current release. `ignite-ember` was also a command, an alias of `igni`; `igni-core` stopped installing it in 1.0.5. The Homebrew formula is called `igni-core`.
 
 **igni server** — the API, the portal and the migrations, deployed by an organisation and run by whoever owns the install. It serves sign-in, models, groups, extensions and the administration API. It is not igni itself: it is the part that is shared.
 
@@ -72,7 +72,7 @@ Every term igni uses, and what it means here. Where a word means more than one t
 
 **host API** — the igni app as an object model, with properties, signals and methods, which an extension reads and writes. `ext.host` in Python, `bridge.host` on a page. Its version is 1.13.0.
 
-**decision model** — the local model, Laya, that Bypass mode consults before it allows an action, and that extensions reach through `host.decide`. It is installed by the `decisions` extra.
+**decision model** — the local model, Laya, that Bypass mode consults before it allows an action, that extensions reach through `host.decide`, and that reads whether a person's message is pleased or displeased with igni (`user_sentiment`). It is installed by the `decisions` extra.
 
 **session** — one conversation, kept in SQLite. `igni -c` continues the most recent one; `/sessions` lists them in the app.
 
