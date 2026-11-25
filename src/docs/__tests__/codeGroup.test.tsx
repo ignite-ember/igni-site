@@ -96,6 +96,25 @@ describe('the choice is shared and remembered', () => {
     expect(container.textContent).not.toContain('print(')
   })
 
+  it('marks the same language selected on every toggle, not only the one clicked', () => {
+    const { getAllByRole } = renderMarkdown(`${PAIR}\n${PAIR}`)
+
+    fireEvent.click(getAllByRole('button', { name: 'TypeScript' })[0])
+
+    for (const button of getAllByRole('button', { name: 'TypeScript' })) {
+      expect(button).toHaveAttribute('aria-current', 'true')
+    }
+    for (const button of getAllByRole('button', { name: 'Python' })) {
+      expect(button).toHaveAttribute('aria-current', 'false')
+    }
+
+    fireEvent.click(getAllByRole('button', { name: 'Python' })[1])
+
+    for (const button of getAllByRole('button', { name: 'Python' })) {
+      expect(button).toHaveAttribute('aria-current', 'true')
+    }
+  })
+
   it('remembers the language across a fresh render (localStorage)', () => {
     const first = renderMarkdown(PAIR)
     fireEvent.click(first.getByRole('button', { name: 'TypeScript' }))
