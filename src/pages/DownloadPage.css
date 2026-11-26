@@ -217,4 +217,10 @@
   .dl-row {
     min-height: var(--base-size-44);
   }
+
+  .dl-install a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--base-size-44);
+  }
 }
