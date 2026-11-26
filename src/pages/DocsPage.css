@@ -628,6 +628,13 @@
     min-height: var(--base-size-44);
   }
 
+  /* So is the old-version banner's link to the latest docs. */
+  .doc-version-banner a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--base-size-44);
+  }
+
   .doc-toc-mobile summary::-webkit-details-marker {
     display: none;
   }
