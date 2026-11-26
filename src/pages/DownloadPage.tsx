@@ -56,6 +56,18 @@ import './DownloadPage.css'
 
 const CACHE_KEY = 'igni_latest_release'
 
+/** The command line and the SDKs, with where each is documented. */
+const INSTALLS = [
+  { label: 'The igni CLI', command: 'pip install igni-core', docs: '/docs/core', docsLabel: 'CLI documentation' },
+  { label: 'SDK for Python', command: 'pip install igni-client', docs: '/docs/sdk/igni-client', docsLabel: 'SDK documentation' },
+  {
+    label: 'SDK for TypeScript',
+    command: 'npm install @ignite-ember/igni-client',
+    docs: '/docs/sdk/igni-client',
+    docsLabel: 'SDK documentation',
+  },
+]
+
 interface Release {
   tag: string
   assets: ReleaseAsset[]
@@ -261,16 +273,22 @@ export function DownloadPage() {
       </section>
 
       <section className="landing-section dl-section">
-        <SectionHead label="The CLI" title="There is also a command line">
+        <SectionHead label="Command line and SDKs" title="There is also a command line">
           For CI, a pre-commit hook or a scripted batch — not for sitting down and working. It is a
-          single command with three non-interactive modes.
+          single command with three non-interactive modes. To drive igni from your own code, there
+          are SDKs for Python and TypeScript.
         </SectionHead>
-        <code className="dl-code">
-          <TerminalIcon size={16} /> pip install igni-core
-        </code>
-        <p className="dl-lede">
-          <Link to="/docs/core">Read the documentation</Link> for what it can do.
-        </p>
+        <div className="dl-installs">
+          {INSTALLS.map((x) => (
+            <div key={x.command} className="dl-install">
+              <span className="dl-install-label">{x.label}</span>
+              <code className="dl-code">
+                <TerminalIcon size={16} /> {x.command}
+              </code>
+              <Link to={x.docs}>{x.docsLabel}</Link>
+            </div>
+          ))}
+        </div>
       </section>
 
       <SiteFooter />
