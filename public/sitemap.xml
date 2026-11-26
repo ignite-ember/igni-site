@@ -6,6 +6,11 @@
     <changefreq>weekly</changefreq>
   </url>
   <url>
+    <loc>https://igni.sh/download</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
     <loc>https://igni.sh/codeindex</loc>
     <priority>0.9</priority>
     <changefreq>monthly</changefreq>

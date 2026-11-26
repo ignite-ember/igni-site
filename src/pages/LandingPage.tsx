@@ -6,6 +6,7 @@ import {
   CloudIcon,
   CodeIcon,
   ContainerIcon,
+  DesktopDownloadIcon,
   DeviceDesktopIcon,
   StackIcon,
   TerminalIcon,
@@ -1357,6 +1358,14 @@ export function LandingPage() {
           desk. Each app runs on your servers, and an administrator approves it before
           anyone receives it.
         </SectionHead>
+
+        {/* The download page picks the latest release's installer for the
+            visitor's platform. */}
+        <div className="lp-hero-cta lp-app-cta">
+          <a href="/download" className="landing-btn-primary">
+            <DesktopDownloadIcon size={16} /> Download the app
+          </a>
+        </div>
 
         <AppZones />
 

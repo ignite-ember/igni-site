@@ -86,6 +86,11 @@
   margin-top: 32px;
 }
 
+/* Under the app section's text, above the app screenshots. */
+.lp-app-cta {
+  margin: calc(-1 * var(--base-size-16)) 0 var(--base-size-48);
+}
+
 .lp-hero-note {
   margin: 16px 0 0;
   font-size: 14px;

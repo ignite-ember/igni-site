@@ -163,6 +163,8 @@ export function buildSitemap() {
   const packageSlugs = new Set(docPackages().map((p) => p.slug))
   const entries = [
     { loc: '/', priority: '1.0', changefreq: 'weekly' },
+    // Where the desktop app is downloaded (src/pages/DownloadPage.tsx).
+    { loc: '/download', priority: '0.9', changefreq: 'weekly' },
     // The product pages, one per paid module (src/pages/ProductPage.tsx).
     ...['codeindex', 'artifacts', 'fleet', 'factory'].map((slug) => ({
       loc: `/${slug}`,

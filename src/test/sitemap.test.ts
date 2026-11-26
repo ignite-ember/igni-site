@@ -55,6 +55,7 @@ describe('the committed sitemap', () => {
       '/',
       '/docs',
       '/compare/agentcore',
+      '/download',
       ...products,
       ...docCanonicalPaths().map((s) => `/${s}`),
       ...sdkPaths().map((s) => `/${s}`),
