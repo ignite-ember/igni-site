@@ -16,6 +16,10 @@
  *
  * The routes come from `scripts/site-routes.mjs`, the same list the
  * deploy uploads, so a new page is covered without touching this file.
+ * A pinned SDK release (`docs/sdk/<version>/…`) is checked at its landing
+ * and package pages only: its articles render through the same components
+ * as the latest ones, which are all checked, and every release's every
+ * page would be hundreds of routes more per release.
  */
 import { execFileSync } from 'node:child_process'
 import { test, expect, devices } from '@playwright/test'
@@ -26,8 +30,20 @@ const ROUTES = [
     .trim()
     .split('\n')
     // Redirects to `/`, which is already in the list.
-    .filter((r) => r !== 'old' && r !== 'alt'),
+    .filter((r) => r !== 'old' && r !== 'alt')
+    .filter((r) => !isPinnedSdkArticle(r)),
 ]
+
+/** `docs/sdk/<version or latest>/<package>/<page>`: a pinned release's article. */
+function isPinnedSdkArticle(route: string): boolean {
+  const parts = route.replace(/^\//, '').split('/')
+  return (
+    parts[0] === 'docs' &&
+    parts[1] === 'sdk' &&
+    /^(\d+\.\d+\.\d+|latest)$/.test(parts[2] ?? '') &&
+    parts.length > 4
+  )
+}
 
 const WIDTHS = [360, 390]
 const MIN_TARGET = 40

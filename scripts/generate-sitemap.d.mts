@@ -9,4 +9,5 @@ export declare function docCanonicalPaths(): string[]
 export declare function legacyDocPaths(): string[]
 export declare function docVersionedPaths(): string[]
 export declare function sdkPaths(): string[]
+export declare function sdkVersionedPaths(): string[]
 export declare function buildSitemap(): string

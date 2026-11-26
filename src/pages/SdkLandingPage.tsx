@@ -1,26 +1,32 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Breadcrumbs, Heading, Label, PageHeader, Text, TextInput } from '@primer/react'
+import { Breadcrumbs, Heading, Label, PageHeader, Stack, Text, TextInput } from '@primer/react'
 import { ArrowRightIcon, PackageIcon, SearchIcon } from '@primer/octicons-react'
 import { Blankslate } from '@primer/react/experimental'
 
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
-import { SDK_PACKAGES, SDK_ROLES, sdkLabel, sdkPagesOf, sdkPath, searchSdk } from '../docs/sdkManifest'
+import { SDK_ROLES, resolveSdkVersion, sdkLabel, sdkPagesOf, sdkPath, searchSdk } from '../docs/sdkManifest'
+import { useSdkDocs } from '../docs/useSdkDocs'
+import { SdkVersionBanner, SdkVersionSelector } from '../docs/VersionSelector'
 import './DocsPage.css'
 import './SdkDocs.css'
 
 /**
  * `/docs/sdk`: the six published SDKs — three on PyPI, three on npm —
  * what each is for and where it runs, and a search over every page of
- * all six — down to a single method or model.
+ * all six — down to a single method or model. `/docs/sdk/<version>` (or
+ * `/docs/sdk/latest`) is the same at a pinned release, with the version
+ * selector in the header and a banner off the newest.
  */
-export function SdkLandingPage() {
+export function SdkLandingPage({ version: rawVersion }: { version?: string } = {}) {
+  const version = resolveSdkVersion(rawVersion)
+  const docs = useSdkDocs(version)
   useDocumentTitle(
     'SDK documentation',
     'igni-client, igni-extension, igni-service, extension-bridge, ui-react and ui-css: guides and the complete API reference of all six.',
   )
   const [query, setQuery] = useState('')
-  const hits = useMemo(() => searchSdk(query, 30), [query])
+  const hits = useMemo(() => (docs ? searchSdk(query, 30, docs) : []), [query, docs])
 
   return (
     <main className="docs-public-wrapper">
@@ -37,12 +43,16 @@ export function SdkLandingPage() {
               <PageHeader.Title as="h1">SDK documentation</PageHeader.Title>
             </PageHeader.TitleArea>
             <PageHeader.Description>
-              <Text size="medium">
-                Six packages, released together: three on PyPI, three on npm. Every method, model,
-                event and component has its own entry, generated from the SDKs and igni’s contract.
-              </Text>
+              <Stack direction="horizontal" align="center" justify="space-between" wrap="wrap">
+                <Text size="medium">
+                  Six packages, released together: three on PyPI, three on npm. Every method, model,
+                  event and component has its own entry, generated from the SDKs and igni’s contract.
+                </Text>
+                <SdkVersionSelector version={version} rawVersion={rawVersion} />
+              </Stack>
             </PageHeader.Description>
           </PageHeader>
+          <SdkVersionBanner version={version} />
           <TextInput
             leadingVisual={SearchIcon}
             aria-label="Search the SDK documentation"
@@ -73,9 +83,9 @@ export function SdkLandingPage() {
           )
         ) : (
           <div className="sdk-packages">
-            {SDK_PACKAGES.map((pkg) => {
+            {(docs?.packages ?? []).map((pkg) => {
               const role = SDK_ROLES[pkg.name]
-              const pages = sdkPagesOf(pkg.name)
+              const pages = sdkPagesOf(pkg.name, docs)
               const quick = pages.find((p) => p.slug === 'quick-start')
               const reference = pages.find((p) => p.category === 'reference')
               return (
@@ -109,16 +119,16 @@ export function SdkLandingPage() {
                     </a>
                   </Text>
                   <div className="sdk-package-links">
-                    <Link to={sdkPath(pkg.name)} className="sdk-package-link">
+                    <Link to={sdkPath(pkg.name, 'overview', '', version)} className="sdk-package-link">
                       Overview <ArrowRightIcon size={14} />
                     </Link>
                     {quick && (
-                      <Link to={sdkPath(pkg.name, quick.slug)} className="sdk-package-link">
+                      <Link to={sdkPath(pkg.name, quick.slug, '', version)} className="sdk-package-link">
                         Quick start <ArrowRightIcon size={14} />
                       </Link>
                     )}
                     {reference && (
-                      <Link to={sdkPath(pkg.name, reference.slug)} className="sdk-package-link">
+                      <Link to={sdkPath(pkg.name, reference.slug, '', version)} className="sdk-package-link">
                         Reference <ArrowRightIcon size={14} />
                       </Link>
                     )}

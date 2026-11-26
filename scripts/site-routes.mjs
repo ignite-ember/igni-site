@@ -22,7 +22,14 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
-import { docCanonicalPaths, docPackages, docVersionedPaths, legacyDocPaths, sdkPaths } from './generate-sitemap.mjs'
+import {
+  docCanonicalPaths,
+  docPackages,
+  docVersionedPaths,
+  legacyDocPaths,
+  sdkPaths,
+  sdkVersionedPaths,
+} from './generate-sitemap.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -64,11 +71,15 @@ export function routeObjects() {
     } else if (p === 'docs/:package/:version/:slug') {
       // Pinned and `latest`-alias articles: `docs/<package>/<version>/<slug>`.
       out.push(...versionedArticles)
-    } else if (p === 'docs/sdk/:pkg' || p === 'docs/sdk/:pkg/:page') {
-      // The SDK pages, from igni-sdk's index: `docs/sdk/<package>` for
-      // each overview, `docs/sdk/<package>/<page>` for the rest.
+    } else if (p === 'docs/sdk/:seg' || p === 'docs/sdk/:seg/:page' || p === 'docs/sdk/:version/:pkg/:page') {
+      // The SDK pages. Canonical, from the latest snapshot's index:
+      // `docs/sdk/<package>` for each overview, `docs/sdk/<package>/<page>`
+      // for the rest. Pinned, for every snapshot and the `latest` alias:
+      // `docs/sdk/<version>` (landing), `docs/sdk/<version>/<package>`,
+      // `docs/sdk/<version>/<package>/<page>`. Split by depth between the
+      // three routes, which tell a version from a package by the version list.
       const depth = p.split('/').length
-      out.push(...sdkPaths().filter((s) => s.split('/').length === depth))
+      out.push(...[...sdkPaths(), ...sdkVersionedPaths()].filter((s) => s.split('/').length === depth))
     } else if (p.includes(':') || p.includes('*')) {
       throw new Error(`site-routes: no way to list the values of "${p}"; teach scripts/site-routes.mjs`)
     } else {

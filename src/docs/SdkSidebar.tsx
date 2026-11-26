@@ -10,19 +10,27 @@ import { PackageIcon } from '@primer/octicons-react'
 
 import {
   SDK_CATEGORY_LABEL,
-  SDK_PACKAGES,
   sdkLabel,
   sdkPackage,
   sdkPagesOf,
   sdkPath,
   type SdkCategory,
+  type SdkDocs,
 } from './sdkManifest'
 
-function PageList({ pkg, current }: { pkg: string; current: string }) {
-  const pages = sdkPagesOf(pkg)
+interface SidebarProps {
+  /** The release being read: its pages, and links that stay in it. */
+  docs: SdkDocs
+  pkg: string
+  current: string
+}
+
+function PageList({ docs, pkg, current }: SidebarProps) {
+  const pages = sdkPagesOf(pkg, docs)
+  const at = docs.version
   const categories: SdkCategory[] = ['guide', 'reference']
   return (
-    <NavList aria-label={`${sdkLabel(sdkPackage(pkg))} pages`}>
+    <NavList aria-label={`${sdkLabel(sdkPackage(pkg, docs))} pages`}>
       {categories.map((category) => {
         const inCategory = pages.filter((p) => p.category === category)
         if (inCategory.length === 0) return null
@@ -32,7 +40,7 @@ function PageList({ pkg, current }: { pkg: string; current: string }) {
               <NavList.Item
                 key={page.slug}
                 as={Link}
-                to={sdkPath(pkg, page.slug)}
+                to={sdkPath(pkg, page.slug, '', at)}
                 aria-current={page.slug === current ? 'page' : undefined}
               >
                 {page.title}
@@ -42,8 +50,8 @@ function PageList({ pkg, current }: { pkg: string; current: string }) {
         )
       })}
       <NavList.Group title="Other SDKs">
-        {SDK_PACKAGES.filter((p) => p.name !== pkg).map((p) => (
-          <NavList.Item key={p.name} as={Link} to={sdkPath(p.name)}>
+        {docs.packages.filter((p) => p.name !== pkg).map((p) => (
+          <NavList.Item key={p.name} as={Link} to={sdkPath(p.name, 'overview', '', at)}>
             <NavList.LeadingVisual><PackageIcon /></NavList.LeadingVisual>
             {sdkLabel(p)}
           </NavList.Item>
@@ -54,19 +62,20 @@ function PageList({ pkg, current }: { pkg: string; current: string }) {
 }
 
 /** The column beside the article, on wide screens. */
-export function SdkSidebar({ pkg, current }: { pkg: string; current: string }) {
+export function SdkSidebar({ docs, pkg, current }: SidebarProps) {
+  const label = sdkLabel(sdkPackage(pkg, docs))
   return (
-    <nav className="sdk-sidebar" aria-label={`${sdkLabel(sdkPackage(pkg))} documentation`}>
-      <Link className="sdk-sidebar-package" to={sdkPath(pkg)}>
-        <PackageIcon size={16} /> {sdkLabel(sdkPackage(pkg))}
+    <nav className="sdk-sidebar" aria-label={`${label} documentation`}>
+      <Link className="sdk-sidebar-package" to={sdkPath(pkg, 'overview', '', docs.version)}>
+        <PackageIcon size={16} /> {label}
       </Link>
-      <PageList pkg={pkg} current={current} />
+      <PageList docs={docs} pkg={pkg} current={current} />
     </nav>
   )
 }
 
 /** The same pages, collapsed, above the article on narrow screens. */
-export function SdkSidebarMobile({ pkg, current, title }: { pkg: string; current: string; title: string }) {
+export function SdkSidebarMobile({ docs, pkg, current, title }: SidebarProps & { title: string }) {
   const ref = useRef<HTMLDetailsElement>(null)
   const location = useLocation()
   // Following a link closes it, so the next page opens on its article.
@@ -78,10 +87,10 @@ export function SdkSidebarMobile({ pkg, current, title }: { pkg: string; current
       <summary>
         <PackageIcon size={14} />
         <span className="sdk-sidebar-mobile-label">
-          {sdkLabel(sdkPackage(pkg))} <span className="docs-muted">· {title}</span>
+          {sdkLabel(sdkPackage(pkg, docs))} <span className="docs-muted">· {title}</span>
         </span>
       </summary>
-      <PageList pkg={pkg} current={current} />
+      <PageList docs={docs} pkg={pkg} current={current} />
     </details>
   )
 }

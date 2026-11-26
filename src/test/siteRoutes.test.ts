@@ -20,8 +20,8 @@ import { describe, expect, it } from 'vitest'
 import App from '../App'
 import { DOCS, LEGACY_REDIRECTS, docHref } from '../docs/docsManifest'
 import { routeObjects } from '../../scripts/site-routes.mjs'
-import { docVersionedPaths } from '../../scripts/generate-sitemap.mjs'
-import { SDK_PAGES } from '../docs/sdkManifest'
+import { docVersionedPaths, sdkVersionedPaths } from '../../scripts/generate-sitemap.mjs'
+import { SDK_PAGES, SDK_VERSIONS } from '../docs/sdkManifest'
 
 /** Every `<Route>` in the element tree App returns, by its `path`. */
 function routePaths(node: ReactNode, out: string[] = []): string[] {
@@ -83,6 +83,21 @@ describe('the route copies the deploy uploads', () => {
       const path = p.slug === 'overview' ? `docs/sdk/${p.package}` : `docs/sdk/${p.package}/${p.slug}`
       expect(objects, path).toContain(path)
     }
+  })
+
+  it('cover every pinned SDK release and the latest alias', () => {
+    // Out of the sitemap, but each needs an object so an old release's deep
+    // link serves index.html.
+    const pinned = sdkVersionedPaths()
+    for (const path of pinned) expect(objects, path).toContain(path)
+    for (const v of ['latest', ...SDK_VERSIONS]) {
+      expect(objects).toContain(`docs/sdk/${v}`)
+      expect(objects).toContain(`docs/sdk/${v}/igni-client`)
+      expect(objects).toContain(`docs/sdk/${v}/igni-client/scheduler`)
+    }
+    // Each release with the pages it has: Fleet discovery arrived in 0.2.2.
+    expect(objects).toContain('docs/sdk/0.2.2/igni-client/fleet-discovery-and-signing-in')
+    expect(objects).not.toContain('docs/sdk/0.2.1/igni-client/fleet-discovery-and-signing-in')
   })
 
   it('cover every page in the sitemap', () => {

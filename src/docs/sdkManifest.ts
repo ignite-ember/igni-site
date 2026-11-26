@@ -1,19 +1,25 @@
 /**
  * The SDKs' documentation: six published packages, three on PyPI and
- * three on npm.
+ * three on npm, released together, one snapshot per release.
  *
  * Not written here. igni-sdk generates every page (`make sdk-docs`: each
  * package README cut at its sections, igni-client's reference from
  * igni-core's RPC contract, the other two Python ones' from their code,
  * the npm ones' from their TypeScript and CSS) with an `index.json` that
  * says what each is, and `scripts/sync-docs.mjs sdk` copies them into
- * `sdk/`. This module reads that index and the pages it names;
- * `/docs/sdk/...` renders them with the same renderer as the rest of the
- * documentation.
+ * `sdk/<version>/`, the folder named by that index's version. This module
+ * reads those indexes and the pages they name; `/docs/sdk/...` renders the
+ * latest, `/docs/sdk/<version>/...` a pinned one, with the same renderer
+ * as the rest of the documentation.
+ *
+ * The latest index is in the bundle (vite.config.ts points
+ * `sdk-latest-index` at it); a past release's is fetched when it is opened,
+ * so the bundle does not grow with every release.
  *
  * What is written here is what igni-sdk does not say: each package's
  * one-line purpose and where it runs, for the SDK landing page.
  */
+import LATEST_INDEX from 'sdk-latest-index'
 
 export interface SdkPackageMeta {
   /** How the site routes the package: `/docs/sdk/<name>`. */
@@ -55,35 +61,100 @@ export interface SdkPage {
   sections: SdkSection[]
 }
 
-interface SdkIndex {
+export interface SdkIndex {
   packages: SdkPackageMeta[]
   pages: SdkPage[]
 }
 
-const INDEX = Object.values(
-  import.meta.glob<SdkIndex>('./sdk/index.json', { eager: true, import: 'default' }),
-)[0]
+/** One release's documentation: its version and its index. */
+export interface SdkDocs extends SdkIndex {
+  version: string
+}
+
+/** Every snapshot's index, as text, fetched when that version is opened. */
+const INDEXES = import.meta.glob<string>('./sdk/*/index.json', { query: '?raw', import: 'default' })
 
 /**
  * The pages themselves, each its own chunk, fetched when it is opened:
- * together they are larger than the rest of the site. The index above is
- * all that search and the sidebars need.
+ * together they are larger than the rest of the site. The index is all
+ * that search and the sidebars need.
  */
 const FILES = import.meta.glob<string>('./sdk/**/*.md', { query: '?raw', import: 'default' })
+
+/** Order two `x.y.z` versions newest first (as `scripts/sync-docs.mjs` does). */
+function compareVersionsDesc(a: string, b: string): number {
+  const parse = (v: string) => {
+    const [core, pre = ''] = v.split('-', 2)
+    return { nums: core.split('.').map((n) => Number.parseInt(n, 10) || 0), pre }
+  }
+  const x = parse(a)
+  const y = parse(b)
+  for (let i = 0; i < Math.max(x.nums.length, y.nums.length); i++) {
+    const d = (y.nums[i] ?? 0) - (x.nums[i] ?? 0)
+    if (d) return d
+  }
+  if (x.pre === y.pre) return 0
+  if (!x.pre) return -1
+  if (!y.pre) return 1
+  return y.pre < x.pre ? -1 : 1
+}
+
+/** The released SDK versions with documentation here, newest first; `[0]` is "latest". */
+export const SDK_VERSIONS: string[] = Object.keys(INDEXES)
+  .map((key) => key.split('/')[2])
+  .sort(compareVersionsDesc)
+
+const LATEST: SdkDocs = {
+  version: (LATEST_INDEX as SdkIndex).packages[0]?.version ?? SDK_VERSIONS[0] ?? '',
+  packages: (LATEST_INDEX as SdkIndex).packages,
+  pages: (LATEST_INDEX as SdkIndex).pages,
+}
+
+/** The latest release's documentation, what the version-less `/docs/sdk/...` shows. */
+export const SDK_LATEST: SdkDocs = LATEST
+
+/** Whether a URL segment names an SDK version here, or the `latest` alias. */
+export function isSdkVersion(v: string | undefined): boolean {
+  return v === 'latest' || (!!v && SDK_VERSIONS.includes(v))
+}
+
+/** The concrete version a URL's segment selects: the newest for none or `latest`. */
+export function resolveSdkVersion(v: string | undefined): string {
+  return !v || v === 'latest' ? SDK_LATEST.version : v
+}
+
+const loaded = new Map<string, SdkDocs>([[LATEST.version, LATEST]])
+
+/** A release's documentation if it is at hand: the latest always, a past one once fetched. */
+export function sdkDocsAt(version: string): SdkDocs | undefined {
+  return loaded.get(version)
+}
+
+/** A release's documentation, fetching its index the first time; `undefined` for none here. */
+export async function loadSdkDocs(version: string): Promise<SdkDocs | undefined> {
+  const have = loaded.get(version)
+  if (have) return have
+  const load = INDEXES[`./sdk/${version}/index.json`]
+  if (!load) return undefined
+  const index = JSON.parse(await load()) as SdkIndex
+  const docs: SdkDocs = { version, packages: index.packages, pages: index.pages }
+  loaded.set(version, docs)
+  return docs
+}
 
 /** A page's markdown without the generator's banner comment, which is for whoever opens the file. */
 function withoutBanner(raw: string): string {
   return raw.replace(/^<!--[\s\S]*?-->\s*/, '')
 }
 
-export const SDK_PACKAGES: SdkPackageMeta[] = INDEX?.packages ?? []
+export const SDK_PACKAGES: SdkPackageMeta[] = SDK_LATEST.packages
 
-export const SDK_PAGES: SdkPage[] = INDEX?.pages ?? []
+export const SDK_PAGES: SdkPage[] = SDK_LATEST.pages
 
-/** A page's markdown, starting with its `# title`. */
-export async function loadSdkContent(page: SdkPage): Promise<string> {
-  const load = FILES[`./sdk/${page.file}`]
-  if (!load) throw new Error(`no SDK page ${page.file}`)
+/** A page's markdown at a release (the latest by default), starting with its `# title`. */
+export async function loadSdkContent(page: SdkPage, version: string = SDK_LATEST.version): Promise<string> {
+  const load = FILES[`./sdk/${version}/${page.file}`]
+  if (!load) throw new Error(`no SDK page ${version}/${page.file}`)
   return withoutBanner(await load())
 }
 
@@ -132,14 +203,46 @@ export const SDK_CATEGORY_LABEL: Record<SdkCategory, string> = {
   reference: 'Reference',
 }
 
-/** The site path of a page: a package's overview is the package's own path. */
-export function sdkPath(pkg: string, slug = 'overview', anchor = ''): string {
-  const base = slug === 'overview' ? `/docs/sdk/${pkg}` : `/docs/sdk/${pkg}/${slug}`
+/**
+ * The site path of a page at a release: the canonical, version-less
+ * `/docs/sdk/<pkg>[/<slug>]` when that release is the latest (or none is
+ * given), else the pinned `/docs/sdk/<version>/<pkg>[/<slug>]`. A
+ * package's overview is the package's own path.
+ */
+export function sdkPath(pkg: string, slug = 'overview', anchor = '', version?: string): string {
+  const prefix = !version || version === SDK_LATEST.version ? '/docs/sdk' : `/docs/sdk/${version}`
+  const base = slug === 'overview' ? `${prefix}/${pkg}` : `${prefix}/${pkg}/${slug}`
   return anchor ? `${base}#${anchor}` : base
 }
 
-export function sdkPackage(name: string | undefined): SdkPackageMeta | undefined {
-  return SDK_PACKAGES.find((p) => p.name === name)
+/** The pinned path of a page, carrying the version even when it is the latest. */
+export function sdkPinnedPath(version: string, pkg?: string, slug = 'overview'): string {
+  if (!pkg) return `/docs/sdk/${version}`
+  return slug === 'overview' ? `/docs/sdk/${version}/${pkg}` : `/docs/sdk/${version}/${pkg}/${slug}`
+}
+
+/** The SDK landing at a release: `/docs/sdk` for the latest, else `/docs/sdk/<version>`. */
+export function sdkLandingPath(version?: string): string {
+  return !version || version === SDK_LATEST.version ? '/docs/sdk' : `/docs/sdk/${version}`
+}
+
+/**
+ * A canonical in-site SDK link (`/docs/sdk/<pkg>...`, as igni-sdk writes
+ * them in its pages) moved to a pinned release, so a reader of an old
+ * release stays in it. Other links, and links on the latest, are unchanged.
+ */
+export function sdkLinkAt(href: string, version: string): string {
+  if (version === SDK_LATEST.version) return href
+  const m = href.match(/^\/docs\/sdk(\/[^#?]*)?([#?].*)?$/)
+  if (!m) return href
+  const rest = m[1] ?? ''
+  const first = rest.split('/')[1]
+  if (isSdkVersion(first)) return href
+  return `/docs/sdk/${version}${rest}${m[2] ?? ''}`
+}
+
+export function sdkPackage(name: string | undefined, docs: SdkDocs = SDK_LATEST): SdkPackageMeta | undefined {
+  return docs.packages.find((p) => p.name === name)
 }
 
 /**
@@ -152,12 +255,12 @@ export function sdkLabel(pkg: SdkPackageMeta | undefined): string {
 }
 
 /** A package's pages in their order: its guide, then its reference. */
-export function sdkPagesOf(pkg: string): SdkPage[] {
-  return SDK_PAGES.filter((p) => p.package === pkg).sort((a, b) => a.order - b.order)
+export function sdkPagesOf(pkg: string, docs: SdkDocs = SDK_LATEST): SdkPage[] {
+  return docs.pages.filter((p) => p.package === pkg).sort((a, b) => a.order - b.order)
 }
 
-export function sdkPage(pkg: string | undefined, slug: string | undefined): SdkPage | undefined {
-  return SDK_PAGES.find((p) => p.package === pkg && p.slug === (slug ?? 'overview'))
+export function sdkPage(pkg: string | undefined, slug: string | undefined, docs: SdkDocs = SDK_LATEST): SdkPage | undefined {
+  return docs.pages.find((p) => p.package === pkg && p.slug === (slug ?? 'overview'))
 }
 
 export interface SdkHit {
@@ -171,7 +274,7 @@ export interface SdkHit {
  * does — a method (`session.scheduler.list()`) or a model — linking
  * straight to it. Case-insensitive; whitespace alone matches nothing.
  */
-export function searchSdk(query: string, limit = 20): SdkHit[] {
+export function searchSdk(query: string, limit = 20, docs: SdkDocs = SDK_LATEST): SdkHit[] {
   const q = query.trim().toLowerCase()
   if (!q) return []
   const hits: SdkHit[] = []
@@ -181,22 +284,23 @@ export function searchSdk(query: string, limit = 20): SdkHit[] {
     seen.add(hit.path)
     hits.push(hit)
   }
-  for (const page of SDK_PAGES) {
+  const at = docs.version
+  for (const page of docs.pages) {
     if (page.title.toLowerCase().includes(q) || page.description.toLowerCase().includes(q)) {
       add({
-        path: sdkPath(page.package, page.slug),
+        path: sdkPath(page.package, page.slug, '', at),
         title: page.title,
-        context: sdkLabel(sdkPackage(page.package)) || page.package,
+        context: sdkLabel(sdkPackage(page.package, docs)) || page.package,
       })
     }
   }
-  for (const page of SDK_PAGES) {
+  for (const page of docs.pages) {
     for (const section of page.sections) {
       if (section.title.toLowerCase().includes(q)) {
         add({
-          path: sdkPath(page.package, page.slug, section.id),
+          path: sdkPath(page.package, page.slug, section.id, at),
           title: section.title,
-          context: `${sdkLabel(sdkPackage(page.package)) || page.package} · ${page.title}`,
+          context: `${sdkLabel(sdkPackage(page.package, docs)) || page.package} · ${page.title}`,
         })
       }
     }

@@ -105,17 +105,35 @@ export const markdownComponents: Components = {
     return <pre>{children}</pre>
   },
   a({ href, children }) {
-    const to = href ?? ''
-    // A heading on the same page: the browser jumps to it. Opening it in
-    // a new tab, as the external-link branch below would, loses the place.
-    if (to.startsWith('#')) {
-      return <a href={to}>{children}</a>
-    }
-    if (to.startsWith('/') && !to.startsWith('//')) {
-      // The new page opens at its own top; ScrollToTop does that for
-      // every route change, so no link has to.
-      return <Link to={to}>{children}</Link>
-    }
-    return <a href={to} target="_blank" rel="noopener noreferrer">{children}</a>
+    return docLink(href, children)
   },
+}
+
+/** An `<a>` as the docs render it (a plain function, so this module exports no component). */
+function docLink(href: string | undefined, children: React.ReactNode) {
+  const to = href ?? ''
+  // A heading on the same page: the browser jumps to it. Opening it in
+  // a new tab, as the external-link branch below would, loses the place.
+  if (to.startsWith('#')) {
+    return <a href={to}>{children}</a>
+  }
+  if (to.startsWith('/') && !to.startsWith('//')) {
+    // The new page opens at its own top; ScrollToTop does that for
+    // every route change, so no link has to.
+    return <Link to={to}>{children}</Link>
+  }
+  return <a href={to} target="_blank" rel="noopener noreferrer">{children}</a>
+}
+
+/**
+ * The same map with every link's target rewritten first — how a pinned
+ * SDK release keeps its pages' `/docs/sdk/...` links inside it.
+ */
+export function markdownComponentsWith(rewriteHref: (href: string) => string): Components {
+  return {
+    ...markdownComponents,
+    a({ href, children }) {
+      return docLink(href === undefined ? undefined : rewriteHref(href), children)
+    },
+  }
 }

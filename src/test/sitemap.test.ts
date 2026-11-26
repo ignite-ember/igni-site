@@ -101,6 +101,8 @@ describe('the committed sitemap', () => {
     expect(COMMITTED).toContain(`<loc>${ORIGIN}/docs/sdk/extension-bridge</loc>`)
     expect(COMMITTED).toContain(`<loc>${ORIGIN}/docs/sdk/ui-react</loc>`)
     expect(COMMITTED).toContain(`<loc>${ORIGIN}/docs/sdk/ui-css</loc>`)
+    // Only the latest SDK release, version-less: no pinned or `latest` alias page.
+    expect(COMMITTED).not.toMatch(/\/docs\/sdk\/(latest|\d+\.\d+[^/<]*)(\/|<)/)
   })
 
   it('lists the AgentCore comparison', () => {

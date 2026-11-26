@@ -4,7 +4,10 @@
  * also in `mobile-layout.spec.ts`, through `scripts/site-routes.mjs`.)
  */
 import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { test, expect, devices } from '@playwright/test'
+
+import { latestSdkDir } from '../../scripts/sync-docs.mjs'
 
 test.describe('SDK docs', () => {
   test('the docs index leads to a package and its reference', async ({ page }) => {
@@ -94,7 +97,7 @@ test.describe('SDK docs on a phone', () => {
  * check; a table or a code block scrolling inside the article passed it
  * while its fourth column sat off the screen.
  */
-const SDK_INDEX = JSON.parse(readFileSync('src/docs/sdk/index.json', 'utf8')) as {
+const SDK_INDEX = JSON.parse(readFileSync(join(latestSdkDir(), 'index.json'), 'utf8')) as {
   pages: { package: string; slug: string; category: string }[]
 }
 const REFERENCE = SDK_INDEX.pages.filter((p) => p.category === 'reference')
