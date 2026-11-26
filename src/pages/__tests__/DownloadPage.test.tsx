@@ -1,13 +1,9 @@
 /**
- * The download page works, and stays unlisted until somebody decides
- * otherwise.
+ * The download page works, and is public.
  *
- * "Hidden" is four separate facts and nothing connected them, so each
- * is checked here: no link from the landing page, no entry in the
- * sitemap, a `Disallow` in `robots.txt`, and a `noindex` on the page
- * itself. Publishing it should be a deliberate edit that turns these
- * red, not something that happens by accident when somebody adds a
- * nav item.
+ * "Public" is four separate facts, so each is checked here: a link from
+ * the landing page, an entry in the sitemap, no `Disallow` in
+ * `robots.txt`, and no `noindex` on the page itself.
  *
  * The rendering tests do not reach the network. `fetch` is stubbed,
  * including the failing case, because "GitHub is rate-limiting you"
@@ -141,39 +137,30 @@ describe('when GitHub cannot be reached', () => {
   })
 })
 
-describe('it stays unlisted', () => {
+describe('it is public', () => {
   const ROOT = process.cwd()
 
-  it('sets noindex while it is open', async () => {
+  it('sets no noindex', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('x')))
-    const { unmount } = renderPage()
+    renderPage()
 
-    await waitFor(() =>
-      expect(document.head.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe(
-        'noindex, nofollow',
-      ),
-    )
-
-    // And takes it away again, so it cannot leak onto another page.
-    unmount()
+    await screen.findByText(/releases page/)
     expect(document.head.querySelector('meta[name="robots"]')).toBeNull()
   })
 
-  it('is disallowed in robots.txt', () => {
+  it('is not disallowed in robots.txt', () => {
     const robots = readFileSync(join(ROOT, 'public/robots.txt'), 'utf8')
 
-    expect(robots).toContain('Disallow: /download')
+    expect(robots).not.toContain('/download')
   })
 
-  it('is absent from the sitemap', () => {
-    expect(buildSitemap()).not.toContain('/download')
+  it('is in the sitemap', () => {
+    expect(buildSitemap()).toContain('<loc>https://igni.sh/download</loc>')
   })
 
-  it('is not linked from the landing page', () => {
+  it('is linked from the landing page', () => {
     const landing = readFileSync(join(ROOT, 'src/pages/LandingPage.tsx'), 'utf8')
 
-    // The whole point of "hidden for now". Launching it means editing
-    // this test, which is the right amount of friction.
-    expect(landing).not.toContain('/download')
+    expect(landing).toContain('href="/download"')
   })
 })

@@ -4,6 +4,5 @@ Disallow: /dashboard
 Disallow: /team
 Disallow: /billing
 Disallow: /cli-auth
-Disallow: /download
 
 Sitemap: https://igni.sh/sitemap.xml

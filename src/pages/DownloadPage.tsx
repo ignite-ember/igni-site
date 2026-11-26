@@ -1,13 +1,8 @@
 /**
  * Where somebody gets igni.
  *
- * **Unlisted on purpose.** Nothing links here yet — not the landing
- * nav, not the footer, not the sitemap — and `robots.txt` disallows
- * it, with a `noindex` set on mount for the crawlers that run
- * JavaScript. It is a finished page waiting for a decision about
- * launching it, not a draft: anybody given the URL gets the real
- * thing. Making it public is adding one nav link and removing three
- * lines.
+ * Public: the landing page's app section links here, and it is in the
+ * sitemap.
  *
  * ## Where the files come from
  *
@@ -71,20 +66,6 @@ function readCache(): Release | null {
     // Private mode, blocked storage, or something else wrote here.
     return null
   }
-}
-
-/** Keep the page out of an index even if somebody links it. */
-function useNoIndex(): void {
-  useEffect(() => {
-    const meta = document.createElement('meta')
-    meta.name = 'robots'
-    meta.content = 'noindex, nofollow'
-    document.head.appendChild(meta)
-    // `remove()` rather than `removeChild`, which throws if something
-    // else already took the node out — a test harness tidying up
-    // between cases, or a second render in StrictMode.
-    return () => meta.remove()
-  }, [])
 }
 
 function useLatestRelease(): { release: Release | null; failed: boolean } {
@@ -163,7 +144,6 @@ function PlatformCard({
 
 export function DownloadPage() {
   useDocumentTitle('Download igni')
-  useNoIndex()
 
   const { release, failed } = useLatestRelease()
   const platform = useMemo(
