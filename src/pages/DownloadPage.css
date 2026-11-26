@@ -154,8 +154,40 @@
   text-align: left;
 }
 
+/* No icon column: on a phone the card's grid would squeeze the heading. */
+.dl-facts .lp-sec-card {
+  display: block;
+}
+
 .dl-facts .lp-sec-card h4 {
   margin-top: 0;
+}
+
+.dl-installs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap-spacious);
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.dl-install {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--stack-gap-condensed);
+  min-width: 0;
+}
+
+.dl-install-label {
+  font-weight: var(--base-text-weight-semibold);
+}
+
+.dl-install a {
+  color: var(--igni-orange-text);
+  font-size: var(--text-body-size-medium);
 }
 
 .dl-code {
@@ -169,7 +201,7 @@
   border-radius: var(--lp-radius);
   background: var(--bgColor-muted);
   font-family: var(--fontStack-monospace);
-  font-size: var(--text-body-size-large);
+  font-size: var(--text-body-size-medium);
 }
 
 .dl-code svg {
