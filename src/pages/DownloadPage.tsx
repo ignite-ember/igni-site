@@ -48,10 +48,25 @@ import {
   type Platform,
   type ReleaseAsset,
 } from './downloadAssets'
+import { SiteFooter, SiteNav } from './site/SiteChrome'
+import { SectionHead } from './site/Sections'
+import './landing-shared.css'
+import './LandingPage.css'
 import './DownloadPage.css'
-import { HeaderCat } from '../components/HeaderCat'
 
 const CACHE_KEY = 'igni_latest_release'
+
+/** The command line and the SDKs, with where each is documented. */
+const INSTALLS = [
+  { label: 'The igni CLI', command: 'pip install igni-core', docs: '/docs/core', docsLabel: 'CLI documentation' },
+  { label: 'SDK for Python', command: 'pip install igni-client', docs: '/docs/sdk/igni-client', docsLabel: 'SDK documentation' },
+  {
+    label: 'SDK for TypeScript',
+    command: 'npm install @ignite-ember/igni-client',
+    docs: '/docs/sdk/igni-client',
+    docsLabel: 'SDK documentation',
+  },
+]
 
 interface Release {
   tag: string
@@ -165,51 +180,41 @@ export function DownloadPage() {
   const primary = grouped[platform]?.[0]
 
   return (
-    <main className="landing dl">
-      <nav className="landing-nav">
-        <div className="landing-nav-inner">
-          <a href="/" className="landing-nav-brand">
-            <HeaderCat />
-            <h1>igni</h1>
-          </a>
-          <ul className="landing-nav-links">
-            <li>
-              <Link to="/docs">Docs</Link>
-            </li>
-            <li>
-              <a href={RELEASES_URL} className="landing-nav-github">
-                <MarkGithubIcon size={16} /> All releases
-              </a>
-            </li>
-          </ul>
-        </div>
-      </nav>
+    <main className="landing landing--main lp dl">
+      <SiteNav />
 
-      <header className="dl-hero">
-        <h1>Download igni</h1>
-        <p className="dl-lede">
+      <section className="landing-hero dl-hero">
+        <span className="landing-section-label">The igni app</span>
+        <h2>
+          Download <span className="landing-hero-gradient">igni</span>
+        </h2>
+        <p className="landing-hero-sub">
           One application. It brings its own backend — there is no Python to install, no CLI to set
           up, and no server address to type: you sign in with your work email and it finds your
           company's deployment.
         </p>
 
-        {primary ? (
-          <>
-            <a className="dl-btn dl-btn-primary" href={primary.url}>
+        <div className="lp-hero-cta">
+          {primary ? (
+            <a className="landing-btn-primary" href={primary.url}>
               <DesktopDownloadIcon size={20} /> Download for {PLATFORM_LABELS[platform]}
             </a>
-            <p className="dl-hero-meta">
-              {release?.tag && <span>{release.tag}</span>}
-              {humanSize(primary.size) && <span>{humanSize(primary.size)}</span>}
-              <span>
-                <code>.{primary.kind}</code>
-              </span>
-            </p>
-          </>
-        ) : (
-          <a className="dl-btn dl-btn-primary" href={RELEASES_URL}>
-            <DesktopDownloadIcon size={20} /> Get the latest release
+          ) : (
+            <a className="landing-btn-primary" href={RELEASES_URL}>
+              <DesktopDownloadIcon size={20} /> Get the latest release
+            </a>
+          )}
+          <a className="landing-btn-secondary" href={RELEASES_URL}>
+            <MarkGithubIcon size={16} /> All releases
           </a>
+        </div>
+
+        {primary && (
+          <p className="lp-hero-note dl-hero-meta">
+            {release?.tag && <span>{release.tag}</span>}
+            {humanSize(primary.size) && <span>{humanSize(primary.size)}</span>}
+            <code>.{primary.kind}</code>
+          </p>
         )}
 
         {failed && (
@@ -222,10 +227,10 @@ export function DownloadPage() {
             </span>
           </p>
         )}
-      </header>
+      </section>
 
-      <section className="dl-platforms">
-        <h2>Every build</h2>
+      <section className="landing-section dl-section dl-platforms">
+        <SectionHead label="Every build" title="Pick your platform" />
         <div className="dl-grid">
           {order.map((p) => (
             <PlatformCard
@@ -239,23 +244,24 @@ export function DownloadPage() {
         {!release && !failed && <p className="dl-lede">Looking up the latest release…</p>}
       </section>
 
-      <section className="dl-first-run">
-        <h2>What happens the first time you open it</h2>
-        <p className="dl-lede">
+      <section className="landing-section dl-section">
+        <SectionHead label="First launch" title="What happens the first time you open it">
           The app installs its own backend: a pinned Python, the agent, and the model it uses to
           index your project. Two things worth knowing before you start.
-        </p>
-        <ul className="dl-facts">
-          <li>
-            <strong>About 1 GB of free disk.</strong> Checked before anything downloads, because
-            failing at the start is kinder than failing halfway through.
-          </li>
-          <li>
-            <strong>Network access, on the first run only.</strong> After that it starts from its
-            own cache. Nothing about your code leaves your machine — the agent talks to the server
-            your company runs, and to nothing else.
-          </li>
-        </ul>
+        </SectionHead>
+        <div className="dl-facts">
+          <div className="lp-sec-card">
+            <h4>About 1 GB of free disk</h4>
+            <p>Checked before anything downloads, because failing at the start is kinder than failing halfway through.</p>
+          </div>
+          <div className="lp-sec-card">
+            <h4>Network access, on the first run only</h4>
+            <p>
+              After that it starts from its own cache. Nothing about your code leaves your machine —
+              the agent talks to the server your company runs, and to nothing else.
+            </p>
+          </div>
+        </div>
         <p className="dl-lede">
           Then sign in with your work email. If your administrator has published where your igni
           server is, that is the whole setup;{' '}
@@ -266,33 +272,26 @@ export function DownloadPage() {
         </p>
       </section>
 
-      <section className="dl-cli">
-        <h2>
-          <TerminalIcon size={18} /> There is also a CLI
-        </h2>
-        <p className="dl-lede">
+      <section className="landing-section dl-section">
+        <SectionHead label="Command line and SDKs" title="There is also a command line">
           For CI, a pre-commit hook or a scripted batch — not for sitting down and working. It is a
-          single command with three non-interactive modes.
-        </p>
-        <code className="dl-code">pip install ignite-ember</code>
-        <p className="dl-lede">
-          <Link to="/docs">Read the documentation</Link> for what it can do.
-        </p>
+          single command with three non-interactive modes. To drive igni from your own code, there
+          are SDKs for Python and TypeScript.
+        </SectionHead>
+        <div className="dl-installs">
+          {INSTALLS.map((x) => (
+            <div key={x.command} className="dl-install">
+              <span className="dl-install-label">{x.label}</span>
+              <code className="dl-code">
+                <TerminalIcon size={16} /> {x.command}
+              </code>
+              <Link to={x.docs}>{x.docsLabel}</Link>
+            </div>
+          ))}
+        </div>
       </section>
 
-      <footer className="landing-footer">
-        <span className="landing-footer-text">
-          &copy; {new Date().getFullYear()} igni. All rights reserved.
-        </span>
-        <ul className="landing-footer-links">
-          <li>
-            <Link to="/docs">Docs</Link>
-          </li>
-          <li>
-            <a href={RELEASES_URL}>All releases</a>
-          </li>
-        </ul>
-      </footer>
+      <SiteFooter />
     </main>
   )
 }

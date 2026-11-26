@@ -101,7 +101,7 @@ describe('with a release to show', () => {
     const { container } = renderPage()
 
     await waitFor(() => expect(screen.getByText('Windows')).toBeInTheDocument())
-    expect(container.textContent).toContain('pip install ignite-ember')
+    expect(container.textContent).toContain('pip install igni-core')
   })
 
   it('says what the first launch needs', async () => {

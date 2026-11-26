@@ -1,123 +1,57 @@
 /**
  * The download page.
  *
- * Shares the landing page's shell — `.landing`, `.landing-nav`,
- * `.landing-footer` — so the two read as one site, and owns
- * everything inside it. Primer tokens throughout rather than the
- * landing page's brand palette: this page is a utility, and the job
- * is "find your file and go", not atmosphere.
- *
- * One deliberate exception to the quietness: the primary button is
- * the only accent-filled element on the page. Everything else is a
- * border and a label, so the thing most visitors came for is the
- * thing their eye lands on.
+ * Built from the landing page's own pieces: the shared nav and footer, the
+ * hero, the orange primary button, the section heads and the cards. What
+ * this file adds is the platform grid and its rows. The one accent is the
+ * igni orange: the card for the visitor's own system, its badge, a row
+ * under the pointer.
  */
 
-.dl {
-  display: flex;
-  flex-direction: column;
-  gap: var(--stack-gap-spacious, 24px);
-}
-
-.dl h2 {
-  font-size: var(--text-title-size-medium, 20px);
-  font-weight: var(--base-text-weight-semibold, 600);
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: var(--stack-gap-condensed, 8px);
-}
-
-.dl h3 {
-  font-size: var(--text-body-size-medium, 14px);
-  font-weight: var(--base-text-weight-semibold, 600);
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: var(--stack-gap-condensed, 8px);
-}
-
-.dl-lede {
-  color: var(--fgColor-muted);
-  line-height: 1.65;
-  max-width: 62ch;
-  margin: 0;
-}
-
-.dl section {
-  width: min(100%, 980px);
-  margin-inline: auto;
-  padding-inline: var(--base-size-24, 24px);
-  display: flex;
-  flex-direction: column;
-  gap: var(--stack-gap-normal, 16px);
-}
-
-/* ── Hero ──────────────────────────────────────────────────────── */
-
 .dl-hero {
-  width: min(100%, 980px);
-  margin-inline: auto;
-  padding: var(--base-size-40, 40px) var(--base-size-24, 24px) var(--base-size-16, 16px);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--stack-gap-normal, 16px);
+  padding-bottom: var(--base-size-48);
 }
 
-.dl-hero h1 {
-  font-size: var(--text-display-size, 40px);
-  font-weight: var(--base-text-weight-semibold, 600);
-  letter-spacing: -0.02em;
-  margin: 0;
-  text-wrap: balance;
+.dl-hero h2 {
+  margin-bottom: var(--base-size-24);
 }
 
 .dl-hero-meta {
   display: flex;
-  gap: var(--stack-gap-normal, 16px);
-  color: var(--fgColor-muted);
-  font-size: var(--text-body-size-small, 12px);
-  margin: 0;
+  justify-content: center;
+  gap: var(--stack-gap-normal);
   font-variant-numeric: tabular-nums;
 }
 
-/* ── Buttons ───────────────────────────────────────────────────── */
-
-.dl-btn {
+.dl-warn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--stack-gap-condensed, 8px);
-  border-radius: var(--borderRadius-medium, 6px);
-  font-weight: var(--base-text-weight-semibold, 600);
-  text-decoration: none;
-  transition: background-color 120ms ease, border-color 120ms ease;
-}
-
-.dl-btn-primary {
-  background: var(--bgColor-accent-emphasis, #0969da);
-  color: var(--fgColor-onEmphasis, #fff);
-  padding: var(--base-size-12, 12px) var(--base-size-24, 24px);
-  font-size: var(--text-body-size-large, 16px);
-}
-
-.dl-btn-primary:hover {
-  background: var(--button-primary-bgColor-hover, #0860ca);
-}
-
-.dl-btn:focus-visible {
-  outline: var(--borderWidth-thick, 2px) solid var(--fgColor-accent);
-  outline-offset: var(--borderWidth-thick, 2px);
-}
-
-.dl-warn {
-  display: flex;
-  align-items: center;
-  gap: var(--stack-gap-condensed, 8px);
+  gap: var(--stack-gap-condensed);
+  margin: var(--base-size-16) 0 0;
   color: var(--fgColor-attention);
-  font-size: var(--text-body-size-small, 12px);
-  margin: 0;
+  font-size: var(--text-body-size-medium);
+}
+
+.dl-warn a {
+  color: inherit;
+}
+
+.dl-section {
+  padding-top: var(--base-size-48);
+  padding-bottom: var(--base-size-48);
+  border-top: var(--borderWidth-thin) solid var(--borderColor-muted);
+  text-align: center;
+}
+
+.dl-lede {
+  max-width: 62ch;
+  margin: var(--base-size-24) auto 0;
+  color: var(--fgColor-muted);
+  line-height: 1.65;
+}
+
+.dl-lede a {
+  color: var(--igni-orange-text);
 }
 
 /* ── Platform cards ────────────────────────────────────────────── */
@@ -128,29 +62,43 @@
      macOS rows sit in a box half of which was empty. */
   align-items: start;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: var(--stack-gap-normal, 16px);
+  gap: var(--stack-gap-normal);
+  max-width: 1120px;
+  margin: 0 auto;
+  text-align: left;
 }
 
 .dl-card {
-  border: var(--borderWidth-thin, 1px) solid var(--borderColor-default);
-  border-radius: var(--borderRadius-medium, 6px);
-  padding: var(--base-size-16, 16px);
   display: flex;
   flex-direction: column;
-  gap: var(--stack-gap-condensed, 8px);
+  gap: var(--stack-gap-condensed);
+  padding: var(--base-size-24);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--lp-radius);
+  background-color: var(--bgColor-muted);
 }
 
 .dl-card-primary {
-  border-color: var(--fgColor-accent);
+  border-color: var(--igni-orange);
+  box-shadow: 0 0 0 var(--borderWidth-thin) var(--igni-orange);
+}
+
+.dl-card h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--stack-gap-condensed);
+  margin: 0;
+  font-size: var(--text-body-size-large);
+  font-weight: var(--base-text-weight-semibold);
 }
 
 .dl-badge {
-  font-size: var(--text-body-size-small, 12px);
-  font-weight: var(--base-text-weight-normal, 400);
-  color: var(--fgColor-accent);
-  border: var(--borderWidth-thin, 1px) solid var(--fgColor-accent);
-  border-radius: var(--borderRadius-full, 999px);
-  padding: 0 var(--base-size-8, 8px);
+  padding: 0 var(--base-size-8);
+  border: var(--borderWidth-thin) solid var(--igni-orange);
+  border-radius: var(--borderRadius-full);
+  color: var(--igni-orange-text);
+  font-size: var(--text-body-size-small);
+  font-weight: var(--base-text-weight-semibold);
 }
 
 .dl-rows {
@@ -162,11 +110,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--stack-gap-normal, 16px);
-  padding: var(--base-size-8, 8px) 0;
-  text-decoration: none;
+  gap: var(--stack-gap-normal);
+  padding: var(--base-size-12) 0;
+  border-bottom: var(--borderWidth-thin) solid var(--borderColor-muted);
   color: var(--fgColor-default);
-  border-bottom: var(--borderWidth-thin, 1px) solid var(--borderColor-muted);
+  text-decoration: none;
 }
 
 .dl-row:last-child {
@@ -174,16 +122,21 @@
 }
 
 .dl-row:hover .dl-row-label {
-  color: var(--fgColor-accent);
+  color: var(--igni-orange-text);
   text-decoration: underline;
+}
+
+.dl-row:focus-visible {
+  outline: var(--borderWidth-thick) solid var(--igni-orange);
+  outline-offset: var(--borderWidth-thick);
 }
 
 .dl-row-meta {
   display: flex;
   align-items: center;
-  gap: var(--stack-gap-condensed, 8px);
+  gap: var(--stack-gap-condensed);
   color: var(--fgColor-muted);
-  font-size: var(--text-body-size-small, 12px);
+  font-size: var(--text-body-size-small);
 }
 
 .dl-row-size {
@@ -192,59 +145,82 @@
 
 /* ── First run, CLI ────────────────────────────────────────────── */
 
-.dl-code {
-  display: block;
-  overflow-x: auto;
-  background: var(--bgColor-muted);
-  border: var(--borderWidth-thin, 1px) solid var(--borderColor-default);
-  border-radius: var(--borderRadius-medium, 6px);
-  padding: var(--base-size-8, 8px) var(--base-size-12, 12px);
-  font-family: var(--fontStack-monospace, ui-monospace, monospace);
-  font-size: var(--text-body-size-small, 12px);
-  align-self: flex-start;
-  max-width: 100%;
+.dl-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--stack-gap-normal);
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: left;
 }
 
-.dl-facts {
-  margin: 0;
-  padding-left: var(--base-size-20, 20px);
+/* No icon column: on a phone the card's grid would squeeze the heading. */
+.dl-facts .lp-sec-card {
+  display: block;
+}
+
+.dl-facts .lp-sec-card h4 {
+  margin-top: 0;
+}
+
+.dl-installs {
   display: flex;
   flex-direction: column;
-  gap: var(--stack-gap-condensed, 8px);
-  color: var(--fgColor-muted);
-  line-height: 1.65;
-  max-width: 62ch;
+  gap: var(--stack-gap-spacious);
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  text-align: left;
 }
 
-.dl-facts strong {
-  color: var(--fgColor-default);
+.dl-install {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--stack-gap-condensed);
+  min-width: 0;
 }
 
-.dl-first-run,
-.dl-cli {
-  border-top: var(--borderWidth-thin, 1px) solid var(--borderColor-muted);
-  padding-top: var(--base-size-24, 24px);
+.dl-install-label {
+  font-weight: var(--base-text-weight-semibold);
 }
 
-.dl .landing-footer {
-  margin-top: var(--base-size-24, 24px);
+.dl-install a {
+  color: var(--igni-orange-text);
+  font-size: var(--text-body-size-medium);
 }
 
-@media (max-width: 600px) {
-  .dl-hero h1 {
-    font-size: var(--text-title-size-large, 32px);
-  }
+.dl-code {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--stack-gap-condensed);
+  max-width: 100%;
+  overflow-x: auto;
+  padding: var(--base-size-12) var(--base-size-20);
+  border: var(--borderWidth-thin) solid var(--borderColor-default);
+  border-radius: var(--lp-radius);
+  background: var(--bgColor-muted);
+  font-family: var(--fontStack-monospace);
+  font-size: var(--text-body-size-medium);
 }
 
-/* Phones: the site's 16px gutter, and rows and buttons a thumb can hit. */
+.dl-code svg {
+  color: var(--igni-orange-text);
+}
+
+/* Phones: one fact per row, and rows a thumb can hit. */
 @media (max-width: 640px) {
-  .dl section,
-  .dl-hero {
-    padding-inline: var(--base-size-16, var(--base-size-16));
+  .dl-facts {
+    grid-template-columns: 1fr;
   }
 
-  .dl-row,
-  .dl-btn {
+  .dl-row {
+    min-height: var(--base-size-44);
+  }
+
+  .dl-install a {
+    display: inline-flex;
+    align-items: center;
     min-height: var(--base-size-44);
   }
 }

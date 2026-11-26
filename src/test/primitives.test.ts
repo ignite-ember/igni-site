@@ -94,7 +94,7 @@ const CEILINGS: Record<string, number> = {
   // property at all. Every colour in this file is a token. +1 on
   // 2026-11-03: the phone breakpoint. −1 on 2026-11-04: the IDE
   // plugin cards, and their grid minimum, went (decision D19).
-  'pages/DownloadPage.css': 5,
+  'pages/DownloadPage.css': 4,
   // Three breakpoints (the third, 2026-11-03, for the phone pass),
   // which a `@media` condition cannot take from a
   // custom property, and the 1px box of the standard visually-hidden
